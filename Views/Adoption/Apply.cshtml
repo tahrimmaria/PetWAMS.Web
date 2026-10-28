@@ -1,0 +1,509 @@
+@using Microsoft.EntityFrameworkCore
+@using PetWAMS.Web.Models
+@model PetWAMS.Web.Models.Pet
+
+@inject PetWAMS.Web.Data.PetWamsDbContext Db
+
+@{
+    Layout = null;
+
+    string errorMessage = TempData["Error"]?.ToString() ?? "";
+    string successMessage = ViewBag.SuccessMessage?.ToString() ?? "";
+    string infoMessage = ViewBag.InfoMessage?.ToString() ?? "";
+
+    bool requestSubmitted = false;
+
+    if (ViewBag.RequestSubmitted != null)
+    {
+        requestSubmitted = Convert.ToBoolean(ViewBag.RequestSubmitted);
+    }
+
+    string petImagePath = "";
+
+    if (Model != null)
+    {
+        var petImage = await Db.PetImages
+            .AsNoTracking()
+            .Where(i => i.PetID == Model.PetID)
+            .OrderByDescending(i => i.IsPrimary)
+            .ThenBy(i => i.PetImageID)
+            .FirstOrDefaultAsync();
+
+        if (petImage != null && !string.IsNullOrWhiteSpace(petImage.ImagePath))
+        {
+            petImagePath = petImage.ImagePath;
+        }
+    }
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Apply for Adoption — PetHope</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+            :root {
+                --purple: #7B2FF7;
+                --purple-dark: #5A1FB8;
+                --purple-light: #F2E9FE;
+                --bg: #f8f5fb;
+                --text: #24142e;
+                --muted: #756a7c;
+                --line: #eee7f4;
+                --card: #ffffff;
+                --green-bg: #E7F8EC;
+                --green: #258447;
+                --red-bg: #FDE7EA;
+                --red: #C23E52;
+                --yellow-bg: #FFF4D9;
+                --yellow: #A46B00;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                background: radial-gradient(circle at top left, rgba(123,47,247,.10), transparent 34%), radial-gradient(circle at bottom right, rgba(179,131,245,.14), transparent 34%), var(--bg);
+                color: var(--text);
+                font-family: 'DM Sans', Arial, sans-serif;
+                min-height: 100vh;
+            }
+
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
+
+            .page {
+                max-width: 980px;
+                margin: 0 auto;
+                padding: 10px 24px 70px;
+            }
+
+            .hero {
+                background: linear-gradient(135deg, #321957 0%, #5A1FB8 48%, var(--purple) 100%);
+                border-radius: 28px;
+                padding: 42px;
+                color: #ffffff;
+                margin: 18px 0 26px;
+                box-shadow: 0 16px 42px rgba(90,31,184,.16);
+            }
+
+                .hero h1 {
+                    font-family: 'Fraunces', Georgia, serif;
+                    font-size: 44px;
+                    font-weight: 800;
+                    margin-bottom: 12px;
+                }
+
+                .hero p {
+                    font-size: 16px;
+                    font-weight: 700;
+                    color: rgba(255,255,255,.90);
+                    line-height: 1.6;
+                }
+
+            .message {
+                padding: 16px 20px;
+                border-radius: 16px;
+                font-weight: 900;
+                margin-bottom: 20px;
+                line-height: 1.5;
+            }
+
+                .message.error {
+                    background: var(--red-bg);
+                    color: var(--red);
+                }
+
+                .message.success {
+                    background: var(--green-bg);
+                    color: var(--green);
+                }
+
+                .message.info {
+                    background: var(--yellow-bg);
+                    color: var(--yellow);
+                }
+
+            .card {
+                background: var(--card);
+                border: 1px solid var(--line);
+                border-radius: 26px;
+                padding: 34px;
+                box-shadow: 0 10px 30px rgba(36,20,46,.055);
+            }
+
+            .pet-box {
+                display: grid;
+                grid-template-columns: 210px 1fr;
+                gap: 24px;
+                align-items: center;
+                margin-bottom: 28px;
+                padding-bottom: 26px;
+                border-bottom: 1px solid var(--line);
+            }
+
+            .pet-img {
+                width: 100%;
+                height: 180px;
+                border-radius: 22px;
+                background: var(--purple-light);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--purple);
+                font-size: 50px;
+                overflow: hidden;
+            }
+
+                .pet-img img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+
+            .pet-info h2 {
+                font-size: 30px;
+                font-weight: 900;
+                margin-bottom: 10px;
+            }
+
+            .tag-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 9px;
+                margin-bottom: 12px;
+            }
+
+            .tag {
+                background: var(--purple-light);
+                color: var(--purple);
+                padding: 8px 13px;
+                border-radius: 999px;
+                font-size: 13px;
+                font-weight: 900;
+            }
+
+            .pet-desc {
+                color: var(--muted);
+                font-weight: 700;
+                line-height: 1.6;
+            }
+
+            .card h3 {
+                font-size: 25px;
+                font-weight: 900;
+                margin-bottom: 8px;
+            }
+
+            .card-note {
+                color: var(--muted);
+                font-weight: 700;
+                line-height: 1.6;
+                margin-bottom: 20px;
+            }
+
+            label {
+                display: block;
+                font-weight: 900;
+                margin-bottom: 8px;
+            }
+
+            textarea {
+                width: 100%;
+                min-height: 140px;
+                border: 1px solid #ddd3e7;
+                border-radius: 18px;
+                padding: 16px;
+                font-family: inherit;
+                font-size: 15px;
+                font-weight: 700;
+                color: var(--text);
+                outline: none;
+                resize: vertical;
+            }
+
+                textarea:focus {
+                    border-color: var(--purple);
+                    box-shadow: 0 0 0 4px rgba(123,47,247,.08);
+                }
+
+            .hint {
+                color: var(--muted);
+                font-size: 14px;
+                font-weight: 700;
+                margin-top: 10px;
+                line-height: 1.5;
+            }
+
+            .action-row {
+                display: flex;
+                justify-content: flex-end;
+                gap: 14px;
+                margin-top: 24px;
+                flex-wrap: wrap;
+            }
+
+            .btn {
+                border: none;
+                border-radius: 999px;
+                padding: 14px 26px;
+                font-family: inherit;
+                font-size: 15px;
+                font-weight: 900;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 170px;
+            }
+
+                .btn.cancel {
+                    background: var(--purple-light);
+                    color: var(--purple);
+                }
+
+                .btn.primary {
+                    background: var(--purple);
+                    color: #ffffff;
+                    box-shadow: 0 10px 24px rgba(123,47,247,.20);
+                }
+
+                    .btn.primary:hover {
+                        background: var(--purple-dark);
+                    }
+
+            .success-card {
+                text-align: center;
+                padding: 36px 24px;
+            }
+
+            .success-icon {
+                width: 76px;
+                height: 76px;
+                background: var(--green-bg);
+                color: var(--green);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 36px;
+                margin: 0 auto 18px;
+            }
+
+            .success-card h2 {
+                font-size: 30px;
+                font-weight: 900;
+                margin-bottom: 10px;
+            }
+
+            .success-card p {
+                color: var(--muted);
+                font-weight: 700;
+                line-height: 1.6;
+                margin-bottom: 22px;
+            }
+
+            @@media (max-width: 760px) {
+                .page {
+                    padding: 8px 22px 55px;
+                }
+
+                .hero {
+                    padding: 32px 24px;
+                    border-radius: 24px;
+                }
+
+                    .hero h1 {
+                        font-size: 34px;
+                    }
+
+                .card {
+                    padding: 24px;
+                }
+
+                .pet-box {
+                    grid-template-columns: 1fr;
+                }
+
+                .action-row {
+                    flex-direction: column;
+                }
+
+                .btn {
+                    width: 100%;
+                }
+            }
+    </style>
+</head>
+
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+    <main class="page">
+
+        <section class="hero">
+            <h1>Apply for Adoption</h1>
+            <p>
+                Submit your adoption request. Shelter will review your request and approve if everything is suitable.
+            </p>
+        </section>
+
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <div class="message error">
+                @errorMessage
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(successMessage))
+        {
+            <div class="message success">
+                @successMessage
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(infoMessage))
+        {
+            <div class="message info">
+                @infoMessage
+            </div>
+        }
+
+        @if (Model == null)
+        {
+            <section class="card success-card">
+                <div class="success-icon">!</div>
+
+                <h2>Pet not found</h2>
+
+                <p>
+                    This pet is not available now. Please select another available pet from Browse Pets.
+                </p>
+
+                <a href="/Pets" class="btn primary">
+                    Browse Pets
+                </a>
+            </section>
+        }
+        else if (requestSubmitted)
+        {
+            <section class="card success-card">
+                <div class="success-icon">✓</div>
+
+                <h2>Request Submitted</h2>
+
+                <p>
+                    Your adoption request for <strong>@Model.PetName</strong> has been submitted successfully.
+                    Please wait for shelter approval.
+                </p>
+
+                <div class="action-row" style="justify-content:center;">
+                    <a href="/Adopter" class="btn primary">
+                        Go to Dashboard
+                    </a>
+
+                    <a href="/Pets" class="btn cancel">
+                        Browse More Pets
+                    </a>
+                </div>
+            </section>
+        }
+        else
+        {
+            <section class="card">
+
+                <div class="pet-box">
+
+                    <div class="pet-img">
+                        @if (!string.IsNullOrWhiteSpace(petImagePath))
+                        {
+                            <img src="@petImagePath" alt="@Model.PetName" />
+                        }
+                        else
+                        {
+                            <span>🐾</span>
+                        }
+                    </div>
+
+                    <div class="pet-info">
+                        <h2>@Model.PetName</h2>
+
+                        <div class="tag-row">
+                            <span class="tag">@(Model.Category?.CategoryName ?? "Pet")</span>
+                            <span class="tag">@Model.Breed</span>
+                            <span class="tag">@Model.Gender</span>
+                            <span class="tag">@Model.Status</span>
+                        </div>
+
+                        <p class="pet-desc">
+                            @(string.IsNullOrWhiteSpace(Model.Description)
+                                ? "This pet is waiting for a loving home."
+                                : Model.Description)
+                        </p>
+                    </div>
+
+                </div>
+
+                <h3>Adoption Request Details</h3>
+
+                <p class="card-note">
+                    Tell the shelter why you want to adopt this pet.
+                </p>
+
+                <form action="/Adoption/Apply" method="post" id="adoptionForm">
+
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden" name="petId" value="@Model.PetID" />
+
+                    <label>Why do you want to adopt this pet?</label>
+
+                    <textarea name="reason"
+                              placeholder="Example: I can provide a safe home, regular food, care, and love for this pet."
+                              required></textarea>
+
+                    <div class="hint">
+                        After submitting, your request will be reviewed by shelter.
+                    </div>
+
+                    <div class="action-row">
+                        <a href="/Pets" class="btn cancel">
+                            Cancel
+                        </a>
+
+                        <button type="submit" class="btn primary" id="submitBtn">
+                            Submit Application
+                        </button>
+                    </div>
+
+                </form>
+
+            </section>
+        }
+
+    </main>
+
+    <script>
+            const form = document.getElementById("adoptionForm");
+            const submitBtn = document.getElementById("submitBtn");
+
+            if (form && submitBtn) {
+                form.addEventListener("submit", function() {
+                    submitBtn.disabled = true;
+                    submitBtn.innerText = "Submitting...";
+                });
+            }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,484 @@
+﻿@model List<PetWAMS.Web.Models.PetShopCartItem>
+
+@{
+    Layout = null;
+
+    decimal totalAmount = 0;
+
+    if (ViewBag.TotalAmount != null)
+    {
+        totalAmount = (decimal)ViewBag.TotalAmount;
+    }
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cart — PetHope</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+            :root {
+                --purple: #7B2FF7;
+                --purple-dark: #5A1FB8;
+                --purple-light: #F2E9FE;
+                --bg: #f8f5fb;
+                --text: #24142e;
+                --muted: #756a7c;
+                --line: #eee7f4;
+                --green-bg: #E7F8EC;
+                --green: #258447;
+                --red-bg: #FDE7EA;
+                --red: #C23E52;
+                --yellow-bg: #FFF4D9;
+                --yellow: #A46B00;
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                background: var(--bg);
+                color: var(--text);
+                font-family: 'DM Sans', Arial, sans-serif;
+                min-height: 100vh;
+            }
+
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
+
+            .container {
+                width: 100%;
+                max-width: 1120px;
+                margin: 0 auto;
+                padding: 8px 24px 70px;
+            }
+
+            .cart-actions-bar {
+                display: flex;
+                justify-content: flex-end;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+                margin-bottom: 26px;
+            }
+
+            .nav-btn {
+                background: var(--purple-light);
+                color: var(--purple);
+                padding: 13px 22px;
+                border-radius: 999px;
+                font-weight: 900;
+                min-height: 46px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 8px 20px rgba(36,20,46,.04);
+                transition: .2s ease;
+            }
+
+                .nav-btn:hover {
+                    background: #eadbff;
+                    color: var(--purple);
+                    transform: translateY(-1px);
+                }
+
+                .nav-btn.primary {
+                    background: var(--purple);
+                    color: #ffffff;
+                    box-shadow: 0 10px 24px rgba(123,47,247,.20);
+                }
+
+                    .nav-btn.primary:hover {
+                        background: var(--purple-dark);
+                        color: #ffffff;
+                    }
+
+            .page-title {
+                font-family: 'Fraunces', Georgia, serif;
+                font-size: 38px;
+                margin: 0 0 10px;
+                color: var(--text);
+            }
+
+            .subtitle {
+                color: var(--muted);
+                font-weight: 700;
+                line-height: 1.6;
+                margin-bottom: 26px;
+            }
+
+            .success,
+            .error {
+                padding: 14px 18px;
+                border-radius: 14px;
+                font-weight: 800;
+                margin-bottom: 14px;
+            }
+
+            .success {
+                background: var(--green-bg);
+                color: var(--green);
+            }
+
+            .error {
+                background: var(--red-bg);
+                color: var(--red);
+            }
+
+            .policy-box {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 18px;
+                padding: 18px;
+                margin-bottom: 22px;
+                color: var(--muted);
+                font-weight: 700;
+                line-height: 1.7;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+            }
+
+                .policy-box strong {
+                    color: var(--text);
+                }
+
+            .cart-card {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 20px;
+                overflow: hidden;
+                box-shadow: 0 8px 25px rgba(36,20,46,.05);
+            }
+
+            .table-wrap {
+                overflow-x: auto;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                min-width: 850px;
+            }
+
+            th {
+                background: #F3EDFB;
+                text-align: left;
+                padding: 16px;
+                font-weight: 900;
+                white-space: nowrap;
+                color: var(--text);
+            }
+
+            td {
+                padding: 16px;
+                border-top: 1px solid #eeeeee;
+                vertical-align: middle;
+            }
+
+            .product-name {
+                font-weight: 900;
+                margin-bottom: 4px;
+                color: var(--text);
+            }
+
+            .muted {
+                color: var(--muted);
+                font-weight: 600;
+                font-size: 14px;
+            }
+
+            .price {
+                font-weight: 900;
+                color: var(--green);
+            }
+
+            .stock-low {
+                color: var(--red);
+                font-weight: 900;
+                font-size: 13px;
+                margin-top: 4px;
+            }
+
+            .qty-actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .small-btn {
+                border: none;
+                background: var(--purple-light);
+                color: var(--purple);
+                padding: 8px 13px;
+                border-radius: 10px;
+                cursor: pointer;
+                font-weight: 900;
+                font-family: inherit;
+                font-size: 15px;
+                transition: .2s ease;
+            }
+
+                .small-btn:hover {
+                    background: #eadbff;
+                }
+
+            .qty-number {
+                min-width: 28px;
+                text-align: center;
+                font-weight: 900;
+            }
+
+            .remove-btn {
+                border: none;
+                background: var(--red-bg);
+                color: var(--red);
+                padding: 9px 13px;
+                border-radius: 10px;
+                cursor: pointer;
+                font-weight: 900;
+                font-family: inherit;
+            }
+
+                .remove-btn:hover {
+                    background: #fbd5dc;
+                }
+
+            .summary {
+                margin-top: 24px;
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 20px;
+                padding: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 18px;
+                flex-wrap: wrap;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+            }
+
+            .total-label {
+                color: var(--muted);
+                font-weight: 700;
+                margin-bottom: 4px;
+            }
+
+            .total {
+                font-size: 26px;
+                font-weight: 900;
+                color: var(--text);
+            }
+
+            .checkout-btn {
+                background: var(--purple);
+                color: #ffffff;
+                padding: 15px 26px;
+                border-radius: 999px;
+                font-weight: 900;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 10px 24px rgba(123,47,247,.20);
+                transition: .2s ease;
+            }
+
+                .checkout-btn:hover {
+                    background: var(--purple-dark);
+                    color: #ffffff;
+                    transform: translateY(-1px);
+                }
+
+            .empty {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 20px;
+                padding: 34px;
+                color: var(--muted);
+                font-weight: 800;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+            }
+
+                .empty a {
+                    color: var(--purple);
+                    font-weight: 900;
+                }
+
+            @@media (max-width: 750px) {
+                .container {
+                    padding: 8px 22px 60px;
+                }
+
+                .cart-actions-bar {
+                    justify-content: flex-start;
+                }
+
+                .nav-btn {
+                    flex: 1;
+                    padding: 12px 15px;
+                    font-size: 14px;
+                }
+
+                .page-title {
+                    font-size: 31px;
+                }
+
+                .summary {
+                    align-items: flex-start;
+                }
+
+                .checkout-btn {
+                    width: 100%;
+                }
+            }
+    </style>
+</head>
+
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+    <div class="container">
+
+        <div class="cart-actions-bar">
+            <a href="/PetCareShop" class="nav-btn">Back to Shop</a>
+            <a href="/PetCareShop/MyOrders" class="nav-btn primary">My Orders</a>
+        </div>
+
+        <h1 class="page-title">My Cart</h1>
+
+        <p class="subtitle">
+            Review your discounted pet care items before checkout.
+        </p>
+
+        <div class="policy-box">
+            <strong>Cart Policy:</strong>
+            User cannot order more than available stock. Quantity increase checks stock limit.
+            During checkout, the system again checks product approval, stock availability and discount validity.
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="success">@TempData["Success"]</div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="error">@TempData["Error"]</div>
+        }
+
+        @if (Model == null || Model.Count == 0)
+        {
+            <div class="empty">
+                Your cart is empty.
+                <a href="/PetCareShop">Go to Pet Care Shop</a>
+            </div>
+        }
+        else
+        {
+            <div class="cart-card">
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Discount Price</th>
+                                <th>Stock</th>
+                                <th>Quantity</th>
+                                <th>Line Total</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                var product = item.Product;
+                                decimal price = product?.DiscountPrice ?? 0;
+                                decimal lineTotal = price * item.Quantity;
+                                int stock = product?.StockQuantity ?? 0;
+
+                                <tr>
+                                    <td>
+                                        <div class="product-name">
+                                            @(product?.ProductName ?? "Unknown Product")
+                                        </div>
+
+                                        <div class="muted">
+                                            @(product?.ProductCategory ?? "")
+                                            •
+                                            @(product?.PetType ?? "")
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <span class="price">৳@price.ToString("0.00")</span>
+                                    </td>
+
+                                    <td>
+                                        <strong>@stock</strong>
+
+                                        @if (product != null && product.StockQuantity <= product.LowStockLimit)
+                                        {
+                                            <div class="stock-low">Low Stock</div>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <div class="qty-actions">
+                                            <form action="/PetCareShop/DecreaseQuantity" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="cartItemId" value="@item.CartItemID" />
+                                                <button type="submit" class="small-btn">−</button>
+                                            </form>
+
+                                            <div class="qty-number">@item.Quantity</div>
+
+                                            <form action="/PetCareShop/IncreaseQuantity" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="cartItemId" value="@item.CartItemID" />
+                                                <button type="submit" class="small-btn">+</button>
+                                            </form>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <strong>৳@lineTotal.ToString("0.00")</strong>
+                                    </td>
+
+                                    <td>
+                                        <form action="/PetCareShop/RemoveFromCart" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="cartItemId" value="@item.CartItemID" />
+                                            <button type="submit" class="remove-btn">Remove</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="summary">
+                <div>
+                    <div class="total-label">Total Payable</div>
+                    <div class="total">৳@totalAmount.ToString("0.00")</div>
+                </div>
+
+                <a href="/PetCareShop/Checkout" class="checkout-btn">
+                    Proceed to Checkout
+                </a>
+            </div>
+        }
+
+    </div>
+
+</body>
+</html>

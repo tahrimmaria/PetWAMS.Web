@@ -1,0 +1,1413 @@
+﻿@model PetWAMS.Web.ViewModels.AdminAdopterVerificationViewModel
+
+@{
+    Layout = null;
+    ViewData["Title"] = "Verification Details";
+
+    string status =
+        Model.VerificationStatus
+        ?? string.Empty;
+
+    bool isPending =
+        status.Equals(
+            "Pending",
+            StringComparison.OrdinalIgnoreCase);
+
+    bool isVerified =
+        status.Equals(
+            "Verified",
+            StringComparison.OrdinalIgnoreCase);
+
+    bool isRejected =
+        status.Equals(
+            "Rejected",
+            StringComparison.OrdinalIgnoreCase);
+
+    string statusClass =
+        isVerified
+            ? "status-verified"
+            : isRejected
+                ? "status-rejected"
+                : "status-pending";
+
+    string successMessage =
+        ViewBag.SuccessMessage?.ToString()
+        ?? string.Empty;
+
+    string errorMessage =
+        ViewBag.ErrorMessage?.ToString()
+        ?? string.Empty;
+
+    string decryptionError =
+        ViewBag.DecryptionError?.ToString()
+        ?? string.Empty;
+
+    string linkError =
+        ViewBag.LinkError?.ToString()
+        ?? string.Empty;
+
+    bool canRevealFullNid =
+        !string.IsNullOrWhiteSpace(Model.FullNID)
+        && !Model.FullNID.Equals(
+            "Unable to decrypt",
+            StringComparison.OrdinalIgnoreCase);
+
+    int? requestId = null;
+
+    if (ViewBag.RequestID != null)
+    {
+        requestId =
+            Convert.ToInt32(
+                ViewBag.RequestID);
+    }
+
+    int? petId = null;
+
+    if (ViewBag.PetID != null)
+    {
+        petId =
+            Convert.ToInt32(
+                ViewBag.PetID);
+    }
+
+    string petName =
+        ViewBag.PetName?.ToString()
+        ?? string.Empty;
+
+    string requestStatus =
+        ViewBag.RequestStatus?.ToString()
+        ?? string.Empty;
+
+    DateTime? requestDate = null;
+
+    if (ViewBag.RequestDate is DateTime date)
+    {
+        requestDate = date;
+    }
+
+    bool hasLinkedRequest =
+        requestId.HasValue;
+
+    bool requestIsPending =
+        requestStatus.Equals(
+            "Pending",
+            StringComparison.OrdinalIgnoreCase);
+
+    bool requestIsApproved =
+        requestStatus.Equals(
+            "Approved",
+            StringComparison.OrdinalIgnoreCase);
+
+    bool requestIsRejected =
+        requestStatus.Equals(
+            "Rejected",
+            StringComparison.OrdinalIgnoreCase);
+
+    string requestStatusClass =
+        requestIsApproved
+            ? "request-approved"
+            : requestIsRejected
+                ? "request-rejected"
+                : "request-pending";
+
+    bool canMakeDecision =
+        hasLinkedRequest
+            ? requestIsPending
+                && (isPending || isVerified)
+            : isPending;
+
+    string approveButtonText =
+        hasLinkedRequest
+            ? isPending
+                ? "Verify Identity & Approve Adoption"
+                : "Approve Adoption Request"
+            : "Verify Identity";
+
+    string rejectButtonText =
+        hasLinkedRequest
+            ? isPending
+                ? "Reject Identity & Adoption"
+                : "Reject Adoption Request"
+            : "Reject Verification";
+
+    string approveConfirmation =
+        hasLinkedRequest
+            ? "Approve this identity and adoption request?"
+            : "Approve this identity verification?";
+
+    string rejectConfirmation =
+        hasLinkedRequest
+            ? "Reject this identity and adoption request?"
+            : "Reject this identity verification?";
+
+    string frontImageUrl =
+        Url.Action(
+            "Document",
+            "AdopterVerifications",
+            new
+            {
+                area = "Admin",
+                id = Model.VerificationID,
+                side = "front"
+            })
+        ?? string.Empty;
+
+    string backImageUrl =
+        Url.Action(
+            "Document",
+            "AdopterVerifications",
+            new
+            {
+                area = "Admin",
+                id = Model.VerificationID,
+                side = "back"
+            })
+        ?? string.Empty;
+}
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>Verification Details - PetHope</title>
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com" />
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin />
+
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap"
+          rel="stylesheet" />
+
+    <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            html,
+            body {
+                margin: 0;
+                min-height: 100%;
+            }
+
+            body {
+                background: #f8f6fc;
+                color: #2c2134;
+                font-family: "DM Sans", Arial, sans-serif;
+            }
+
+            .topbar {
+                min-height: 74px;
+                padding: 0 6%;
+                background: #f8f6fc;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 20px;
+            }
+
+            .brand {
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+                color: #2c1c38;
+                text-decoration: none;
+                font-family: "Fraunces", Georgia, serif;
+                font-size: 25px;
+                font-weight: 700;
+            }
+
+            .brand-mark {
+                width: 42px;
+                height: 42px;
+                border-radius: 13px;
+                background: linear-gradient( 135deg, #7c3aed, #a855f7 );
+                color: #ffffff;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-family: "DM Sans", Arial, sans-serif;
+                box-shadow: 0 8px 20px rgba(124, 58, 237, 0.20);
+            }
+
+            .top-links {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+            }
+
+            .top-link {
+                color: #685873;
+                text-decoration: none;
+                font-size: 13px;
+                font-weight: 800;
+            }
+
+                .top-link:hover {
+                    color: #7c3aed;
+                }
+
+            .page {
+                padding: 44px 20px 72px;
+            }
+
+            .container {
+                width: 100%;
+                max-width: 1120px;
+                margin: 0 auto;
+            }
+
+            .page-header {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 22px;
+                margin-bottom: 25px;
+            }
+
+            .eyebrow {
+                display: inline-flex;
+                padding: 7px 13px;
+                margin-bottom: 12px;
+                background: #eee6ff;
+                border-radius: 999px;
+                color: #7437cf;
+                font-size: 12px;
+                font-weight: 800;
+            }
+
+            .page-title {
+                margin: 0;
+                color: #2d1e39;
+                font-family: "Fraunces", Georgia, serif;
+                font-size: 38px;
+                font-weight: 600;
+                line-height: 1.2;
+            }
+
+            .page-description {
+                margin: 10px 0 0;
+                max-width: 720px;
+                color: #7e7187;
+                font-size: 14px;
+                line-height: 1.65;
+            }
+
+            .status-badge,
+            .request-status {
+                min-width: 105px;
+                padding: 10px 16px;
+                border-radius: 999px;
+                text-align: center;
+                font-size: 12px;
+                font-weight: 800;
+            }
+
+            .status-pending,
+            .request-pending {
+                background: #fff6d9;
+                border: 1px solid #ecd48b;
+                color: #846112;
+            }
+
+            .status-verified,
+            .request-approved {
+                background: #e9f9ef;
+                border: 1px solid #b9e5c8;
+                color: #257548;
+            }
+
+            .status-rejected,
+            .request-rejected {
+                background: #fff0f3;
+                border: 1px solid #edc4cd;
+                color: #a13e55;
+            }
+
+            .message {
+                margin-bottom: 22px;
+                padding: 15px 18px;
+                border-radius: 14px;
+                font-size: 14px;
+                font-weight: 700;
+                line-height: 1.55;
+            }
+
+            .message-success {
+                background: #ecfdf3;
+                border: 1px solid #bce9cb;
+                color: #267348;
+            }
+
+            .message-error {
+                background: #fff0f3;
+                border: 1px solid #eec5ce;
+                color: #a03f55;
+            }
+
+            .content-grid {
+                display: grid;
+                grid-template-columns: minmax(0, 1.2fr) minmax(310px, 0.8fr);
+                gap: 23px;
+                align-items: start;
+            }
+
+            .card {
+                background: #ffffff;
+                border: 1px solid #ebe3f1;
+                border-radius: 21px;
+                padding: 30px;
+                box-shadow: 0 11px 36px rgba(63, 38, 83, 0.07);
+                margin-bottom: 23px;
+            }
+
+            .card-title {
+                margin: 0 0 20px;
+                color: #352440;
+                font-family: "Fraunces", Georgia, serif;
+                font-size: 24px;
+                font-weight: 600;
+            }
+
+            .details-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 15px;
+            }
+
+            .detail-box {
+                min-height: 82px;
+                padding: 15px 17px;
+                background: #faf8fc;
+                border: 1px solid #eee7f3;
+                border-radius: 14px;
+            }
+
+                .detail-box.full-width {
+                    grid-column: 1 / -1;
+                }
+
+            .detail-label {
+                display: block;
+                margin-bottom: 7px;
+                color: #94879d;
+                font-size: 10px;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+            }
+
+            .detail-value {
+                color: #47374f;
+                font-size: 14px;
+                font-weight: 700;
+                line-height: 1.5;
+                word-break: break-word;
+            }
+
+            .request-card {
+                border-color: #ded0f1;
+                background: linear-gradient( 135deg, #ffffff, #fbf8ff );
+            }
+
+            .request-header {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 18px;
+                margin-bottom: 20px;
+            }
+
+            .request-title-area {
+                min-width: 0;
+            }
+
+            .request-card-title {
+                margin: 0;
+                color: #352440;
+                font-family: "Fraunces", Georgia, serif;
+                font-size: 24px;
+                font-weight: 600;
+            }
+
+            .request-subtitle {
+                margin: 7px 0 0;
+                color: #82758b;
+                font-size: 13px;
+                line-height: 1.6;
+            }
+
+            .pet-highlight {
+                color: #7538cd;
+            }
+
+            .nid-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 14px;
+            }
+
+            .nid-value {
+                color: #35263f;
+                font-family: Consolas, "Courier New", monospace;
+                font-size: 16px;
+                font-weight: 700;
+                letter-spacing: 0.05em;
+            }
+
+            .reveal-button {
+                min-height: 35px;
+                padding: 0 13px;
+                border: 1px solid #d8c7eb;
+                border-radius: 9px;
+                background: #ffffff;
+                color: #7138c3;
+                font-family: "DM Sans", Arial, sans-serif;
+                font-size: 11px;
+                font-weight: 800;
+                cursor: pointer;
+            }
+
+                .reveal-button:hover {
+                    color: #ffffff;
+                    border-color: #7c3aed;
+                    background: #7c3aed;
+                }
+
+            .security-warning {
+                margin-top: 14px;
+                padding: 13px 15px;
+                background: #fff9e9;
+                border: 1px solid #eedba4;
+                border-radius: 12px;
+                color: #776020;
+                font-size: 12px;
+                line-height: 1.6;
+            }
+
+            .document-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 17px;
+            }
+
+            .document-box {
+                overflow: hidden;
+                background: #faf8fc;
+                border: 1px solid #e9dff0;
+                border-radius: 16px;
+            }
+
+            .document-header {
+                padding: 13px 15px;
+                background: #f4eef9;
+                color: #5e4d69;
+                font-size: 12px;
+                font-weight: 800;
+            }
+
+            .document-preview {
+                height: 250px;
+                padding: 12px;
+                background: #eeeaf2;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+                .document-preview img {
+                    width: 100%;
+                    height: 100%;
+                    border-radius: 10px;
+                    object-fit: contain;
+                    background: #ffffff;
+                }
+
+            .document-footer {
+                padding: 12px 15px;
+            }
+
+            .document-link {
+                color: #7137c7;
+                text-decoration: none;
+                font-size: 12px;
+                font-weight: 800;
+            }
+
+                .document-link:hover {
+                    text-decoration: underline;
+                }
+
+            .missing-document {
+                color: #998ca1;
+                font-size: 13px;
+                text-align: center;
+            }
+
+            .policy-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 15px;
+                padding: 15px 17px;
+                background: #faf8fc;
+                border: 1px solid #eee7f3;
+                border-radius: 14px;
+            }
+
+            .policy-label {
+                color: #4d3d57;
+                font-size: 13px;
+                font-weight: 800;
+            }
+
+            .policy-note {
+                display: block;
+                margin-top: 5px;
+                color: #95899d;
+                font-size: 11px;
+                font-weight: 500;
+            }
+
+            .policy-yes {
+                color: #267448;
+                font-size: 12px;
+                font-weight: 800;
+            }
+
+            .policy-no {
+                color: #a23f56;
+                font-size: 12px;
+                font-weight: 800;
+            }
+
+            .remarks-box {
+                margin-top: 16px;
+                padding: 16px 17px;
+                background: #faf8fc;
+                border: 1px solid #eee7f3;
+                border-radius: 14px;
+            }
+
+                .remarks-box strong {
+                    display: block;
+                    margin-bottom: 7px;
+                    color: #574661;
+                    font-size: 12px;
+                }
+
+                .remarks-box p {
+                    margin: 0;
+                    color: #786b81;
+                    font-size: 13px;
+                    line-height: 1.65;
+                }
+
+            .decision-description {
+                margin: -9px 0 19px;
+                color: #887b91;
+                font-size: 13px;
+                line-height: 1.6;
+            }
+
+            .decision-form {
+                padding: 17px;
+                border-radius: 15px;
+                margin-top: 14px;
+            }
+
+            .approve-form {
+                background: #f1fbf5;
+                border: 1px solid #c8ead4;
+            }
+
+            .reject-form {
+                background: #fff5f6;
+                border: 1px solid #efd0d7;
+            }
+
+            .form-label {
+                display: block;
+                margin-bottom: 8px;
+                color: #51415b;
+                font-size: 12px;
+                font-weight: 800;
+            }
+
+            .form-textarea {
+                width: 100%;
+                min-height: 90px;
+                padding: 13px 14px;
+                resize: vertical;
+                background: #ffffff;
+                border: 1px solid #ddd3e5;
+                border-radius: 11px;
+                color: #3e3047;
+                font-family: "DM Sans", Arial, sans-serif;
+                font-size: 13px;
+                line-height: 1.55;
+                outline: none;
+            }
+
+                .form-textarea:focus {
+                    border-color: #9667ce;
+                    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.10);
+                }
+
+            .button {
+                width: 100%;
+                min-height: 45px;
+                margin-top: 11px;
+                padding: 10px 13px;
+                border-radius: 11px;
+                font-family: "DM Sans", Arial, sans-serif;
+                font-size: 13px;
+                font-weight: 800;
+                cursor: pointer;
+                transition: 0.2s ease;
+            }
+
+            .approve-button {
+                border: 1px solid #2c8b55;
+                background: #2c8b55;
+                color: #ffffff;
+            }
+
+                .approve-button:hover {
+                    background: #237246;
+                }
+
+            .reject-button {
+                border: 1px solid #bd4a62;
+                background: #bd4a62;
+                color: #ffffff;
+            }
+
+                .reject-button:hover {
+                    background: #a43e55;
+                }
+
+            .completed-note {
+                padding: 17px;
+                border-radius: 14px;
+                background: #f7f3fb;
+                border: 1px solid #e6daef;
+                color: #6e5d78;
+                font-size: 13px;
+                line-height: 1.65;
+            }
+
+            .identity-only-note {
+                margin-bottom: 18px;
+                padding: 14px 16px;
+                border-radius: 13px;
+                background: #f6f0ff;
+                border: 1px solid #e0d0f5;
+                color: #705c7d;
+                font-size: 12px;
+                line-height: 1.6;
+            }
+
+            @@media (max-width: 900px) {
+                .content-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            @@media (max-width: 650px) {
+                .topbar {
+                    padding: 0 17px;
+                }
+
+                .top-links {
+                    gap: 10px;
+                }
+
+                .top-link {
+                    font-size: 11px;
+                }
+
+                .page {
+                    padding: 30px 13px 50px;
+                }
+
+                .page-header,
+                .request-header {
+                    flex-direction: column;
+                }
+
+                .page-title {
+                    font-size: 31px;
+                }
+
+                .card {
+                    padding: 22px 18px;
+                }
+
+                .details-grid,
+                .document-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .detail-box.full-width {
+                    grid-column: auto;
+                }
+
+                .document-preview {
+                    height: 220px;
+                }
+
+                .nid-row {
+                    align-items: flex-start;
+                    flex-direction: column;
+                }
+            }
+    </style>
+</head>
+
+<body>
+    <header class="topbar">
+        <a asp-area="Admin"
+           asp-controller="Dashboard"
+           asp-action="Index"
+           class="brand">
+
+            <span class="brand-mark">🐾</span>
+            <span>PetHope</span>
+        </a>
+
+        <div class="top-links">
+            @if (hasLinkedRequest)
+            {
+                <a asp-area="Admin"
+                   asp-controller="AdoptionRequests"
+                   asp-action="Index"
+                   class="top-link">
+
+                    ← Adoption Requests
+                </a>
+            }
+            else
+            {
+                <a asp-area="Admin"
+                   asp-controller="AdopterVerifications"
+                   asp-action="Index"
+                   class="top-link">
+
+                    ← Verification List
+                </a>
+            }
+
+            <a asp-area="Admin"
+               asp-controller="Dashboard"
+               asp-action="Index"
+               class="top-link">
+
+                Dashboard
+            </a>
+        </div>
+    </header>
+
+    <main class="page">
+        <div class="container">
+
+            <section class="page-header">
+                <div>
+                    <span class="eyebrow">
+                        Secure Admin Review
+                    </span>
+
+                    <h1 class="page-title">
+                        Verification Details
+                    </h1>
+
+                    <p class="page-description">
+                        @if (hasLinkedRequest)
+                        {
+                            <text>
+                                Review the adopter identity documents and
+                                linked pet adoption request before making
+                                one final decision.
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                Review the adopter account, entered
+                                information and private identity documents
+                                before making a decision.
+                            </text>
+                        }
+                    </p>
+                </div>
+
+                <span class="status-badge @statusClass">
+                    @status
+                </span>
+            </section>
+
+            @if (!string.IsNullOrWhiteSpace(successMessage))
+            {
+                <div class="message message-success">
+                    @successMessage
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <div class="message message-error">
+                    @errorMessage
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(decryptionError))
+            {
+                <div class="message message-error">
+                    @decryptionError
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(linkError))
+            {
+                <div class="message message-error">
+                    @linkError
+                </div>
+            }
+
+            <div class="content-grid">
+                <div>
+                    @if (hasLinkedRequest)
+                    {
+                        <section class="card request-card">
+                            <div class="request-header">
+                                <div class="request-title-area">
+                                    <h2 class="request-card-title">
+                                        Linked Adoption Request
+                                    </h2>
+
+                                    <p class="request-subtitle">
+                                        This identity submission is connected
+                                        to an adoption request for
+                                        <strong class="pet-highlight">
+                                            @petName
+                                        </strong>.
+                                    </p>
+                                </div>
+
+                                <span class="request-status @requestStatusClass">
+                                    @requestStatus
+                                </span>
+                            </div>
+
+                            <div class="details-grid">
+                                <div class="detail-box">
+                                    <span class="detail-label">
+                                        Request ID
+                                    </span>
+
+                                    <span class="detail-value">
+                                        #@requestId
+                                    </span>
+                                </div>
+
+                                <div class="detail-box">
+                                    <span class="detail-label">
+                                        Pet Name
+                                    </span>
+
+                                    <span class="detail-value">
+                                        @petName
+                                    </span>
+                                </div>
+
+                                <div class="detail-box">
+                                    <span class="detail-label">
+                                        Pet ID
+                                    </span>
+
+                                    <span class="detail-value">
+                                        #@petId
+                                    </span>
+                                </div>
+
+                                <div class="detail-box">
+                                    <span class="detail-label">
+                                        Request Date
+                                    </span>
+
+                                    <span class="detail-value">
+                                        @(requestDate?.ToString(
+                                            "dd MMMM yyyy, hh:mm tt"
+                                        ) ?? "Not available")
+                                    </span>
+                                </div>
+                            </div>
+                        </section>
+                    }
+
+                    <section class="card">
+                        <h2 class="card-title">
+                            Adopter Account
+                        </h2>
+
+                        <div class="details-grid">
+                            <div class="detail-box">
+                                <span class="detail-label">
+                                    Account Name
+                                </span>
+
+                                <span class="detail-value">
+                                    @Model.AdopterName
+                                </span>
+                            </div>
+
+                            <div class="detail-box">
+                                <span class="detail-label">
+                                    User ID
+                                </span>
+
+                                <span class="detail-value">
+                                    #@Model.UserID
+                                </span>
+                            </div>
+
+                            <div class="detail-box">
+                                <span class="detail-label">
+                                    Email Address
+                                </span>
+
+                                <span class="detail-value">
+                                    @Model.AdopterEmail
+                                </span>
+                            </div>
+
+                            <div class="detail-box">
+                                <span class="detail-label">
+                                    Phone Number
+                                </span>
+
+                                <span class="detail-value">
+                                    @(string.IsNullOrWhiteSpace(
+                                        Model.AdopterPhone)
+                                        ? "Not available"
+                                        : Model.AdopterPhone)
+                                </span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <h2 class="card-title">
+                            NID Information
+                        </h2>
+
+                        <div class="details-grid">
+                            <div class="detail-box full-width">
+                                <span class="detail-label">
+                                    Full Name on NID
+                                </span>
+
+                                <span class="detail-value">
+                                    @Model.FullNameOnNID
+                                </span>
+                            </div>
+
+                            <div class="detail-box">
+                                <span class="detail-label">
+                                    Date of Birth
+                                </span>
+
+                                <span class="detail-value">
+                                    @(Model.DateOfBirth?.ToString(
+                                        "dd MMMM yyyy"
+                                    ) ?? "Not available")
+                                </span>
+                            </div>
+
+                            <div class="detail-box">
+                                <span class="detail-label">
+                                    Submitted At
+                                </span>
+
+                                <span class="detail-value">
+                                    @Model.SubmittedAt.ToString(
+                                        "dd MMMM yyyy, hh:mm tt")
+                                </span>
+                            </div>
+
+                            <div class="detail-box full-width">
+                                <span class="detail-label">
+                                    NID Number
+                                </span>
+
+                                <div class="nid-row">
+                                    <span id="nidValue"
+                                          class="nid-value"
+                                          data-masked="@Model.MaskedNID"
+                                          data-full="@Model.FullNID">
+
+                                        @Model.MaskedNID
+                                    </span>
+
+                                    @if (canRevealFullNid)
+                                    {
+                                        <button type="button"
+                                                id="toggleNidButton"
+                                                class="reveal-button">
+
+                                            Reveal NID
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="security-warning">
+                            This information is confidential. Do not
+                            copy, download or share the NID unless
+                            required for an authorized verification
+                            process.
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <h2 class="card-title">
+                            Submitted Documents
+                        </h2>
+
+                        <div class="document-grid">
+                            <div class="document-box">
+                                <div class="document-header">
+                                    NID Front Image
+                                </div>
+
+                                @if (Model.HasFrontImage)
+                                {
+                                    <div class="document-preview">
+                                        <img src="@frontImageUrl"
+                                             alt="NID front document"
+                                             loading="lazy" />
+                                    </div>
+
+                                    <div class="document-footer">
+                                        <a href="@frontImageUrl"
+                                           target="_blank"
+                                           rel="noopener noreferrer"
+                                           class="document-link">
+
+                                            Open Full Image
+                                        </a>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="document-preview">
+                                        <span class="missing-document">
+                                            Front image is missing.
+                                        </span>
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="document-box">
+                                <div class="document-header">
+                                    NID Back Image
+                                </div>
+
+                                @if (Model.HasBackImage)
+                                {
+                                    <div class="document-preview">
+                                        <img src="@backImageUrl"
+                                             alt="NID back document"
+                                             loading="lazy" />
+                                    </div>
+
+                                    <div class="document-footer">
+                                        <a href="@backImageUrl"
+                                           target="_blank"
+                                           rel="noopener noreferrer"
+                                           class="document-link">
+
+                                            Open Full Image
+                                        </a>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="document-preview">
+                                        <span class="missing-document">
+                                            No back image was submitted.
+                                        </span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <aside>
+                    <section class="card">
+                        <h2 class="card-title">
+                            Adoption Policy
+                        </h2>
+
+                        <div class="policy-row">
+                            <div>
+                                <span class="policy-label">
+                                    Policy Acceptance
+                                </span>
+
+                                <span class="policy-note">
+                                    Version @Model.PolicyVersion
+                                </span>
+                            </div>
+
+                            @if (Model.PolicyAccepted)
+                            {
+                                <span class="policy-yes">
+                                    Accepted
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="policy-no">
+                                    Not Accepted
+                                </span>
+                            }
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(
+                            Model.AdminRemarks))
+                        {
+                            <div class="remarks-box">
+                                <strong>
+                                    Admin Remarks
+                                </strong>
+
+                                <p>
+                                    @Model.AdminRemarks
+                                </p>
+                            </div>
+                        }
+
+                        @if (Model.VerifiedAt.HasValue)
+                        {
+                            <div class="remarks-box">
+                                <strong>
+                                    Reviewed At
+                                </strong>
+
+                                <p>
+                                    @Model.VerifiedAt.Value.ToString(
+                                        "dd MMMM yyyy, hh:mm tt")
+                                </p>
+                            </div>
+                        }
+                    </section>
+
+                    <section class="card">
+                        <h2 class="card-title">
+                            Admin Decision
+                        </h2>
+
+                        @if (canMakeDecision)
+                        {
+                            @if (!hasLinkedRequest)
+                            {
+                                <div class="identity-only-note">
+                                    No pending adoption request is linked
+                                    to this submission. This decision will
+                                    update identity verification only.
+                                </div>
+                            }
+
+                            <p class="decision-description">
+                                @if (hasLinkedRequest && isPending)
+                                {
+                                    <text>
+                                        Compare the entered information
+                                        with both documents. Approval will
+                                        verify the identity and approve the
+                                        linked adoption request together.
+                                    </text>
+                                }
+                                else if (hasLinkedRequest && isVerified)
+                                {
+                                    <text>
+                                        The identity is already verified.
+                                        This decision will update the linked
+                                        adoption request.
+                                    </text>
+                                }
+                                else
+                                {
+                                    <text>
+                                        Compare the entered information
+                                        with both document images before
+                                        approving or rejecting it.
+                                    </text>
+                                }
+                            </p>
+
+                            <form asp-area="Admin"
+                                  asp-controller="AdopterVerifications"
+                                  asp-action="Approve"
+                                  method="post"
+                                  class="decision-form approve-form"
+                                  onsubmit="return confirm('@approveConfirmation');">
+
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="VerificationID"
+                                       value="@Model.VerificationID" />
+
+                                @if (requestId.HasValue)
+                                {
+                                    <input type="hidden"
+                                           name="requestId"
+                                           value="@requestId.Value" />
+                                }
+
+                                <label for="approveRemarks"
+                                       class="form-label">
+
+                                    Approval Remarks (Optional)
+                                </label>
+
+                                <textarea id="approveRemarks"
+                                          name="AdminRemarks"
+                                          class="form-textarea"
+                                          maxlength="500"
+                                          placeholder="Example: Identity information and document images matched."></textarea>
+
+                                <button type="submit"
+                                        class="button approve-button">
+
+                                    @approveButtonText
+                                </button>
+                            </form>
+
+                            <form asp-area="Admin"
+                                  asp-controller="AdopterVerifications"
+                                  asp-action="Reject"
+                                  method="post"
+                                  class="decision-form reject-form"
+                                  onsubmit="return confirm('@rejectConfirmation');">
+
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="VerificationID"
+                                       value="@Model.VerificationID" />
+
+                                @if (requestId.HasValue)
+                                {
+                                    <input type="hidden"
+                                           name="requestId"
+                                           value="@requestId.Value" />
+                                }
+
+                                <label for="rejectRemarks"
+                                       class="form-label">
+
+                                    Rejection Reason
+                                </label>
+
+                                <textarea id="rejectRemarks"
+                                          name="AdminRemarks"
+                                          class="form-textarea"
+                                          maxlength="500"
+                                          required
+                                          placeholder="Explain why the verification or adoption request is being rejected."></textarea>
+
+                                <button type="submit"
+                                        class="button reject-button">
+
+                                    @rejectButtonText
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <div class="completed-note">
+                                @if (hasLinkedRequest
+                                    && !requestIsPending)
+                                {
+                                    <text>
+                                        This adoption request has already
+                                        been reviewed. Its current status is
+                                        <strong>@requestStatus</strong>.
+                                    </text>
+                                }
+                                else if (isRejected)
+                                {
+                                    <text>
+                                        This identity verification has been
+                                        rejected. The adopter must submit
+                                        corrected information before another
+                                        decision can be made.
+                                    </text>
+                                }
+                                else
+                                {
+                                    <text>
+                                        This verification has already been
+                                        reviewed. Only pending submissions
+                                        or linked pending adoption requests
+                                        can be updated.
+                                    </text>
+                                }
+                            </div>
+                        }
+                    </section>
+                </aside>
+            </div>
+        </div>
+    </main>
+
+    <script>
+            const nidValue =
+                document.getElementById("nidValue");
+
+            const toggleNidButton =
+                document.getElementById("toggleNidButton");
+
+            let nidIsVisible =
+                false;
+
+            if (nidValue && toggleNidButton) {
+                toggleNidButton.addEventListener(
+                    "click",
+                    function() {
+                        nidIsVisible =
+                            !nidIsVisible;
+
+                        if (nidIsVisible) {
+                            nidValue.textContent =
+                                nidValue.dataset.full;
+
+                            toggleNidButton.textContent =
+                                "Hide NID";
+                        } else {
+                            nidValue.textContent =
+                                nidValue.dataset.masked;
+
+                            toggleNidButton.textContent =
+                                "Reveal NID";
+                        }
+                    });
+            }
+    </script>
+</body>
+
+</html>

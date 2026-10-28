@@ -1,0 +1,841 @@
+@using System.Linq
+@model PetWAMS.Web.Models.Pet
+
+@{
+    Layout = null;
+
+    var petImages = ViewBag.PetImages as List<PetWAMS.Web.Models.PetImage> ?? new List<PetWAMS.Web.Models.PetImage>();
+
+    var primaryImage = petImages.FirstOrDefault(x => x.IsPrimary) ?? petImages.FirstOrDefault();
+
+    var health = Model.HealthRecords?.OrderByDescending(h => h.CheckupDate).FirstOrDefault();
+
+    var cat = (Model.Category?.CategoryName ?? "").ToLowerInvariant();
+
+    var icon = cat.Contains("cat") ? "🐈" : ((cat.Contains("bird") || cat.Contains("parrot")) ? "🐦" : "🐕");
+
+    var genderIcon = Model.Gender == "Female" ? "♀" : "♂";
+
+    var healthText = health?.HealthStatus ?? Model.AIRecommendation ?? "No record";
+
+    var vaxText = health?.Vaccinated == true ? "Vaccinated" : "Not Vaccinated";
+
+    var years = Model.Age.HasValue ? (Model.Age == 1 ? "1 Year" : $"{Model.Age} Years") : "Unknown";
+
+    var shelter = Model.Shelter;
+
+    int imageCount = petImages.Count;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>@Model.PetName — Pet Details — PetHope</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+            :root {
+                --purple: #7B2FF7;
+                --purple-deep: #5A1FB8;
+                --purple-light: #F2E9FE;
+                --violet-dark: #241A3D;
+                --gold: #F0B94D;
+                --cream: #FDFBF9;
+                --soft-bg: #f8f5fb;
+                --ink: #241A2B;
+                --muted: #6B5E70;
+                --line: #F0E8F3;
+                --green-bg: #E4F4E7;
+                --green: #2E8A4C;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            html {
+                scroll-behavior: smooth;
+            }
+
+            body {
+                font-family: 'DM Sans', sans-serif;
+                background: var(--cream);
+                color: var(--ink);
+                -webkit-font-smoothing: antialiased;
+            }
+
+            h1,
+            h2,
+            h3 {
+                font-family: 'Fraunces', serif;
+            }
+
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
+
+            img {
+                max-width: 100%;
+                display: block;
+            }
+
+            nav {
+                position: sticky;
+                top: 0;
+                z-index: 100;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 20px 60px;
+                background: rgba(253,251,249,.94);
+                backdrop-filter: blur(12px);
+                border-bottom: 1px solid rgba(36,20,46,.06);
+            }
+
+            .logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-family: 'Fraunces', serif;
+                font-weight: 800;
+                font-size: 24px;
+                color: var(--purple);
+            }
+
+            .logo-mark {
+                width: 34px;
+                height: 34px;
+                border-radius: 10px;
+                background: linear-gradient(135deg, var(--purple), #B383F5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 17px;
+                color: #fff;
+            }
+
+            .nav-right {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+
+            .nav-btn {
+                background: var(--purple-light);
+                color: var(--purple);
+                padding: 11px 20px;
+                border-radius: 999px;
+                font-weight: 800;
+                font-size: 14px;
+            }
+
+            .signin-btn {
+                background: var(--purple);
+                color: #fff;
+                padding: 11px 24px;
+                border-radius: 999px;
+                font-weight: 800;
+                font-size: 14px;
+                transition: background .2s ease, transform .2s ease;
+            }
+
+                .signin-btn:hover {
+                    background: var(--purple-deep);
+                    transform: translateY(-1px);
+                }
+
+            .breadcrumb {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 26px 60px 0;
+                font-size: 13.5px;
+                color: var(--muted);
+                font-weight: 700;
+            }
+
+                .breadcrumb a {
+                    color: var(--purple);
+                }
+
+                .breadcrumb span {
+                    margin: 0 6px;
+                    opacity: .5;
+                }
+
+            .detail-wrap {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 28px 60px 90px;
+                display: grid;
+                grid-template-columns: 1.15fr .85fr;
+                gap: 48px;
+            }
+
+            .gallery-card {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 30px;
+                padding: 18px;
+                box-shadow: 0 30px 60px -24px rgba(36,20,46,.22);
+                margin-bottom: 28px;
+            }
+
+            .pet-photo-big {
+                position: relative;
+                border-radius: 24px;
+                overflow: hidden;
+                height: 440px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 110px;
+                background: #ffffff;
+                border: 1px solid var(--line);
+            }
+
+                .pet-photo-big img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: contain;
+                    background: #ffffff;
+                }
+
+                .pet-photo-big .status-tag {
+                    position: absolute;
+                    top: 22px;
+                    left: 22px;
+                    background: rgba(255,255,255,.94);
+                    padding: 8px 16px;
+                    border-radius: 999px;
+                    font-size: 12.5px;
+                    font-weight: 800;
+                    color: var(--green);
+                    z-index: 2;
+                    box-shadow: 0 8px 18px rgba(36,20,46,.08);
+                }
+
+                .pet-photo-big .image-count {
+                    position: absolute;
+                    right: 22px;
+                    bottom: 22px;
+                    background: rgba(255,255,255,.94);
+                    padding: 9px 16px;
+                    border-radius: 999px;
+                    font-size: 12.5px;
+                    font-weight: 900;
+                    color: var(--purple);
+                    z-index: 2;
+                    box-shadow: 0 8px 18px rgba(36,20,46,.08);
+                }
+
+            .thumbnail-row {
+                display: grid;
+                grid-template-columns: repeat(5, 1fr);
+                gap: 12px;
+                margin-top: 14px;
+            }
+
+            .thumb-btn {
+                border: 2px solid transparent;
+                background: #ffffff;
+                height: 86px;
+                border-radius: 16px;
+                overflow: hidden;
+                cursor: pointer;
+                padding: 0;
+            }
+
+                .thumb-btn.active {
+                    border-color: var(--purple);
+                }
+
+                .thumb-btn img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: contain;
+                    background: #ffffff;
+                }
+
+            .no-image-note {
+                margin-top: 14px;
+                background: var(--purple-light);
+                color: var(--purple);
+                padding: 13px 16px;
+                border-radius: 16px;
+                font-weight: 800;
+                line-height: 1.5;
+            }
+
+            .title-row {
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
+                margin-bottom: 6px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+                .title-row h1 {
+                    font-size: 38px;
+                    font-weight: 700;
+                    color: var(--ink);
+                }
+
+            .breed-line {
+                font-size: 16.5px;
+                color: var(--muted);
+                margin-bottom: 24px;
+                font-weight: 700;
+            }
+
+            .quick-facts {
+                display: grid;
+                grid-template-columns: repeat(4,1fr);
+                gap: 14px;
+                margin-bottom: 34px;
+            }
+
+            .fact-card {
+                background: #fff;
+                border: 1px solid var(--line);
+                border-radius: 16px;
+                padding: 16px 14px;
+                text-align: center;
+            }
+
+                .fact-card .ico {
+                    font-size: 20px;
+                    margin-bottom: 8px;
+                }
+
+                .fact-card .val {
+                    font-size: 14.5px;
+                    font-weight: 800;
+                    color: var(--ink);
+                }
+
+                .fact-card .lbl {
+                    font-size: 11.5px;
+                    color: var(--muted);
+                    margin-top: 2px;
+                    font-weight: 700;
+                }
+
+            .content-block {
+                margin-bottom: 32px;
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 22px;
+                padding: 24px;
+            }
+
+                .content-block h2 {
+                    font-size: 22px;
+                    font-weight: 700;
+                    color: var(--ink);
+                    margin-bottom: 14px;
+                }
+
+                .content-block p {
+                    font-size: 15px;
+                    line-height: 1.75;
+                    color: var(--muted);
+                    font-weight: 600;
+                }
+
+            .health-list {
+                list-style: none;
+            }
+
+                .health-list li {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 14px 0;
+                    border-bottom: 1px solid var(--line);
+                    font-size: 14.5px;
+                    gap: 14px;
+                }
+
+                    .health-list li:last-child {
+                        border-bottom: none;
+                    }
+
+                .health-list .k {
+                    color: var(--muted);
+                    font-weight: 700;
+                }
+
+                .health-list .v {
+                    font-weight: 800;
+                    color: var(--ink);
+                    text-align: right;
+                }
+
+            .badge {
+                padding: 6px 14px;
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 800;
+            }
+
+            .b-good,
+            .b-vax {
+                background: var(--green-bg);
+                color: var(--green);
+            }
+
+            .sidebar {
+                position: sticky;
+                top: 96px;
+                align-self: start;
+            }
+
+            .adopt-card {
+                background: #fff;
+                border-radius: 24px;
+                padding: 30px;
+                box-shadow: 0 26px 54px -18px rgba(36,20,46,.16);
+                border: 1px solid var(--line);
+                margin-bottom: 24px;
+            }
+
+                .adopt-card .eyebrow {
+                    display: inline-block;
+                    font-size: 12px;
+                    font-weight: 800;
+                    letter-spacing: .06em;
+                    text-transform: uppercase;
+                    color: var(--purple);
+                    background: var(--purple-light);
+                    padding: 6px 14px;
+                    border-radius: 999px;
+                    margin-bottom: 16px;
+                }
+
+                .adopt-card h3 {
+                    font-size: 20px;
+                    font-weight: 700;
+                    margin-bottom: 8px;
+                }
+
+                .adopt-card p {
+                    font-size: 13.5px;
+                    color: var(--muted);
+                    line-height: 1.6;
+                    margin-bottom: 22px;
+                    font-weight: 600;
+                }
+
+            .adopt-btn {
+                display: block;
+                width: 100%;
+                text-align: center;
+                background: var(--purple);
+                color: #fff;
+                padding: 15px;
+                border-radius: 999px;
+                font-weight: 800;
+                font-size: 15px;
+                transition: background .2s ease, transform .2s ease;
+                margin-bottom: 12px;
+            }
+
+                .adopt-btn:hover {
+                    background: var(--purple-deep);
+                    transform: translateY(-1px);
+                }
+
+            .contact-btn {
+                display: block;
+                width: 100%;
+                text-align: center;
+                background: #F5EFFB;
+                color: var(--purple);
+                padding: 14px;
+                border-radius: 999px;
+                font-weight: 800;
+                font-size: 14.5px;
+                transition: background .2s ease;
+            }
+
+                .contact-btn:hover {
+                    background: #EBDFF8;
+                }
+
+            .shelter-card {
+                background: var(--violet-dark);
+                color: #fff;
+                border-radius: 24px;
+                padding: 28px;
+                position: relative;
+                overflow: hidden;
+            }
+
+                .shelter-card::after {
+                    content: "🏠";
+                    position: absolute;
+                    font-size: 120px;
+                    opacity: .08;
+                    right: -20px;
+                    bottom: -30px;
+                }
+
+                .shelter-card .eyebrow {
+                    display: inline-block;
+                    font-size: 12px;
+                    font-weight: 800;
+                    letter-spacing: .06em;
+                    text-transform: uppercase;
+                    color: var(--gold);
+                    background: rgba(255,255,255,.1);
+                    padding: 6px 14px;
+                    border-radius: 999px;
+                    margin-bottom: 16px;
+                }
+
+                .shelter-card h3 {
+                    font-size: 19px;
+                    font-weight: 700;
+                    margin-bottom: 14px;
+                    position: relative;
+                }
+
+            .shelter-row {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 12px;
+                font-size: 13.5px;
+                opacity: .92;
+                position: relative;
+                line-height: 1.5;
+            }
+
+                .shelter-row .ico {
+                    font-size: 16px;
+                    width: 20px;
+                }
+
+            footer {
+                background: var(--violet-dark);
+                color: #fff;
+                padding: 48px 60px 24px;
+            }
+
+            .footer-inner {
+                max-width: 1200px;
+                margin: 0 auto;
+                text-align: center;
+                opacity: .6;
+                font-size: 13px;
+            }
+
+            @@media (max-width: 980px) {
+                .detail-wrap {
+                    grid-template-columns: 1fr;
+                    padding: 24px 24px 60px;
+                }
+
+                .breadcrumb {
+                    padding: 24px 24px 0;
+                }
+
+                .sidebar {
+                    position: static;
+                }
+
+                .pet-photo-big {
+                    height: 320px;
+                    font-size: 80px;
+                }
+
+                .quick-facts {
+                    grid-template-columns: repeat(2,1fr);
+                }
+
+                nav {
+                    padding: 16px 20px;
+                }
+
+                .title-row h1 {
+                    font-size: 30px;
+                }
+
+                .thumbnail-row {
+                    grid-template-columns: repeat(4, 1fr);
+                }
+            }
+
+            @@media (max-width: 620px) {
+                nav {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 14px;
+                }
+
+                .nav-right {
+                    width: 100%;
+                }
+
+                .nav-btn,
+                .signin-btn {
+                    flex: 1;
+                    text-align: center;
+                }
+
+                .pet-photo-big {
+                    height: 260px;
+                }
+
+                .thumbnail-row {
+                    grid-template-columns: repeat(3, 1fr);
+                }
+
+                .thumb-btn {
+                    height: 72px;
+                }
+
+                .health-list li {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+
+                .health-list .v {
+                    text-align: left;
+                }
+            }
+    </style>
+</head>
+
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+
+    <nav>
+        <a href="/" class="logo">
+            <span class="logo-mark">🐾</span>
+            <span>PetHope</span>
+        </a>
+
+        <div class="nav-right">
+            <a href="/Pets" class="nav-btn">Back to Pets</a>
+            <a href="/Account/SignIn" class="signin-btn">Sign In</a>
+        </div>
+    </nav>
+
+    <div class="breadcrumb">
+        <a href="/">Home</a>
+        <span>/</span>
+        <a href="/Pets">Pets</a>
+        <span>/</span>
+        @Model.PetName
+    </div>
+
+    <div class="detail-wrap">
+
+        <div class="detail-main">
+
+            <div class="gallery-card">
+
+                <div class="pet-photo-big" id="mainPhotoBox">
+                    <span class="status-tag">@Model.Status</span>
+
+                    @if (primaryImage != null && !string.IsNullOrWhiteSpace(primaryImage.ImagePath))
+                    {
+                        <img id="mainPetImage" src="@primaryImage.ImagePath" alt="@Model.PetName" />
+                    }
+                    else
+                    {
+                        <span id="mainPetIcon">@icon</span>
+                    }
+
+                    <span class="image-count">📷 @imageCount image(s)</span>
+                </div>
+
+                @if (petImages.Count > 1)
+                {
+                    <div class="thumbnail-row">
+                        @foreach (var image in petImages)
+                        {
+                            string activeClass = "";
+
+                            if (primaryImage != null && image.PetImageID == primaryImage.PetImageID)
+                            {
+                                activeClass = "active";
+                            }
+
+                            <button type="button"
+                                    class="thumb-btn @activeClass"
+                                    data-image="@image.ImagePath"
+                                    onclick="changeMainPetImage(this)">
+                                <img src="@image.ImagePath" alt="@Model.PetName" />
+                            </button>
+                        }
+                    </div>
+                }
+
+                @if (petImages.Count == 0)
+                {
+                    <div class="no-image-note">
+                        No pet image uploaded yet. Shelter can upload multiple images from Shelter Manage Pets.
+                    </div>
+                }
+
+            </div>
+
+            <div class="title-row">
+                <h1>@Model.PetName</h1>
+            </div>
+
+            <div class="breed-line">
+                @Model.Breed · Shelter ID #SH-@((Model.ShelterID ?? 0).ToString("000"))
+            </div>
+
+            <div class="quick-facts">
+                <div class="fact-card">
+                    <div class="ico">🎂</div>
+                    <div class="val">@years</div>
+                    <div class="lbl">Age</div>
+                </div>
+
+                <div class="fact-card">
+                    <div class="ico">@genderIcon</div>
+                    <div class="val">@Model.Gender</div>
+                    <div class="lbl">Gender</div>
+                </div>
+
+                <div class="fact-card">
+                    <div class="ico">🎨</div>
+                    <div class="val">@Model.Color</div>
+                    <div class="lbl">Color</div>
+                </div>
+
+                <div class="fact-card">
+                    <div class="ico">🩺</div>
+                    <div class="val">@healthText</div>
+                    <div class="lbl">Health Status</div>
+                </div>
+            </div>
+
+            <div class="content-block">
+                <h2>About @Model.PetName</h2>
+
+                <p>
+                    @(string.IsNullOrWhiteSpace(Model.Description)
+                        ? $"{Model.PetName} is waiting for a loving forever home. This {Model.Breed} is currently listed as {Model.Status?.ToLowerInvariant()} and is being cared for by the shelter team."
+                        : Model.Description)
+                </p>
+            </div>
+
+            <div class="content-block">
+                <h2>Health & Vaccination</h2>
+
+                <ul class="health-list">
+                    <li>
+                        <span class="k">Health Status</span>
+                        <span class="badge b-good">@healthText</span>
+                    </li>
+
+                    <li>
+                        <span class="k">Vaccination</span>
+                        <span class="badge b-vax">@vaxText</span>
+                    </li>
+
+                    <li>
+                        <span class="k">Last Checkup</span>
+                        <span class="v">@(health?.CheckupDate?.ToString("dd MMMM yyyy") ?? "No checkup date")</span>
+                    </li>
+
+                    <li>
+                        <span class="k">Microchip Number</span>
+                        <span class="v">@(string.IsNullOrWhiteSpace(Model.MicrochipNumber) ? "Not assigned" : Model.MicrochipNumber)</span>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+
+        <div class="sidebar">
+
+            <div class="adopt-card">
+                <span class="eyebrow">Ready to adopt?</span>
+
+                <h3>Bring @Model.PetName home</h3>
+
+                <p>
+                    Submit an adoption request and our shelter team will reach out to confirm the next steps.
+                </p>
+
+                <a href="/Adoption/Apply?petId=@Model.PetID" class="adopt-btn">Adopt Now</a>
+
+                <a href="/Pets" class="contact-btn">Browse More Pets</a>
+            </div>
+
+            <div class="shelter-card">
+                <span class="eyebrow">Shelter Information</span>
+
+                <h3>@(shelter?.ShelterName ?? "PetHope Shelter")</h3>
+
+                <div class="shelter-row">
+                    <span class="ico">📍</span>
+                    @(shelter?.Address ?? "Bangladesh")
+                </div>
+
+                <div class="shelter-row">
+                    <span class="ico">📞</span>
+                    @(shelter?.ContactNumber ?? "Not available")
+                </div>
+
+                <div class="shelter-row">
+                    <span class="ico">✉️</span>
+                    @(string.IsNullOrWhiteSpace(shelter?.Email) ? "contact@pethope.local" : shelter.Email)
+                </div>
+
+                <div class="shelter-row">
+                    <span class="ico">🕐</span>
+                    @(string.IsNullOrWhiteSpace(shelter?.OpenHours) ? "Open daily, 9 AM – 6 PM" : shelter.OpenHours)
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <footer>
+        <div class="footer-inner">
+            © 2026 PetHope. Trainee Project by Tahrim Maria.
+        </div>
+    </footer>
+
+    <script>
+            function changeMainPetImage(button) {
+                var imagePath = button.getAttribute("data-image");
+                var mainImage = document.getElementById("mainPetImage");
+
+                if (mainImage && imagePath) {
+                    mainImage.src = imagePath;
+                }
+
+                var thumbnails = document.querySelectorAll(".thumb-btn");
+
+                thumbnails.forEach(function(thumb) {
+                    thumb.classList.remove("active");
+                });
+
+                button.classList.add("active");
+            }
+    </script>
+
+</body>
+</html>

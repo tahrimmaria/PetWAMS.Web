@@ -1,0 +1,563 @@
+@model PetWAMS.Web.Models.Pet
+
+@{
+    Layout = null;
+
+    var categories = ViewBag.Categories;
+    var petImages = ViewBag.PetImages as List<PetWAMS.Web.Models.PetImage> ?? new List<PetWAMS.Web.Models.PetImage>();
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Pet — PetHope Shelter</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+            :root {
+                --purple: #7B2FF7;
+                --purple-dark: #5A1FB8;
+                --purple-light: #F2E9FE;
+                --bg: #f8f5fb;
+                --text: #24142e;
+                --muted: #756a7c;
+                --line: #eee7f4;
+                --green-bg: #E7F8EC;
+                --green: #258447;
+                --red-bg: #FDE7EA;
+                --red: #C23E52;
+                --yellow-bg: #FFF4D9;
+                --yellow: #A46B00;
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                background: var(--bg);
+                color: var(--text);
+                font-family: 'DM Sans', Arial, sans-serif;
+            }
+
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
+
+            .page {
+                max-width: 1100px;
+                margin: 0 auto;
+                padding: 38px 24px 70px;
+            }
+
+            .topbar {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 16px;
+                margin-bottom: 28px;
+            }
+
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-family: 'Fraunces', Georgia, serif;
+                font-size: 28px;
+                font-weight: 800;
+                color: var(--purple);
+            }
+
+            .brand-mark {
+                width: 42px;
+                height: 42px;
+                border-radius: 13px;
+                background: linear-gradient(135deg, var(--purple), #B383F5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #ffffff;
+            }
+
+            .back-btn {
+                background: var(--purple-light);
+                color: var(--purple);
+                padding: 12px 20px;
+                border-radius: 999px;
+                font-weight: 900;
+            }
+
+            .card {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 24px;
+                padding: 32px;
+                box-shadow: 0 8px 25px rgba(36,20,46,.05);
+                margin-bottom: 24px;
+            }
+
+            h1 {
+                font-family: 'Fraunces', Georgia, serif;
+                font-size: 38px;
+                margin: 0 0 8px;
+            }
+
+            h2 {
+                font-size: 24px;
+                font-weight: 900;
+                margin: 0 0 16px;
+            }
+
+            .subtitle {
+                color: var(--muted);
+                font-weight: 700;
+                line-height: 1.6;
+                margin-bottom: 28px;
+            }
+
+            .success,
+            .error {
+                padding: 14px 18px;
+                border-radius: 14px;
+                font-weight: 800;
+                margin-bottom: 16px;
+            }
+
+            .success {
+                background: var(--green-bg);
+                color: var(--green);
+            }
+
+            .error {
+                background: var(--red-bg);
+                color: var(--red);
+            }
+
+            .form-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 18px;
+            }
+
+            .form-group {
+                margin-bottom: 18px;
+            }
+
+                .form-group.full {
+                    grid-column: 1 / -1;
+                }
+
+            label {
+                display: block;
+                font-weight: 900;
+                margin-bottom: 8px;
+            }
+
+            input,
+            select,
+            textarea {
+                width: 100%;
+                border: 1px solid var(--line);
+                border-radius: 14px;
+                padding: 14px 16px;
+                font-family: inherit;
+                font-size: 15px;
+                outline: none;
+                background: #ffffff;
+            }
+
+                input:focus,
+                select:focus,
+                textarea:focus {
+                    border-color: var(--purple);
+                }
+
+            textarea {
+                min-height: 120px;
+                resize: vertical;
+            }
+
+            .upload-box {
+                border: 2px dashed #d8c6ef;
+                background: #faf8fd;
+                border-radius: 18px;
+                padding: 22px;
+            }
+
+                .upload-box strong {
+                    display: block;
+                    font-weight: 900;
+                    margin-bottom: 8px;
+                }
+
+            .upload-note {
+                color: var(--muted);
+                font-weight: 700;
+                line-height: 1.5;
+                margin-top: 10px;
+                font-size: 14px;
+            }
+
+            .actions {
+                display: flex;
+                gap: 12px;
+                flex-wrap: wrap;
+                margin-top: 26px;
+            }
+
+            .submit-btn {
+                border: none;
+                background: var(--purple);
+                color: #ffffff;
+                padding: 14px 24px;
+                border-radius: 999px;
+                font-family: inherit;
+                font-weight: 900;
+                cursor: pointer;
+                font-size: 15px;
+            }
+
+                .submit-btn:hover {
+                    background: var(--purple-dark);
+                }
+
+            .cancel-btn {
+                background: var(--purple-light);
+                color: var(--purple);
+                padding: 14px 24px;
+                border-radius: 999px;
+                font-weight: 900;
+            }
+
+            .image-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 18px;
+            }
+
+            .image-card {
+                background: #faf8fd;
+                border: 1px solid var(--line);
+                border-radius: 18px;
+                padding: 12px;
+            }
+
+            .image-box {
+                height: 150px;
+                border-radius: 14px;
+                overflow: hidden;
+                background: #f1e9fb;
+                margin-bottom: 12px;
+            }
+
+                .image-box img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    display: block;
+                }
+
+            .primary-badge {
+                display: inline-block;
+                background: var(--green-bg);
+                color: var(--green);
+                padding: 7px 12px;
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 900;
+                margin-bottom: 10px;
+            }
+
+            .image-actions {
+                display: grid;
+                gap: 8px;
+            }
+
+            .small-btn {
+                border: none;
+                border-radius: 999px;
+                padding: 10px 12px;
+                font-family: inherit;
+                font-weight: 900;
+                cursor: pointer;
+                background: var(--purple);
+                color: #ffffff;
+                width: 100%;
+            }
+
+                .small-btn:hover {
+                    background: var(--purple-dark);
+                }
+
+                .small-btn.danger {
+                    background: var(--red);
+                }
+
+                    .small-btn.danger:hover {
+                        background: #a72f43;
+                    }
+
+            .empty-images {
+                background: #faf8fd;
+                border: 1px dashed #d8c6ef;
+                border-radius: 18px;
+                padding: 24px;
+                color: var(--muted);
+                font-weight: 800;
+                text-align: center;
+            }
+
+            @@media (max-width: 900px) {
+                .image-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+
+            @@media (max-width: 760px) {
+                .topbar {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+
+                .form-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .card {
+                    padding: 24px;
+                }
+
+                h1 {
+                    font-size: 31px;
+                }
+
+                .image-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+    </style>
+</head>
+
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+
+    <div class="page">
+
+        <div class="topbar">
+            <a href="/Shelter/Dashboard" class="brand">
+                <span class="brand-mark">🐾</span>
+                <span>PetHope</span>
+            </a>
+
+            <a href="/Shelter/Pets" class="back-btn">Back to Manage Pets</a>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="success">@TempData["Success"]</div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="error">@TempData["Error"]</div>
+        }
+
+        <div class="card">
+
+            <h1>Edit Pet</h1>
+
+            <div class="subtitle">
+                Update pet information and manage multiple pet images.
+            </div>
+
+            <form method="post" action="/Shelter/Pets/Edit/@Model.PetID" enctype="multipart/form-data">
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label>Pet Name</label>
+                        <input type="text" name="PetName" value="@Model.PetName" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select name="CategoryID" required>
+                            <option value="">Select Category</option>
+
+                            @if (categories != null)
+                            {
+                                foreach (var category in categories)
+                                {
+                                    if (Model.CategoryID == category.CategoryID)
+                                    {
+                                        <option value="@category.CategoryID" selected>@category.CategoryName</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@category.CategoryID">@category.CategoryName</option>
+                                    }
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Breed</label>
+                        <input type="text" name="Breed" value="@Model.Breed" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Age</label>
+                        <input type="number" name="Age" value="@Model.Age" min="0" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <select name="Gender" required>
+                            @if (Model.Gender == "Male")
+                            {
+                                <option value="Male" selected>Male</option>
+                                <option value="Female">Female</option>
+                            }
+                            else
+                            {
+                                <option value="Male">Male</option>
+                                <option value="Female" selected>Female</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Color</label>
+                        <input type="text" name="Color" value="@Model.Color" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select name="Status" required>
+                            @if (Model.Status == "Available")
+                            {
+                                <option value="Available" selected>Available</option>
+                                <option value="Adopted">Adopted</option>
+                                <option value="Pending">Pending</option>
+                            }
+                            else if (Model.Status == "Adopted")
+                            {
+                                <option value="Available">Available</option>
+                                <option value="Adopted" selected>Adopted</option>
+                                <option value="Pending">Pending</option>
+                            }
+                            else
+                            {
+                                <option value="Available">Available</option>
+                                <option value="Adopted">Adopted</option>
+                                <option value="Pending" selected>Pending</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="form-group full">
+                        <label>Description</label>
+                        <textarea name="Description">@Model.Description</textarea>
+                    </div>
+
+                    <div class="form-group full">
+                        <label>Add More Pet Images</label>
+
+                        <div class="upload-box">
+                            <strong>Upload Multiple Images</strong>
+
+                            <input type="file"
+                                   name="petImages"
+                                   accept=".jpg,.jpeg,.png,.webp"
+                                   multiple />
+
+                            <div class="upload-note">
+                                You can add more images anytime. Allowed files: JPG, JPEG, PNG, WEBP.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="actions">
+                    <button type="submit" class="submit-btn">Update Pet</button>
+                    <a href="/Shelter/Pets" class="cancel-btn">Cancel</a>
+                </div>
+
+            </form>
+
+        </div>
+
+        <div class="card">
+
+            <h2>Pet Images</h2>
+
+            @if (petImages.Count == 0)
+            {
+                <div class="empty-images">
+                    No images uploaded for this pet yet.
+                </div>
+            }
+            else
+            {
+                <div class="image-grid">
+                    @foreach (var image in petImages)
+                    {
+                        <div class="image-card">
+
+                            <div class="image-box">
+                                <img src="@image.ImagePath" alt="@Model.PetName" />
+                            </div>
+
+                            @if (image.IsPrimary)
+                            {
+                                <div class="primary-badge">Primary Image</div>
+                            }
+
+                            <div class="image-actions">
+
+                                @if (!image.IsPrimary)
+                                {
+                                    <form method="post" action="/Shelter/Pets/SetPrimaryImage">
+                                        <input type="hidden" name="petId" value="@Model.PetID" />
+                                        <input type="hidden" name="imageId" value="@image.PetImageID" />
+
+                                        <button type="submit" class="small-btn">
+                                            Set Primary
+                                        </button>
+                                    </form>
+                                }
+
+                                <form method="post"
+                                      action="/Shelter/Pets/DeleteImage"
+                                      onsubmit="return confirm('Delete this image?');">
+
+                                    <input type="hidden" name="petId" value="@Model.PetID" />
+                                    <input type="hidden" name="imageId" value="@image.PetImageID" />
+
+                                    <button type="submit" class="small-btn danger">
+                                        Delete Image
+                                    </button>
+                                </form>
+
+                            </div>
+
+                        </div>
+                    }
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</body>
+</html>

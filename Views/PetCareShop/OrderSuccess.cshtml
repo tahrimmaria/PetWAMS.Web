@@ -1,0 +1,302 @@
+@model PetWAMS.Web.Models.PetShopOrder
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Success — PetHope</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+            :root {
+                --purple: #7B2FF7;
+                --purple-dark: #5A1FB8;
+                --bg: #f8f5fb;
+                --text: #24142e;
+                --muted: #756a7c;
+                --line: #eee7f4;
+                --green-bg: #E7F8EC;
+                --green: #258447;
+                --yellow-bg: #FFF4D9;
+                --yellow: #A46B00;
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                background: var(--bg);
+                color: var(--text);
+                font-family: 'DM Sans', Arial, sans-serif;
+            }
+
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
+
+            .container {
+                max-width: 960px;
+                margin: 0 auto;
+                padding: 8px 24px 60px;
+            }
+
+            .success-card {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 24px;
+                padding: 36px;
+                box-shadow: 0 8px 25px rgba(36,20,46,.05);
+                text-align: center;
+            }
+
+            .icon {
+                width: 82px;
+                height: 82px;
+                background: var(--green-bg);
+                color: var(--green);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 20px;
+                font-size: 38px;
+                font-weight: 900;
+            }
+
+            h1 {
+                font-family: 'Fraunces', Georgia, serif;
+                font-size: 38px;
+                margin-bottom: 10px;
+            }
+
+            .muted {
+                color: var(--muted);
+                font-weight: 600;
+                line-height: 1.6;
+            }
+
+            .details {
+                margin: 28px 0;
+                background: #faf8fd;
+                border-radius: 18px;
+                padding: 22px;
+                text-align: left;
+            }
+
+            .row {
+                display: flex;
+                justify-content: space-between;
+                padding: 10px 0;
+                border-bottom: 1px solid #eeeeee;
+                gap: 18px;
+            }
+
+                .row:last-child {
+                    border-bottom: none;
+                }
+
+                .row span {
+                    color: var(--muted);
+                    font-weight: 700;
+                }
+
+                .row strong {
+                    font-weight: 900;
+                    text-align: right;
+                }
+
+            .section-title {
+                text-align: left;
+                font-size: 20px;
+                font-weight: 900;
+                margin: 22px 0 12px;
+            }
+
+            .items {
+                margin-top: 12px;
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 16px;
+                padding: 16px;
+                text-align: left;
+            }
+
+            .item-line {
+                display: flex;
+                justify-content: space-between;
+                gap: 16px;
+                padding: 10px 0;
+                border-bottom: 1px solid #eeeeee;
+            }
+
+                .item-line:last-child {
+                    border-bottom: none;
+                }
+
+            .policy {
+                margin-top: 20px;
+                background: var(--yellow-bg);
+                color: var(--yellow);
+                padding: 16px;
+                border-radius: 16px;
+                text-align: left;
+                line-height: 1.6;
+                font-weight: 700;
+            }
+
+            .actions {
+                display: flex;
+                justify-content: center;
+                gap: 14px;
+                flex-wrap: wrap;
+                margin-top: 26px;
+            }
+
+            .btn {
+                padding: 14px 22px;
+                border-radius: 30px;
+                font-weight: 900;
+                background: #F2E9FE;
+                color: var(--purple);
+            }
+
+                .btn.primary {
+                    background: var(--purple);
+                    color: #ffffff;
+                }
+
+                    .btn.primary:hover {
+                        background: var(--purple-dark);
+                    }
+
+            @@media (max-width: 650px) {
+                h1 {
+                    font-size: 30px;
+                }
+
+                .success-card {
+                    padding: 26px;
+                }
+
+                .row,
+                .item-line {
+                    flex-direction: column;
+                    gap: 4px;
+                }
+
+                    .row strong {
+                        text-align: left;
+                    }
+            }
+    </style>
+</head>
+
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+
+    <div class="container">
+
+        <div class="success-card">
+
+            <div class="icon">✓</div>
+
+            <h1>Payment Successful 🎉</h1>
+
+            <p class="muted">
+                Your payment has been confirmed successfully.
+                <br />
+                Here is your invoice.
+            </p>
+
+            <div class="details">
+
+                <div class="row">
+                    <span>Order Number</span>
+                    <strong>@Model.OrderNumber</strong>
+                </div>
+
+
+                <div class="row">
+                    <span>Total Amount</span>
+                    <strong>
+                        ৳@Model.TotalAmount.ToString("0.00")
+                    </strong>
+                </div>
+
+
+                <div class="row">
+                    <span>Payment Status</span>
+                    <strong>
+                        @Model.PaymentStatus
+                    </strong>
+                </div>
+
+            </div>
+
+            @if (Model.OrderItems != null && Model.OrderItems.Count > 0)
+            {
+                <div class="section-title">Ordered Items</div>
+
+                <div class="items">
+                    @foreach (var item in Model.OrderItems)
+                    {
+                        <div class="item-line">
+                            <div>
+                                <strong>@item.ProductName</strong>
+                                <div class="muted">
+                                    ৳@item.UnitPrice.ToString("0.00") × @item.Quantity
+                                </div>
+                            </div>
+
+                            <strong>৳@item.LineTotal.ToString("0.00")</strong>
+                        </div>
+                    }
+                </div>
+            }
+
+            <div class="policy">
+                <strong>Business Policy Applied:</strong>
+                Before payment session, product approval, discount validity and stock availability were checked.
+                After SSLCommerz validation, the order was confirmed and product stock was reduced automatically.
+            </div>
+
+            <div class="actions">
+
+
+                <a asp-controller="PetCareShop"
+                   asp-action="Invoice"
+                   asp-route-id="@Model.OrderID"
+                   class="btn primary">
+
+                    Here is Your Invoice
+
+                </a>
+
+
+                <a href="/PetCareShop/MyOrders"
+                   class="btn">
+
+                    View My Orders
+
+                </a>
+
+
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

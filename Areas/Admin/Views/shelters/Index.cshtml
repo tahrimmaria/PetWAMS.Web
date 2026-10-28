@@ -1,0 +1,348 @@
+﻿@model List<PetWAMS.Web.Models.Shelter>
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Manage Shelters — PetHope</title>
+
+    <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                font-family: Arial, sans-serif;
+                background: #f8f5fb;
+                color: #24142e;
+            }
+
+            .topbar {
+                background: #241A3D;
+                color: white;
+                padding: 22px 45px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .container {
+                max-width: 1400px;
+                margin: 40px auto;
+                padding: 0 25px;
+            }
+
+            .back {
+                color: #7B2FF7;
+                text-decoration: none;
+                font-weight: bold;
+            }
+
+            .heading-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 15px;
+                margin: 25px 0;
+            }
+
+            h1 {
+                margin: 0;
+            }
+
+            .add-btn {
+                display: inline-block;
+                background: #7B2FF7;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 10px;
+                text-decoration: none;
+                font-weight: bold;
+            }
+
+            .alert-error {
+                background: #FDEBE7;
+                color: #B63E4D;
+                border: 1px solid #F4C7CD;
+                padding: 14px 18px;
+                border-radius: 10px;
+                margin-bottom: 20px;
+                font-weight: bold;
+            }
+
+            .alert-success {
+                background: #EAF8EF;
+                color: #267A46;
+                border: 1px solid #BEE5CB;
+                padding: 14px 18px;
+                border-radius: 10px;
+                margin-bottom: 20px;
+                font-weight: bold;
+            }
+
+            .table-card {
+                background: white;
+                border-radius: 18px;
+                overflow-x: auto;
+                box-shadow: 0 8px 30px rgba(0,0,0,.06);
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                min-width: 1200px;
+            }
+
+            th {
+                background: #F3EDFB;
+                text-align: left;
+                padding: 16px;
+                font-size: 14px;
+                white-space: nowrap;
+            }
+
+            td {
+                padding: 16px;
+                border-top: 1px solid #eee;
+                font-size: 14px;
+                vertical-align: middle;
+            }
+
+            /* APPROVAL STATUS */
+
+            .status {
+                display: inline-block;
+                padding: 6px 11px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: bold;
+                white-space: nowrap;
+            }
+
+            .status-approved {
+                background: #E7F8EC;
+                color: #258447;
+            }
+
+            .status-pending {
+                background: #FFF4D9;
+                color: #A46B00;
+            }
+
+            .status-rejected {
+                background: #FDE7EA;
+                color: #C23E52;
+            }
+
+            /* ACTIONS */
+
+            .action-wrap {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .edit-btn {
+                color: #7B2FF7;
+                text-decoration: none;
+                font-weight: bold;
+            }
+
+            .delete-btn {
+                border: 0;
+                background: #FDEBE7;
+                color: #C34A5A;
+                padding: 7px 11px;
+                border-radius: 8px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+
+                .delete-btn:hover {
+                    background: #F8D9D5;
+                }
+
+            .empty {
+                text-align: center;
+                color: #756a7c;
+                padding: 35px;
+            }
+
+            @@media (max-width: 900px) {
+                .heading-row {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+            }
+    </style>
+</head>
+
+<body>
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+    <div class="topbar">
+        <strong>🐾 PetHope Admin</strong>
+        <span>Manage Shelters</span>
+    </div>
+
+    <div class="container">
+        <div class="heading-row">
+
+            <h1>Manage Shelters</h1>
+
+            <a href="/Admin/Shelters/Create"
+               class="add-btn">
+                + Add Shelter
+            </a>
+
+        </div>
+
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert-success">
+                @TempData["Success"]
+            </div>
+        }
+
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert-error">
+                @TempData["Error"]
+            </div>
+        }
+
+
+        <div class="table-card">
+
+            <table>
+
+                <tr>
+                    <th>ID</th>
+                    <th>Shelter Name</th>
+                    <th>Address</th>
+                    <th>Contact Number</th>
+                    <th>Email</th>
+                    <th>Open Hours</th>
+                    <th>Approval Status</th>
+                    <th>Action</th>
+                </tr>
+
+
+                @if (Model == null || Model.Count == 0)
+                {
+                    <tr>
+                        <td colspan="8" class="empty">
+                            No shelters found.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var shelter in Model)
+                    {
+                        <tr>
+
+                            <td>
+                                #@shelter.ShelterID
+                            </td>
+
+                            <td>
+                                <strong>
+                                    @shelter.ShelterName
+                                </strong>
+                            </td>
+
+                            <td>
+                                @shelter.Address
+                            </td>
+
+                            <td>
+                                @shelter.ContactNumber
+                            </td>
+
+                            <td>
+                                @shelter.Email
+                            </td>
+
+                            <td>
+                                @shelter.OpenHours
+                            </td>
+
+
+                            <!-- APPROVAL STATUS -->
+
+                            <td>
+
+                                @if (shelter.ApprovalStatus == "Pending")
+                                {
+                                    <span class="status status-pending">
+                                        Pending
+                                    </span>
+                                }
+                                else if (shelter.ApprovalStatus == "Rejected")
+                                {
+                                    <span class="status status-rejected">
+                                        Rejected
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="status status-approved">
+                                        Approved
+                                    </span>
+                                }
+
+                            </td>
+
+
+                            <!-- ACTION -->
+
+                            <td>
+
+                                <div class="action-wrap">
+
+                                    <a href="/Admin/Shelters/Edit/@shelter.ShelterID"
+                                       class="edit-btn">
+                                        Edit
+                                    </a>
+
+
+                                    <form method="post"
+                                          action="/Admin/Shelters/Delete/@shelter.ShelterID"
+                                          style="display:inline;"
+                                          onsubmit="return confirm('Are you sure you want to delete this shelter?');">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <button type="submit"
+                                                class="delete-btn">
+                                            Delete
+                                        </button>
+
+                                    </form>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+                    }
+                }
+
+            </table>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,471 @@
+﻿@model List<PetWAMS.Web.Models.PetShopComplaint>
+
+@{
+    Layout = null;
+
+    int totalComplaints = Convert.ToInt32(ViewBag.TotalComplaints ?? 0);
+    int pendingComplaints = Convert.ToInt32(ViewBag.PendingComplaints ?? 0);
+    int resolvedComplaints = Convert.ToInt32(ViewBag.ResolvedComplaints ?? 0);
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shop Complaints — PetHope Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+            :root {
+                --purple: #7B2FF7;
+                --purple-dark: #5A1FB8;
+                --bg: #f8f5fb;
+                --text: #24142e;
+                --muted: #756a7c;
+                --line: #eee7f4;
+                --green-bg: #E7F8EC;
+                --green: #258447;
+                --red-bg: #FDE7EA;
+                --red: #C23E52;
+                --yellow-bg: #FFF4D9;
+                --yellow: #A46B00;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                background: var(--bg);
+                color: var(--text);
+                font-family: 'DM Sans', Arial, sans-serif;
+            }
+
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
+
+            .page {
+                display: grid;
+                grid-template-columns: 280px 1fr;
+                min-height: 100vh;
+            }
+
+            .sidebar {
+                background: #ffffff;
+                border-right: 1px solid var(--line);
+                padding: 32px 24px;
+            }
+
+            .logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-family: 'Fraunces', Georgia, serif;
+                font-weight: 800;
+                font-size: 26px;
+                color: var(--purple);
+                margin-bottom: 42px;
+            }
+
+            .logo-mark {
+                width: 38px;
+                height: 38px;
+                border-radius: 12px;
+                background: linear-gradient(135deg, var(--purple), #B383F5);
+                color: #ffffff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .panel-title {
+                font-size: 12px;
+                font-weight: 900;
+                color: #a092ad;
+                text-transform: uppercase;
+                margin-bottom: 12px;
+            }
+
+            .menu {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+                .menu a {
+                    min-height: 52px;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 0 16px;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    font-weight: 800;
+                    color: #5c5268;
+                }
+
+                    .menu a.active {
+                        background: var(--purple);
+                        color: #ffffff;
+                    }
+
+                    .menu a:hover {
+                        background: #F2E9FE;
+                        color: var(--purple);
+                    }
+
+            .logout {
+                color: #d9435e !important;
+                margin-top: 20px;
+            }
+
+            .main {
+                padding: 36px 48px 70px;
+            }
+
+            .top-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 18px;
+                margin-bottom: 28px;
+            }
+
+                .top-row h1 {
+                    font-size: 34px;
+                    font-weight: 900;
+                }
+
+            .top-actions {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+
+            .top-btn {
+                background: #F2E9FE;
+                color: var(--purple);
+                padding: 12px 18px;
+                border-radius: 30px;
+                font-weight: 900;
+            }
+
+                .top-btn.primary {
+                    background: var(--purple);
+                    color: #ffffff;
+                }
+
+            .stats {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 18px;
+                margin-bottom: 28px;
+            }
+
+            .stat-card {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 18px;
+                padding: 22px;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+            }
+
+                .stat-card .icon {
+                    font-size: 28px;
+                    margin-bottom: 12px;
+                }
+
+                .stat-card strong {
+                    display: block;
+                    font-size: 28px;
+                    font-weight: 900;
+                    margin-bottom: 4px;
+                }
+
+                .stat-card span {
+                    color: var(--muted);
+                    font-weight: 700;
+                }
+
+            .message {
+                padding: 14px 18px;
+                border-radius: 14px;
+                font-weight: 800;
+                margin-bottom: 14px;
+            }
+
+            .success {
+                background: var(--green-bg);
+                color: var(--green);
+            }
+
+            .error {
+                background: var(--red-bg);
+                color: var(--red);
+            }
+
+            .complaint-card {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 20px;
+                padding: 24px;
+                margin-bottom: 22px;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+            }
+
+            .complaint-head {
+                display: flex;
+                justify-content: space-between;
+                gap: 16px;
+                flex-wrap: wrap;
+                border-bottom: 1px solid #eeeeee;
+                padding-bottom: 16px;
+                margin-bottom: 16px;
+            }
+
+            .complaint-title {
+                font-size: 22px;
+                font-weight: 900;
+                margin-bottom: 4px;
+            }
+
+            .muted {
+                color: var(--muted);
+                font-size: 14px;
+                font-weight: 600;
+                line-height: 1.6;
+            }
+
+            .badge {
+                display: inline-block;
+                padding: 7px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 900;
+                background: var(--yellow-bg);
+                color: var(--yellow);
+            }
+
+                .badge.green {
+                    background: var(--green-bg);
+                    color: var(--green);
+                }
+
+            .message-box {
+                background: #faf8fd;
+                border: 1px solid #f0e9f5;
+                border-radius: 16px;
+                padding: 18px;
+                margin: 16px 0;
+                line-height: 1.7;
+            }
+
+                .message-box strong {
+                    display: block;
+                    margin-bottom: 6px;
+                }
+
+            textarea {
+                width: 100%;
+                border: 1px solid var(--line);
+                border-radius: 12px;
+                padding: 12px 14px;
+                font-family: inherit;
+                min-height: 100px;
+                resize: vertical;
+                outline: none;
+                margin-bottom: 10px;
+            }
+
+                textarea:focus {
+                    border-color: var(--purple);
+                }
+
+            .action-btn {
+                border: none;
+                background: var(--purple);
+                color: #ffffff;
+                padding: 12px 18px;
+                border-radius: 30px;
+                font-family: inherit;
+                font-weight: 900;
+                cursor: pointer;
+            }
+
+            .empty {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 20px;
+                padding: 30px;
+                color: var(--muted);
+                font-weight: 800;
+            }
+
+            @@media (max-width: 1100px) {
+                .page {
+                    grid-template-columns: 1fr;
+                }
+
+                .sidebar {
+                    border-right: none;
+                    border-bottom: 1px solid var(--line);
+                }
+            }
+
+            @@media (max-width: 700px) {
+                .main {
+                    padding: 26px 20px 50px;
+                }
+
+                .stats {
+                    grid-template-columns: 1fr;
+                }
+
+                .top-row {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+            }
+    </style>
+</head>
+
+<body>
+
+    <div class="page">
+
+        <aside class="sidebar">
+            <a href="/Admin" class="logo">
+                <span class="logo-mark">🐾</span>
+                <span>PetHope</span>
+            </a>
+
+            <div class="panel-title">Admin Panel</div>
+
+            <nav class="menu">
+                <a href="/Admin">🏠 Dashboard</a>
+                <a href="/Admin/PetShop">🛒 Shop Products</a>
+                <a href="/Admin/PetShop/Orders">📦 Shop Orders</a>
+                <a href="/Admin/PetShop/Complaints" class="active">💬 Complaints</a>
+                <a href="/Admin/PetShop/Report">📊 Shop Report</a>
+                <a href="/Account/Logout" class="logout">↩ Logout</a>
+            </nav>
+        </aside>
+
+        <main class="main">
+
+            <div class="top-row">
+                <h1>Shop Complaints</h1>
+
+                <div class="top-actions">
+                    <a href="/Admin/PetShop" class="top-btn">Products</a>
+                    <a href="/Admin/PetShop/Orders" class="top-btn">Orders</a>
+                    <a href="/Admin/PetShop/Report" class="top-btn primary">Report</a>
+                </div>
+            </div>
+
+            <section class="stats">
+                <div class="stat-card">
+                    <div class="icon">💬</div>
+                    <strong>@totalComplaints</strong>
+                    <span>Total Complaints</span>
+                </div>
+
+                <div class="stat-card">
+                    <div class="icon">⏳</div>
+                    <strong>@pendingComplaints</strong>
+                    <span>Pending</span>
+                </div>
+
+                <div class="stat-card">
+                    <div class="icon">✅</div>
+                    <strong>@resolvedComplaints</strong>
+                    <span>Resolved</span>
+                </div>
+            </section>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="message success">@TempData["Success"]</div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="message error">@TempData["Error"]</div>
+            }
+
+            @if (Model == null || Model.Count == 0)
+            {
+                <div class="empty">No complaints found.</div>
+            }
+            else
+            {
+                @foreach (var complaint in Model)
+                {
+                    bool isResolved = complaint.ComplaintStatus == "Resolved";
+
+                    <div class="complaint-card">
+                        <div class="complaint-head">
+                            <div>
+                                <div class="complaint-title">@complaint.ComplaintType</div>
+                                <div class="muted">
+                                    Complaint ID: #@complaint.ComplaintID<br />
+                                    Order: @(complaint.Order?.OrderNumber ?? "Unknown Order")<br />
+                                    User: @(complaint.User?.FullName ?? "Unknown User")<br />
+                                    Created: @complaint.CreatedAt.ToString("dd MMM yyyy hh:mm tt")
+                                </div>
+                            </div>
+
+                            <div>
+                                <span class="badge @(isResolved ? "green" : "")">@complaint.ComplaintStatus</span>
+                            </div>
+                        </div>
+
+                        <div class="message-box">
+                            <strong>User Complaint</strong>
+                            @complaint.ComplaintMessage
+                        </div>
+
+                        @if (isResolved)
+                        {
+                            <div class="message-box">
+                                <strong>Admin Reply</strong>
+                                @complaint.AdminReply
+
+                                @if (complaint.ResolvedAt != null)
+                                {
+                                    <div class="muted">
+                                        Resolved at: @complaint.ResolvedAt.Value.ToString("dd MMM yyyy hh:mm tt")
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <form action="/Admin/PetShop/ResolveComplaint" method="post">
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden" name="complaintId" value="@complaint.ComplaintID" />
+
+                                <textarea name="adminReply" placeholder="Write admin reply and resolution note..." required></textarea>
+
+                                <button type="submit" class="action-btn">
+                                    Resolve Complaint
+                                </button>
+                            </form>
+                        }
+                    </div>
+                }
+            }
+
+        </main>
+
+    </div>
+
+</body>
+</html>

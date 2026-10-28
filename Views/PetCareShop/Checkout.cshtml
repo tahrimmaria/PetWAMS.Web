@@ -1,0 +1,474 @@
+@model List<PetWAMS.Web.Models.PetShopCartItem>
+
+@{
+    Layout = null;
+
+    decimal totalAmount = 0;
+
+    if (ViewBag.TotalAmount != null)
+    {
+        totalAmount = (decimal)ViewBag.TotalAmount;
+    }
+
+    string fullName = ViewBag.FullName as string ?? "";
+    string phone = ViewBag.Phone as string ?? "";
+    string address = ViewBag.Address as string ?? "";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SSLCommerz Checkout — PetHope</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+            :root {
+                --purple: #7B2FF7;
+                --purple-dark: #5A1FB8;
+                --bg: #f8f5fb;
+                --text: #24142e;
+                --muted: #756a7c;
+                --line: #eee7f4;
+                --green-bg: #E7F8EC;
+                --green: #258447;
+                --red-bg: #FDE7EA;
+                --red: #C23E52;
+                --yellow-bg: #FFF4D9;
+                --yellow: #A46B00;
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                background: var(--bg);
+                color: var(--text);
+                font-family: 'DM Sans', Arial, sans-serif;
+            }
+
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
+
+            .navbar {
+                height: 78px;
+                background: #ffffff;
+                border-bottom: 1px solid var(--line);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 60px;
+            }
+
+            .logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-family: 'Fraunces', Georgia, serif;
+                font-weight: 800;
+                font-size: 26px;
+                color: var(--purple);
+            }
+
+            .logo-mark {
+                width: 38px;
+                height: 38px;
+                border-radius: 12px;
+                background: linear-gradient(135deg, var(--purple), #B383F5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #ffffff;
+            }
+
+            .nav-actions {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .nav-btn {
+                background: #F2E9FE;
+                color: var(--purple);
+                padding: 11px 18px;
+                border-radius: 30px;
+                font-weight: 800;
+            }
+
+                .nav-btn.primary {
+                    background: var(--purple);
+                    color: #ffffff;
+                }
+
+            .container {
+                max-width: 1120px;
+                margin: 0 auto;
+                padding: 8px 24px 70px;
+            }
+
+            .checkout-actions-bar {
+                display: flex;
+                justify-content: flex-end;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+                margin-bottom: 26px;
+            }
+
+            .page-title {
+                font-family: 'Fraunces', Georgia, serif;
+                font-size: 38px;
+                margin-bottom: 10px;
+            }
+
+            .subtitle {
+                color: var(--muted);
+                font-weight: 600;
+                line-height: 1.6;
+                margin-bottom: 26px;
+            }
+
+            .error {
+                padding: 14px 18px;
+                border-radius: 14px;
+                font-weight: 700;
+                margin-bottom: 14px;
+                background: var(--red-bg);
+                color: var(--red);
+            }
+
+            .layout {
+                display: grid;
+                grid-template-columns: 1.1fr .9fr;
+                gap: 24px;
+            }
+
+            .card {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 20px;
+                padding: 24px;
+                box-shadow: 0 8px 25px rgba(36,20,46,.05);
+            }
+
+                .card h2 {
+                    font-size: 24px;
+                    font-weight: 900;
+                    margin-top: 0;
+                    margin-bottom: 18px;
+                }
+
+            .form-group {
+                margin-bottom: 16px;
+            }
+
+            label {
+                display: block;
+                font-weight: 800;
+                margin-bottom: 8px;
+            }
+
+            input,
+            textarea {
+                width: 100%;
+                border: 1px solid var(--line);
+                border-radius: 14px;
+                padding: 14px 16px;
+                font-family: inherit;
+                font-size: 15px;
+                outline: none;
+            }
+
+                input:focus,
+                textarea:focus {
+                    border-color: var(--purple);
+                }
+
+            textarea {
+                min-height: 120px;
+                resize: vertical;
+            }
+
+            .payment-box {
+                background: #F2E9FE;
+                color: var(--purple);
+                padding: 18px;
+                border-radius: 16px;
+                font-weight: 800;
+                line-height: 1.7;
+                margin-bottom: 18px;
+            }
+
+            .payment-methods {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+                margin: 16px 0 18px;
+            }
+
+            .method {
+                background: #faf8fd;
+                border: 1px solid var(--line);
+                border-radius: 14px;
+                padding: 14px;
+                text-align: center;
+                font-weight: 900;
+            }
+
+                .method span {
+                    display: block;
+                    font-size: 24px;
+                    margin-bottom: 5px;
+                }
+
+            .confirm-btn {
+                border: none;
+                background: var(--purple);
+                color: #ffffff;
+                padding: 15px 24px;
+                border-radius: 30px;
+                font-weight: 900;
+                font-family: inherit;
+                cursor: pointer;
+                width: 100%;
+                font-size: 16px;
+            }
+
+                .confirm-btn:hover {
+                    background: var(--purple-dark);
+                }
+
+            .order-line {
+                display: flex;
+                justify-content: space-between;
+                gap: 16px;
+                padding: 12px 0;
+                border-bottom: 1px solid #eeeeee;
+            }
+
+                .order-line strong {
+                    font-weight: 900;
+                }
+
+            .muted {
+                color: var(--muted);
+                font-weight: 600;
+                font-size: 14px;
+                line-height: 1.5;
+            }
+
+            .total {
+                display: flex;
+                justify-content: space-between;
+                gap: 16px;
+                padding-top: 18px;
+                font-size: 22px;
+                font-weight: 900;
+            }
+
+            .policy {
+                margin-top: 18px;
+                background: var(--yellow-bg);
+                color: var(--yellow);
+                padding: 16px;
+                border-radius: 16px;
+                line-height: 1.6;
+                font-weight: 700;
+            }
+
+            .empty {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 20px;
+                padding: 30px;
+                color: var(--muted);
+                font-weight: 700;
+            }
+
+                .empty a {
+                    color: var(--purple);
+                    font-weight: 900;
+                }
+
+            @@media (max-width: 850px) {
+                .layout {
+                    grid-template-columns: 1fr;
+                }
+
+                .navbar {
+                    padding: 18px;
+                    height: auto;
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 14px;
+                }
+
+                .nav-actions,
+                .checkout-actions-bar {
+                    flex-wrap: wrap;
+                    justify-content: flex-start;
+                }
+
+                .page-title {
+                    font-size: 31px;
+                }
+
+                .payment-methods {
+                    grid-template-columns: 1fr;
+                }
+            }
+    </style>
+</head>
+
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+
+    <nav class="navbar">
+        <a href="/" class="logo">
+            <span class="logo-mark">🐾</span>
+            <span>PetHope</span>
+        </a>
+
+        <div class="nav-actions">
+            <a href="/PetCareShop/Cart" class="nav-btn">Back to Cart</a>
+            <a href="/PetCareShop/MyOrders" class="nav-btn primary">My Orders</a>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <div class="checkout-actions-bar">
+            <a href="/PetCareShop/Cart" class="nav-btn">Back to Cart</a>
+            <a href="/PetCareShop/MyOrders" class="nav-btn primary">My Orders</a>
+        </div>
+
+        <h1 class="page-title">SSLCommerz Checkout</h1>
+
+        <p class="subtitle">
+            Complete your payment through SSLCommerz sandbox. You can test bKash, Nagad, card or mobile banking from gateway page.
+        </p>
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="error">@TempData["Error"]</div>
+        }
+
+        @if (Model == null || Model.Count == 0)
+        {
+            <div class="empty">
+                Your cart is empty.
+                <a href="/PetCareShop">Go to Pet Care Shop</a>
+            </div>
+        }
+        else
+        {
+            <div class="layout">
+
+                <div class="card">
+                    <h2>Delivery Information</h2>
+
+                    <form action="/PetCareShop/Checkout" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="form-group">
+                            <label>Customer Name</label>
+                            <input type="text" name="customerName" value="@fullName" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="text" name="phone" value="@phone" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Delivery Address</label>
+                            <textarea name="deliveryAddress" required>@address</textarea>
+                        </div>
+
+                        <div class="payment-box">
+                            Payment Gateway: SSLCommerz Sandbox<br />
+                            Payment Status before payment: Pending<br />
+                            Order Status before payment: Pending Payment<br />
+                            After successful validation: Paid + Confirmed + Processing
+                        </div>
+
+                        <div class="payment-methods">
+                            <div class="method">
+                                <span>💳</span>
+                                Card
+                            </div>
+
+                            <div class="method">
+                                <span>📱</span>
+                                bKash
+                            </div>
+
+                            <div class="method">
+                                <span>📲</span>
+                                Nagad
+                            </div>
+                        </div>
+
+                        <button type="submit" class="confirm-btn">
+                            Pay with SSLCommerz
+                        </button>
+                    </form>
+
+                    <div class="policy">
+                        <strong>Checkout Policy:</strong>
+                        Before payment session, the system checks product approval status,
+                        available stock and discount validity. After valid payment, stock will be reduced automatically.
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Order Summary</h2>
+
+                    @foreach (var item in Model)
+                    {
+                        var product = item.Product;
+                        decimal price = product?.DiscountPrice ?? 0;
+                        decimal lineTotal = price * item.Quantity;
+
+                        <div class="order-line">
+                            <div>
+                                <strong>@(product?.ProductName ?? "Unknown Product")</strong>
+                                <div class="muted">
+                                    @(product?.ProductCategory ?? "")
+                                    •
+                                    @(product?.PetType ?? "")
+                                </div>
+                                <div class="muted">
+                                    ৳@price.ToString("0.00") × @item.Quantity
+                                </div>
+                            </div>
+
+                            <strong>৳@lineTotal.ToString("0.00")</strong>
+                        </div>
+                    }
+
+                    <div class="total">
+                        <span>Total Payable</span>
+                        <span>৳@totalAmount.ToString("0.00")</span>
+                    </div>
+
+                    <div class="policy">
+                        Adoption remains free. This payment is only for discounted pet care essentials.
+                    </div>
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+</body>
+</html>

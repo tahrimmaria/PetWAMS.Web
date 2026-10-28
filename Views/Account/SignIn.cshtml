@@ -1,0 +1,308 @@
+@{
+    Layout = null;
+
+    string errorMessage = "";
+
+    if (TempData["Error"] != null)
+    {
+        errorMessage = TempData["Error"]?.ToString() ?? "";
+    }
+    else if (ViewBag.Error != null)
+    {
+        errorMessage = ViewBag.Error?.ToString() ?? "";
+    }
+
+    string successMessage = "";
+
+    if (TempData["Success"] != null)
+    {
+        successMessage = TempData["Success"]?.ToString() ?? "";
+    }
+    else if (ViewBag.Success != null)
+    {
+        successMessage = ViewBag.Success?.ToString() ?? "";
+    }
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign In — PetHope</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+            :root {
+                --purple: #7B2FF7;
+                --purple-dark: #5A1FB8;
+                --purple-light: #F2E9FE;
+                --bg: #f8f5fb;
+                --card: #ffffff;
+                --text: #24142e;
+                --muted: #756a7c;
+                --line: #eee7f4;
+                --green-bg: #E7F8EC;
+                --green: #258447;
+                --red-bg: #FDE7EA;
+                --red: #C23E52;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                background: radial-gradient(circle at top left, rgba(123,47,247,.10), transparent 34%), radial-gradient(circle at bottom right, rgba(179,131,245,.14), transparent 34%), var(--bg);
+                color: var(--text);
+                font-family: 'DM Sans', Arial, sans-serif;
+                min-height: 100vh;
+                overflow-x: hidden;
+            }
+
+            .page {
+                min-height: calc(100vh - 92px);
+                padding: 10px 24px 35px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .auth-card {
+                width: 100%;
+                max-width: 455px;
+                background: var(--card);
+                border: 1px solid var(--line);
+                border-radius: 28px;
+                padding: 30px;
+                box-shadow: 0 16px 45px rgba(36,20,46,.08);
+            }
+
+            .auth-icon {
+                width: 58px;
+                height: 58px;
+                border-radius: 18px;
+                background: var(--purple-light);
+                color: var(--purple);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 26px;
+                margin: 0 auto 14px;
+            }
+
+            h1 {
+                font-family: 'Fraunces', Georgia, serif;
+                text-align: center;
+                font-size: 36px;
+                font-weight: 800;
+                color: var(--text);
+                margin-bottom: 8px;
+            }
+
+            .subtitle {
+                text-align: center;
+                color: var(--muted);
+                font-weight: 700;
+                line-height: 1.5;
+                margin-bottom: 20px;
+                font-size: 14px;
+            }
+
+            .message {
+                border-radius: 14px;
+                padding: 12px 14px;
+                font-size: 13px;
+                font-weight: 800;
+                line-height: 1.5;
+                margin-bottom: 13px;
+            }
+
+            .error {
+                background: var(--red-bg);
+                color: var(--red);
+            }
+
+            .success {
+                background: var(--green-bg);
+                color: var(--green);
+            }
+
+            .form-group {
+                margin-bottom: 14px;
+            }
+
+            label {
+                display: block;
+                font-size: 13px;
+                font-weight: 900;
+                color: var(--text);
+                margin-bottom: 7px;
+            }
+
+            input {
+                width: 100%;
+                border: 1px solid #ddd3e7;
+                background: #ffffff;
+                color: var(--text);
+                border-radius: 14px;
+                padding: 13px 14px;
+                font-family: inherit;
+                font-size: 14px;
+                font-weight: 700;
+                outline: none;
+            }
+
+                input:focus {
+                    border-color: var(--purple);
+                    box-shadow: 0 0 0 4px rgba(123,47,247,.08);
+                }
+
+            .remember-row {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                color: var(--muted);
+                font-size: 13px;
+                font-weight: 800;
+                margin-bottom: 15px;
+            }
+
+                .remember-row input {
+                    width: auto;
+                }
+
+            .btn {
+                width: 100%;
+                border: none;
+                background: var(--purple);
+                color: #ffffff;
+                border-radius: 999px;
+                padding: 14px 18px;
+                font-family: inherit;
+                font-size: 15px;
+                font-weight: 900;
+                cursor: pointer;
+                box-shadow: 0 10px 24px rgba(123,47,247,.20);
+            }
+
+                .btn:hover {
+                    background: var(--purple-dark);
+                }
+
+            .bottom-link {
+                margin-top: 16px;
+                text-align: center;
+                color: var(--muted);
+                font-size: 14px;
+                font-weight: 700;
+            }
+
+                .bottom-link a {
+                    color: var(--purple);
+                    font-weight: 900;
+                    text-decoration: none;
+                }
+
+            .role-note {
+                margin-top: 12px;
+                text-align: center;
+                color: var(--muted);
+                font-size: 12px;
+                font-weight: 700;
+                line-height: 1.5;
+            }
+
+            @@media (max-width: 700px) {
+                .page {
+                    min-height: auto;
+                    padding: 12px 22px 35px;
+                }
+
+                .auth-card {
+                    padding: 24px;
+                    border-radius: 24px;
+                }
+
+                h1 {
+                    font-size: 32px;
+                }
+            }
+    </style>
+</head>
+
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+    <main class="page">
+
+        <section class="auth-card">
+
+            <div class="auth-icon">🔐</div>
+
+            <h1>Sign In</h1>
+
+            <p class="subtitle">
+                Login to continue your PetHope journey.
+            </p>
+
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <div class="message error">
+                    @errorMessage
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(successMessage))
+            {
+                <div class="message success">
+                    @successMessage
+                </div>
+            }
+
+            <form action="/Account/SignIn" method="post">
+
+                @Html.AntiForgeryToken()
+
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email"
+                           name="email"
+                           placeholder="Enter your email"
+                           required />
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password"
+                           name="password"
+                           placeholder="Enter your password"
+                           required />
+                </div>
+
+                <label class="remember-row">
+                    <input type="checkbox" name="rememberMe" value="true" />
+                    Remember me
+                </label>
+
+                <button type="submit" class="btn">
+                    Sign In
+                </button>
+
+            </form>
+
+            <div class="bottom-link">
+                New adopter?
+                <a href="/Account/SignUp">Create account</a>
+            </div>
+
+        </section>
+
+    </main>
+
+</body>
+</html>

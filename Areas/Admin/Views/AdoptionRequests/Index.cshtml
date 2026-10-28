@@ -1,0 +1,701 @@
+﻿@using PetWAMS.Web.Models
+@model List<AdoptionRequest>
+
+@{
+    Layout = null;
+
+    var adopterVerifications =
+        ViewBag.AdopterVerifications
+            as Dictionary<int, AdopterVerification>
+        ?? new Dictionary<int, AdopterVerification>();
+}
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>Adoption Requests - PetHope</title>
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com" />
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin />
+
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap"
+          rel="stylesheet" />
+
+    <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            html,
+            body {
+                margin: 0;
+                min-height: 100%;
+            }
+
+            body {
+                min-height: 100vh;
+                font-family: "DM Sans", Arial, sans-serif;
+                background: #f8f5fb;
+                color: #24142e;
+            }
+
+            .container {
+                width: min(1450px, 95%);
+                margin: 0 auto;
+                padding: 48px 25px 70px;
+            }
+
+            .page-heading {
+                margin-bottom: 28px;
+            }
+
+            .page-badge {
+                display: inline-flex;
+                align-items: center;
+                padding: 8px 14px;
+                margin-bottom: 14px;
+                border-radius: 999px;
+                background: #eee5ff;
+                color: #7538cf;
+                font-size: 12px;
+                font-weight: 800;
+            }
+
+            .page-heading h1 {
+                margin: 0 0 10px;
+                color: #2d1e39;
+                font-family: "Fraunces", Georgia, serif;
+                font-size: 38px;
+                font-weight: 600;
+            }
+
+            .page-heading p {
+                margin: 0;
+                color: #756a7c;
+                line-height: 1.65;
+            }
+
+            .success {
+                background: #e4f4e7;
+                color: #267541;
+                border: 1px solid #bfe0c8;
+                padding: 14px 18px;
+                border-radius: 12px;
+                margin-bottom: 20px;
+                font-weight: 700;
+            }
+
+            .error {
+                background: #fdebe7;
+                color: #b63e4d;
+                border: 1px solid #f4c7cd;
+                padding: 14px 18px;
+                border-radius: 12px;
+                margin-bottom: 20px;
+                font-weight: 700;
+            }
+
+            .table-card {
+                background: #ffffff;
+                border: 1px solid #eee7f4;
+                border-radius: 18px;
+                overflow-x: auto;
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+            }
+
+            table {
+                width: 100%;
+                min-width: 1250px;
+                border-collapse: collapse;
+            }
+
+            thead {
+                background: #f3edfb;
+            }
+
+            th {
+                padding: 17px 16px;
+                text-align: left;
+                color: #55445f;
+                font-size: 13px;
+                font-weight: 800;
+                letter-spacing: 0.3px;
+                text-transform: uppercase;
+            }
+
+            td {
+                padding: 17px 16px;
+                border-top: 1px solid #eee7f4;
+                font-size: 14px;
+                vertical-align: middle;
+            }
+
+            tbody tr:hover {
+                background: #fdfbff;
+            }
+
+            .primary-text {
+                display: block;
+                color: #2f1b38;
+                font-size: 14px;
+                font-weight: 800;
+                margin-bottom: 5px;
+            }
+
+            .secondary-text {
+                display: block;
+                color: #887a90;
+                font-size: 12px;
+                line-height: 1.5;
+            }
+
+            .request-status,
+            .verification-status {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 7px 13px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 800;
+                white-space: nowrap;
+            }
+
+            .request-pending,
+            .verification-pending {
+                background: #fff3d6;
+                color: #a86f00;
+            }
+
+            .request-approved,
+            .verification-verified {
+                background: #e4f4e7;
+                color: #2e8a4c;
+            }
+
+            .request-rejected,
+            .verification-rejected {
+                background: #fdebe7;
+                color: #c34a5a;
+            }
+
+            .verification-not-submitted {
+                background: #efedf1;
+                color: #706675;
+            }
+
+            .verification-information {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .masked-nid {
+                color: #65566d;
+                font-size: 13px;
+                font-weight: 700;
+                letter-spacing: 0.4px;
+            }
+
+            .policy-accepted {
+                color: #2e8a4c;
+                font-size: 12px;
+                font-weight: 800;
+            }
+
+            .policy-not-accepted {
+                color: #c34a5a;
+                font-size: 12px;
+                font-weight: 800;
+            }
+
+            .review-nid-btn,
+            .review-decision-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                background: #f2e9fe;
+                color: #7b2ff7;
+                border: 1px solid #dbc4fa;
+                padding: 8px 13px;
+                border-radius: 8px;
+                font-family: "DM Sans", Arial, sans-serif;
+                font-size: 12px;
+                font-weight: 800;
+                text-decoration: none;
+                white-space: nowrap;
+                transition: 0.2s ease;
+            }
+
+                .review-nid-btn:hover,
+                .review-decision-btn:hover {
+                    background: #7b2ff7;
+                    color: #ffffff;
+                    border-color: #7b2ff7;
+                }
+
+            .action-wrapper {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 7px;
+            }
+
+            .action-form {
+                display: inline;
+                margin: 0;
+            }
+
+            .approve-btn {
+                border: 0;
+                background: #2e8a4c;
+                color: #ffffff;
+                padding: 9px 14px;
+                border-radius: 8px;
+                font-family: "DM Sans", Arial, sans-serif;
+                font-weight: 800;
+                cursor: pointer;
+            }
+
+                .approve-btn:hover {
+                    background: #23723d;
+                }
+
+            .reject-btn {
+                border: 0;
+                background: #c34a5a;
+                color: #ffffff;
+                padding: 9px 14px;
+                border-radius: 8px;
+                font-family: "DM Sans", Arial, sans-serif;
+                font-weight: 800;
+                cursor: pointer;
+            }
+
+                .reject-btn:hover {
+                    background: #a83c4a;
+                }
+
+            .disabled-approve-btn {
+                border: 0;
+                background: #d9d3dd;
+                color: #827888;
+                padding: 9px 14px;
+                border-radius: 8px;
+                font-family: "DM Sans", Arial, sans-serif;
+                font-weight: 800;
+                cursor: not-allowed;
+            }
+
+            .verification-required {
+                width: 100%;
+                margin-top: 2px;
+                color: #a86f00;
+                font-size: 11px;
+                font-weight: 700;
+                line-height: 1.45;
+            }
+
+            .review-required {
+                width: 100%;
+                margin-top: 2px;
+                color: #7538cf;
+                font-size: 11px;
+                font-weight: 700;
+                line-height: 1.45;
+            }
+
+            .done-text {
+                color: #766b7d;
+                font-size: 13px;
+                font-weight: 800;
+            }
+
+            .empty {
+                text-align: center;
+                color: #84758d;
+                padding: 40px;
+            }
+
+            @@media (max-width: 800px) {
+                .container {
+                    width: 100%;
+                    padding: 30px 15px 50px;
+                }
+
+                .page-heading h1 {
+                    font-size: 31px;
+                }
+            }
+    </style>
+</head>
+
+<body>
+    @await Html.PartialAsync(
+        "~/Views/Shared/Navbar.cshtml"
+    )
+
+    <main class="container">
+        <section class="page-heading">
+            <span class="page-badge">
+                Admin Adoption Review
+            </span>
+
+            <h1>All Adoption Requests</h1>
+
+            <p>
+                Review adoption requests and adopter identity verification
+                information from the same page.
+            </p>
+        </section>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="success">
+                @TempData["Success"]
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="error">
+                @TempData["Error"]
+            </div>
+        }
+
+        <section class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Applicant</th>
+                        <th>Pet</th>
+                        <th>Request Date</th>
+                        <th>NID Verification</th>
+                        <th>Request Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model == null || Model.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="7"
+                                class="empty">
+
+                                No adoption requests found.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var request in Model)
+                        {
+                            AdopterVerification verification =
+                                null;
+
+                            if (request.UserID.HasValue)
+                            {
+                                adopterVerifications.TryGetValue(
+                                    request.UserID.Value,
+                                    out verification
+                                );
+                            }
+
+                            string requestStatus =
+                                request.Status
+                                ?? "Pending";
+
+                            string requestStatusClass =
+                                "request-pending";
+
+                            if (requestStatus.Equals(
+                                "Approved",
+                                StringComparison.OrdinalIgnoreCase))
+                            {
+                                requestStatusClass =
+                                    "request-approved";
+                            }
+                            else if (requestStatus.Equals(
+                                "Rejected",
+                                StringComparison.OrdinalIgnoreCase))
+                            {
+                                requestStatusClass =
+                                    "request-rejected";
+                            }
+
+                            string verificationStatus =
+                                verification?.VerificationStatus
+                                ?? "Not Submitted";
+
+                            string verificationStatusClass =
+                                "verification-not-submitted";
+
+                            if (verificationStatus.Equals(
+                                "Pending",
+                                StringComparison.OrdinalIgnoreCase))
+                            {
+                                verificationStatusClass =
+                                    "verification-pending";
+                            }
+                            else if (verificationStatus.Equals(
+                                "Verified",
+                                StringComparison.OrdinalIgnoreCase))
+                            {
+                                verificationStatusClass =
+                                    "verification-verified";
+                            }
+                            else if (verificationStatus.Equals(
+                                "Rejected",
+                                StringComparison.OrdinalIgnoreCase))
+                            {
+                                verificationStatusClass =
+                                    "verification-rejected";
+                            }
+
+                            bool identityVerified =
+                                verification != null
+                                && verification.PolicyAccepted
+                                && verificationStatus.Equals(
+                                    "Verified",
+                                    StringComparison.OrdinalIgnoreCase);
+
+                            bool identityPending =
+                                verification != null
+                                && verificationStatus.Equals(
+                                    "Pending",
+                                    StringComparison.OrdinalIgnoreCase);
+
+                            bool requestPending =
+                                requestStatus.Equals(
+                                    "Pending",
+                                    StringComparison.OrdinalIgnoreCase);
+
+                            <tr>
+                                <td>
+                                    <span class="primary-text">
+                                        #@request.RequestID
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="primary-text">
+                                        @(request.User?.FullName
+                                            ?? "Unknown adopter")
+                                    </span>
+
+                                    @if (!string.IsNullOrWhiteSpace(
+                                        request.User?.Email))
+                                    {
+                                        <span class="secondary-text">
+                                            @request.User.Email
+                                        </span>
+                                    }
+                                </td>
+
+                                <td>
+                                    <span class="primary-text">
+                                        @(request.Pet?.PetName
+                                            ?? "Unknown pet")
+                                    </span>
+
+                                    <span class="secondary-text">
+                                        Pet ID: @request.PetID
+                                    </span>
+                                </td>
+
+                                <td>
+                                    @if (request.RequestDate.HasValue)
+                                    {
+                                        <span class="primary-text">
+                                            @(request.RequestDate.Value
+                                                .ToString("dd MMM yyyy"))
+                                        </span>
+
+                                        <span class="secondary-text">
+                                            @(request.RequestDate.Value
+                                                .ToString("hh:mm tt"))
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="secondary-text">
+                                            Not available
+                                        </span>
+                                    }
+                                </td>
+
+                                <td>
+                                    <div class="verification-information">
+                                        <span class="verification-status @verificationStatusClass">
+                                            @verificationStatus
+                                        </span>
+
+                                        @if (verification != null)
+                                        {
+                                            <span class="masked-nid">
+                                                NID: @verification.MaskedNID
+                                            </span>
+
+                                            @if (verification.PolicyAccepted)
+                                            {
+                                                <span class="policy-accepted">
+                                                    Policy Accepted
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="policy-not-accepted">
+                                                    Policy Not Accepted
+                                                </span>
+                                            }
+
+                                            <a asp-area="Admin"
+                                               asp-controller="AdopterVerifications"
+                                               asp-action="Details"
+                                               asp-route-id="@verification.VerificationID"
+                                               asp-route-requestId="@request.RequestID"
+                                               class="review-nid-btn">
+
+                                                Review NID
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="secondary-text">
+                                                The adopter has not submitted
+                                                NID information.
+                                            </span>
+                                        }
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <span class="request-status @requestStatusClass">
+                                        @requestStatus
+                                    </span>
+                                </td>
+
+                                <td>
+                                    @if (requestPending)
+                                    {
+                                        <div class="action-wrapper">
+                                            @if (identityPending
+                                                && verification != null)
+                                            {
+                                                <a asp-area="Admin"
+                                                   asp-controller="AdopterVerifications"
+                                                   asp-action="Details"
+                                                   asp-route-id="@verification.VerificationID"
+                                                   asp-route-requestId="@request.RequestID"
+                                                   class="review-decision-btn">
+
+                                                    Review &amp; Decide
+                                                </a>
+
+                                                <span class="review-required">
+                                                    Review the NID documents
+                                                    before approving or rejecting
+                                                    this adoption request.
+                                                </span>
+                                            }
+                                            else if (identityVerified)
+                                            {
+                                                <form asp-area="Admin"
+                                                      asp-controller="AdoptionRequests"
+                                                      asp-action="Approve"
+                                                      asp-route-id="@request.RequestID"
+                                                      method="post"
+                                                      class="action-form"
+                                                      onsubmit="return confirm('Approve this adoption request?');">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <button type="submit"
+                                                            class="approve-btn">
+
+                                                        Approve
+                                                    </button>
+                                                </form>
+
+                                                <form asp-area="Admin"
+                                                      asp-controller="AdoptionRequests"
+                                                      asp-action="Reject"
+                                                      asp-route-id="@request.RequestID"
+                                                      method="post"
+                                                      class="action-form"
+                                                      onsubmit="return confirm('Reject this adoption request?');">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <button type="submit"
+                                                            class="reject-btn">
+
+                                                        Reject
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <button type="button"
+                                                        class="disabled-approve-btn"
+                                                        disabled>
+
+                                                    Approve
+                                                </button>
+
+                                                <form asp-area="Admin"
+                                                      asp-controller="AdoptionRequests"
+                                                      asp-action="Reject"
+                                                      asp-route-id="@request.RequestID"
+                                                      method="post"
+                                                      class="action-form"
+                                                      onsubmit="return confirm('Reject this adoption request?');">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <button type="submit"
+                                                            class="reject-btn">
+
+                                                        Reject
+                                                    </button>
+                                                </form>
+
+                                                <span class="verification-required">
+                                                    Verified identity and accepted
+                                                    policy are required before
+                                                    approval.
+                                                </span>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="done-text">
+                                            Completed
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </section>
+    </main>
+</body>
+
+</html>

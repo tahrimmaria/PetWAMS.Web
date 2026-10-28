@@ -1,0 +1,649 @@
+﻿@using PetWAMS.Web.Models
+@model PetWAMS.Web.Models.PetShopProduct
+
+@{
+    Layout = null;
+
+    var variants =
+        ViewBag.Variants as List<PetShopProductVariant>
+        ?? new List<PetShopProductVariant>();
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Product Variants — PetHope</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+            :root {
+                --purple: #7B2FF7;
+                --purple-dark: #5A1FB8;
+                --purple-light: #F2E9FE;
+                --bg: #f8f5fb;
+                --text: #24142e;
+                --muted: #756a7c;
+                --line: #eee7f4;
+                --card: #ffffff;
+                --green-bg: #E7F8EC;
+                --green: #258447;
+                --red-bg: #FDE7EA;
+                --red: #C23E52;
+                --yellow-bg: #FFF4D9;
+                --yellow: #A46B00;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                background: var(--bg);
+                color: var(--text);
+                font-family: 'DM Sans', Arial, sans-serif;
+                min-height: 100vh;
+            }
+
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
+
+            .page {
+                width: 100%;
+                padding: 8px 120px 80px;
+            }
+
+            .container {
+                max-width: 1180px;
+                margin: 0 auto;
+            }
+
+            .page-head {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 18px;
+                margin-bottom: 24px;
+                flex-wrap: wrap;
+            }
+
+                .page-head h1 {
+                    font-family: 'Fraunces', Georgia, serif;
+                    font-size: 38px;
+                    font-weight: 800;
+                    color: var(--text);
+                    margin-bottom: 8px;
+                }
+
+                .page-head p {
+                    color: var(--muted);
+                    font-weight: 700;
+                    line-height: 1.6;
+                }
+
+            .back-btn {
+                background: var(--purple-light);
+                color: var(--purple);
+                padding: 12px 20px;
+                border-radius: 999px;
+                font-weight: 900;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 44px;
+                transition: .2s ease;
+            }
+
+                .back-btn:hover {
+                    background: #eadbff;
+                    color: var(--purple);
+                    transform: translateY(-1px);
+                }
+
+            .product-info {
+                background: linear-gradient(135deg, #321957 0%, #5A1FB8 48%, var(--purple) 100%);
+                color: #ffffff;
+                border-radius: 24px;
+                padding: 30px;
+                margin-bottom: 24px;
+                box-shadow: 0 14px 36px rgba(90,31,184,.14);
+            }
+
+                .product-info h2 {
+                    font-family: 'Fraunces', Georgia, serif;
+                    font-size: 32px;
+                    font-weight: 800;
+                    margin-bottom: 10px;
+                }
+
+                .product-info p {
+                    color: rgba(255,255,255,.90);
+                    font-weight: 700;
+                    line-height: 1.6;
+                }
+
+            .message {
+                padding: 14px 18px;
+                border-radius: 14px;
+                font-weight: 800;
+                margin-bottom: 16px;
+            }
+
+            .success {
+                background: var(--green-bg);
+                color: var(--green);
+            }
+
+            .error {
+                background: var(--red-bg);
+                color: var(--red);
+            }
+
+            .form-card {
+                background: var(--card);
+                border: 1px solid var(--line);
+                border-radius: 22px;
+                padding: 24px;
+                margin-bottom: 26px;
+                box-shadow: 0 8px 25px rgba(36,20,46,.05);
+            }
+
+                .form-card h3 {
+                    font-size: 23px;
+                    font-weight: 900;
+                    margin-bottom: 8px;
+                }
+
+                .form-card p {
+                    color: var(--muted);
+                    font-weight: 700;
+                    line-height: 1.6;
+                    margin-bottom: 18px;
+                }
+
+            .form-grid {
+                display: grid;
+                grid-template-columns: 1.2fr .8fr .8fr 1.2fr;
+                gap: 14px;
+                align-items: end;
+            }
+
+            label {
+                display: block;
+                font-weight: 900;
+                margin-bottom: 7px;
+            }
+
+            input {
+                width: 100%;
+                border: 1px solid #ddd3e7;
+                background: #ffffff;
+                border-radius: 13px;
+                padding: 13px 14px;
+                font-family: inherit;
+                font-weight: 700;
+                outline: none;
+            }
+
+                input:focus {
+                    border-color: var(--purple);
+                    box-shadow: 0 0 0 4px rgba(123,47,247,.08);
+                }
+
+            .submit-btn {
+                border: none;
+                background: var(--purple);
+                color: #ffffff;
+                padding: 13px 22px;
+                border-radius: 999px;
+                font-family: inherit;
+                font-weight: 900;
+                cursor: pointer;
+                box-shadow: 0 10px 24px rgba(123,47,247,.20);
+                margin-top: 18px;
+            }
+
+                .submit-btn:hover {
+                    background: var(--purple-dark);
+                }
+
+            .gallery-title {
+                font-size: 24px;
+                font-weight: 900;
+                margin-bottom: 16px;
+            }
+
+            .variant-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 22px;
+            }
+
+            .variant-card {
+                background: var(--card);
+                border: 1px solid var(--line);
+                border-radius: 22px;
+                overflow: hidden;
+                box-shadow: 0 8px 25px rgba(36,20,46,.05);
+            }
+
+            .variant-image {
+                height: 210px;
+                background: #ffffff;
+                border-bottom: 1px solid var(--line);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+                color: var(--purple);
+                font-size: 42px;
+                font-weight: 900;
+            }
+
+                .variant-image img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: contain;
+                    background: #ffffff;
+                }
+
+            .variant-body {
+                padding: 18px;
+            }
+
+            .variant-top {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                margin-bottom: 12px;
+            }
+
+            .variant-name {
+                font-weight: 900;
+                font-size: 19px;
+            }
+
+            .color-dot {
+                width: 26px;
+                height: 26px;
+                border-radius: 50%;
+                border: 2px solid #ffffff;
+                box-shadow: 0 0 0 1px #ddd3e7;
+                background: var(--purple-light);
+                flex: 0 0 auto;
+            }
+
+            .badge {
+                display: inline-flex;
+                background: var(--purple-light);
+                color: var(--purple);
+                padding: 7px 12px;
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 900;
+                margin-bottom: 12px;
+            }
+
+                .badge.green {
+                    background: var(--green-bg);
+                    color: var(--green);
+                }
+
+                .badge.red {
+                    background: var(--red-bg);
+                    color: var(--red);
+                }
+
+            .edit-form {
+                display: grid;
+                gap: 10px;
+                margin-top: 12px;
+            }
+
+            .action-row {
+                display: flex;
+                gap: 9px;
+                flex-wrap: wrap;
+                margin-top: 10px;
+            }
+
+            .small-btn {
+                border: none;
+                background: var(--purple-light);
+                color: var(--purple);
+                padding: 9px 13px;
+                border-radius: 999px;
+                font-family: inherit;
+                font-weight: 900;
+                cursor: pointer;
+                transition: .2s ease;
+            }
+
+                .small-btn:hover {
+                    background: #eadbff;
+                }
+
+                .small-btn.green {
+                    background: var(--green-bg);
+                    color: var(--green);
+                }
+
+                .small-btn.red {
+                    background: var(--red-bg);
+                    color: var(--red);
+                }
+
+                .small-btn.yellow {
+                    background: var(--yellow-bg);
+                    color: var(--yellow);
+                }
+
+            .empty {
+                background: var(--card);
+                border: 1px solid var(--line);
+                border-radius: 22px;
+                padding: 34px;
+                color: var(--muted);
+                font-weight: 800;
+                text-align: center;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+            }
+
+            @@media(max-width: 1100px) {
+                .page {
+                    padding: 8px 48px 70px;
+                }
+
+                .form-grid,
+                .variant-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+
+            @@media(max-width: 700px) {
+                .page {
+                    padding: 8px 22px 60px;
+                }
+
+                .page-head h1 {
+                    font-size: 31px;
+                }
+
+                .back-btn,
+                .submit-btn {
+                    width: 100%;
+                }
+
+                .form-grid,
+                .variant-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .product-info {
+                    padding: 26px 22px;
+                }
+
+                    .product-info h2 {
+                        font-size: 28px;
+                    }
+            }
+    </style>
+</head>
+
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+    <main class="page">
+
+        <div class="container">
+
+            <div class="page-head">
+                <div>
+                    <h1>Manage Product Variants</h1>
+                    <p>
+                        Add color or variant wise image and stock for this product.
+                    </p>
+                </div>
+
+                <a href="/Admin/ProductVariants" class="back-btn">
+                    ← Back to Product Variants
+                </a>
+            </div>
+
+            <section class="product-info">
+                <h2>@Model.ProductName</h2>
+
+                <p>
+                    @Model.ProductCategory • @Model.PetType
+                    <br />
+                    Discount Price: ৳@Model.DiscountPrice.ToString("0.00")
+                    |
+                    Total Product Stock: @Model.StockQuantity
+                </p>
+            </section>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="message success">@TempData["Success"]</div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="message error">@TempData["Error"]</div>
+            }
+
+            <section class="form-card">
+                <h3>Add New Variant</h3>
+
+                <p>
+                    Example: Red, Blue, Pink, Black. Each variant can have its own image and stock.
+                </p>
+
+                <form action="/Admin/ProductVariants/Add"
+                      method="post"
+                      enctype="multipart/form-data">
+
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden"
+                           name="productId"
+                           value="@Model.ProductID" />
+
+                    <div class="form-grid">
+
+                        <div>
+                            <label>Variant Name</label>
+                            <input type="text"
+                                   name="variantName"
+                                   placeholder="Red / Blue / Pink"
+                                   required />
+                        </div>
+
+                        <div>
+                            <label>Stock</label>
+                            <input type="number"
+                                   name="stockQuantity"
+                                   value="1"
+                                   min="0"
+                                   required />
+                        </div>
+
+                        <div>
+                            <label>Variant Image</label>
+                            <input type="file"
+                                   name="image"
+                                   accept=".jpg,.jpeg,.png,.webp"
+                                   required />
+                        </div>
+
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        Add Variant
+                    </button>
+
+                </form>
+            </section>
+
+            <h2 class="gallery-title">
+                Variant List
+            </h2>
+
+            @if (variants.Count == 0)
+            {
+                <div class="empty">
+                    No variant added yet. Add Red, Blue, Pink etc. from the form above.
+                </div>
+            }
+            else
+            {
+                <div class="variant-grid">
+
+                    @foreach (var variant in variants)
+                    {
+                        <div class="variant-card">
+
+                            <div class="variant-image">
+                                @if (!string.IsNullOrWhiteSpace(variant.ImagePath))
+                                {
+                                    <img src="@variant.ImagePath"
+                                         alt="@variant.VariantName" />
+                                }
+                                else
+                                {
+                                    <span>🛒</span>
+                                }
+                            </div>
+
+                            <div class="variant-body">
+
+                                <div class="variant-top">
+                                    <div class="variant-name">
+                                        @variant.VariantName
+                                    </div>
+
+                                    <div class="color-dot"
+                                         style="background:@(string.IsNullOrWhiteSpace(variant.ColorCode) ? "#F2E9FE" : variant.ColorCode)">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    @if (variant.IsActive)
+                                    {
+                                        <span class="badge green">
+                                            Active
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge red">
+                                            Inactive
+                                        </span>
+                                    }
+
+                                    <span class="badge">
+                                        Stock: @variant.StockQuantity
+                                    </span>
+                                </div>
+
+                                <form class="edit-form"
+                                      action="/Admin/ProductVariants/Update"
+                                      method="post"
+                                      enctype="multipart/form-data">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="variantId"
+                                           value="@variant.ProductVariantID" />
+
+                                    <div>
+                                        <label>Variant Name</label>
+                                        <input type="text"
+                                               name="variantName"
+                                               value="@variant.VariantName"
+                                               required />
+                                    </div>
+
+                                    <div>
+                                        <label>Stock</label>
+                                        <input type="number"
+                                               name="stockQuantity"
+                                               value="@variant.StockQuantity"
+                                               min="0"
+                                               required />
+                                    </div>
+
+                                    <div>
+                                        <label>Change Image</label>
+                                        <input type="file"
+                                               name="image"
+                                               accept=".jpg,.jpeg,.png,.webp" />
+                                    </div>
+
+                                    <button type="submit"
+                                            class="small-btn green">
+                                        Update
+                                    </button>
+
+                                </form>
+
+                                <div class="action-row">
+
+                                    <form action="/Admin/ProductVariants/ToggleActive"
+                                          method="post">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden"
+                                               name="variantId"
+                                               value="@variant.ProductVariantID" />
+
+                                        <button type="submit"
+                                                class="small-btn yellow">
+                                            @(variant.IsActive ? "Deactivate" : "Activate")
+                                        </button>
+
+                                    </form>
+
+                                    <form action="/Admin/ProductVariants/Delete"
+                                          method="post"
+                                          onsubmit="return confirm('Delete this variant?');">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden"
+                                               name="variantId"
+                                               value="@variant.ProductVariantID" />
+
+                                        <button type="submit"
+                                                class="small-btn red">
+                                            Delete
+                                        </button>
+
+                                    </form>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+            }
+
+        </div>
+
+    </main>
+
+</body>
+</html>

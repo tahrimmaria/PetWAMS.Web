@@ -1,0 +1,376 @@
+﻿@using PetWAMS.Web.Models
+
+@{
+    Layout = null;
+
+    var lostPets = ViewBag.LostPets as List<LostPet>;
+    var foundPets = ViewBag.FoundPets as List<FoundPet>;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Lost & Found — PetHope Admin</title>
+
+    <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                font-family: Arial, sans-serif;
+                background: #f8f5fb;
+                color: #24142e;
+            }
+
+            .topbar {
+                background: #241A3D;
+                color: white;
+                padding: 22px 45px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .container {
+                max-width: 1250px;
+                margin: 40px auto;
+                padding: 0 25px;
+            }
+
+            .back {
+                color: #7B2FF7;
+                text-decoration: none;
+                font-weight: bold;
+            }
+
+            h1 {
+                margin: 25px 0 10px;
+            }
+
+            h2 {
+                margin: 30px 0 15px;
+            }
+
+            .subtitle {
+                color: #766b7d;
+                margin-bottom: 30px;
+            }
+
+            .actions {
+                display: flex;
+                gap: 12px;
+                margin: 20px 0 30px;
+                flex-wrap: wrap;
+            }
+
+            .add-lost {
+                background: #C34A5A;
+                color: white;
+                padding: 11px 18px;
+                border-radius: 10px;
+                text-decoration: none;
+                font-weight: bold;
+            }
+
+            .add-found {
+                background: #2E8A4C;
+                color: white;
+                padding: 11px 18px;
+                border-radius: 10px;
+                text-decoration: none;
+                font-weight: bold;
+            }
+
+            .table-card {
+                background: white;
+                border-radius: 18px;
+                overflow-x: auto;
+                box-shadow: 0 8px 30px rgba(0,0,0,.06);
+                margin-bottom: 40px;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                min-width: 900px;
+            }
+
+            th {
+                background: #F3EDFB;
+                padding: 15px;
+                text-align: left;
+                font-size: 13px;
+            }
+
+            td {
+                padding: 15px;
+                border-top: 1px solid #eee;
+                font-size: 14px;
+            }
+
+            .lost-badge {
+                background: #FDEBE7;
+                color: #C34A5A;
+                padding: 6px 11px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: bold;
+            }
+
+            .found-badge {
+                background: #E4F4E7;
+                color: #2E8A4C;
+                padding: 6px 11px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: bold;
+            }
+
+            .edit-btn {
+                color: #7B2FF7;
+                text-decoration: none;
+                font-weight: bold;
+                margin-right: 8px;
+            }
+
+            .delete-btn {
+                border: 0;
+                background: #FDEBE7;
+                color: #C34A5A;
+                padding: 7px 11px;
+                border-radius: 8px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+
+            .empty {
+                text-align: center;
+                color: #84758d;
+                padding: 30px;
+            }
+    </style>
+</head>
+
+<body>
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+    <div class="topbar">
+        <strong>🐾 PetHope Admin</strong>
+        <span>Lost & Found</span>
+    </div>
+
+    <div class="container">
+        <h1>Lost & Found Management</h1>
+
+        <div class="actions">
+
+            <a href="/Admin/LostFound/CreateLost"
+               class="add-lost">
+                + Add Lost Pet
+            </a>
+
+            <a href="/Admin/LostFound/CreateFound"
+               class="add-found">
+                + Add Found Pet
+            </a>
+
+        </div>
+
+        <div class="subtitle">
+            Monitor and manage all lost and found pet reports.
+        </div>
+
+
+        <!-- LOST PETS -->
+
+        <h2>🔴 Lost Pets</h2>
+
+        <div class="table-card">
+
+            <table>
+
+                <tr>
+                    <th>ID</th>
+                    <th>Pet</th>
+                    <th>Location</th>
+                    <th>Lost Date</th>
+                    <th>Contact</th>
+                    <th>Type</th>
+                    <th>Action</th>
+                </tr>
+
+                @if (lostPets == null || lostPets.Count == 0)
+                {
+                    <tr>
+                        <td colspan="7" class="empty">
+                            No lost pet reports found.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in lostPets)
+                    {
+                        <tr>
+
+                            <td>
+                                #@item.LostID
+                            </td>
+
+                            <td>
+                                @item.Pet?.PetName
+                            </td>
+
+                            <td>
+                                @item.LostLocation
+                            </td>
+
+                            <td>
+                                @item.LostDate?.ToString("dd MMM yyyy")
+                            </td>
+
+                            <td>
+                                @item.ContactNumber
+                            </td>
+
+                            <td>
+                                <span class="lost-badge">
+                                    Lost
+                                </span>
+                            </td>
+
+                            <td>
+
+                                <a href="/Admin/LostFound/EditLost/@item.LostID"
+                                   class="edit-btn">
+                                    Edit
+                                </a>
+
+                                <form method="post"
+                                      action="/Admin/LostFound/DeleteLost/@item.LostID"
+                                      style="display:inline;"
+                                      onsubmit="return confirm('Are you sure you want to delete this lost report?');">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <button type="submit"
+                                            class="delete-btn">
+                                        Delete
+                                    </button>
+
+                                </form>
+
+                            </td>
+
+                        </tr>
+                    }
+                }
+
+            </table>
+
+        </div>
+
+
+        <!-- FOUND PETS -->
+
+        <h2>🟢 Found Pets</h2>
+
+        <div class="table-card">
+
+            <table>
+
+                <tr>
+                    <th>ID</th>
+                    <th>Pet</th>
+                    <th>Location</th>
+                    <th>Found Date</th>
+                    <th>Reporter</th>
+                    <th>Contact</th>
+                    <th>Type</th>
+                    <th>Action</th>
+                </tr>
+
+                @if (foundPets == null || foundPets.Count == 0)
+                {
+                    <tr>
+                        <td colspan="8" class="empty">
+                            No found pet reports found.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in foundPets)
+                    {
+                        <tr>
+
+                            <td>
+                                #@item.FoundID
+                            </td>
+
+                            <td>
+                                @item.Pet?.PetName
+                            </td>
+
+                            <td>
+                                @item.FoundLocation
+                            </td>
+
+                            <td>
+                                @item.FoundDate?.ToString("dd MMM yyyy")
+                            </td>
+
+                            <td>
+                                @item.ReporterName
+                            </td>
+
+                            <td>
+                                @item.ContactNumber
+                            </td>
+
+                            <td>
+                                <span class="found-badge">
+                                    Found
+                                </span>
+                            </td>
+
+                            <td>
+
+                                <a href="/Admin/LostFound/EditFound/@item.FoundID"
+                                   class="edit-btn">
+                                    Edit
+                                </a>
+
+                                <form method="post"
+                                      action="/Admin/LostFound/DeleteFound/@item.FoundID"
+                                      style="display:inline;"
+                                      onsubmit="return confirm('Are you sure you want to delete this found report?');">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <button type="submit"
+                                            class="delete-btn">
+                                        Delete
+                                    </button>
+
+                                </form>
+
+                            </td>
+
+                        </tr>
+                    }
+                }
+
+            </table>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,535 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pet Welfare & Adoption Management System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{
+    text-decoration:none;
+    padding:0;
+    margin:0;
+    box-sizing:border-box;
+  }
+  :root{
+    --purple:#7B2FF7;
+    --purple-deep:#5A1FB8;
+    --violet-dark:#241A3D;
+    --gold:#F0B94D;
+    --cream:#FDFBF9;
+    --ink:#241A2B;
+    --muted:#6B5E70;
+  }
+  body{
+    font-family:'DM Sans', sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+  }
+  h1,h2,h3{ font-family:'Fraunces', serif; }
+  img{ max-width:100%; display:block; }
+
+  /* ===== NAVBAR ===== */
+  .navbar{
+    background-color:var(--cream);
+    padding:18px 40px;
+    border-bottom:1px solid rgba(36,20,46,.07);
+    position:sticky; top:0; z-index:100;
+  }
+  .navdiv{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    max-width:1300px;
+    margin:0 auto;
+  }
+  .logo{
+    display:flex; align-items:center; gap:10px;
+  }
+  .logo a{
+    display:flex; align-items:center; gap:10px;
+    font-family:'Fraunces', serif;
+    font-size:24px;
+    font-weight:800;
+    color:var(--purple);
+  }
+  .logo-mark{
+    width:34px; height:34px; border-radius:10px;
+    background:linear-gradient(135deg, var(--purple), #B383F5);
+    display:flex; align-items:center; justify-content:center;
+    font-size:17px; color:#fff;
+  }
+  ul{ display:flex; align-items:center; gap:6px; }
+  li{ list-style:none; display:inline-block; }
+  li a{
+    color:var(--ink);
+    margin-right:8px;
+    padding:10px 14px;
+    font-weight:700;
+    font-size:14.5px;
+    border-radius:20px;
+    transition:background .2s ease, color .2s ease;
+  }
+  li a:hover{ background:#F2E9FE; color:var(--purple); }
+  button{
+    background-color:var(--purple);
+    padding:11px 24px;
+    border-radius:30px;
+    border:none;
+    cursor:pointer;
+    transition:background .2s ease, transform .2s ease;
+  }
+  button:hover{ background-color:var(--purple-deep); transform:translateY(-1px); }
+  button a{
+    color:#fff;
+    font-size:14px;
+    font-weight:700;
+    margin-right:0;
+    padding:0;
+  }
+
+  /* ===== HERO ARTICLE ===== */
+  article{
+    position:relative;
+    width:100%;
+    height:640px;
+    overflow:hidden;
+  }
+  article img {
+   width: 100%;
+   height: 100%;
+   object-fit: cover;
+   object-position: center 65%;
+   display: block;
+  }
+
+  .hero-overlay{
+    position:absolute; inset:0;
+    background:
+      linear-gradient(180deg, rgba(36,20,46,.25) 0%, rgba(36,20,46,.4) 45%, rgba(20,10,30,.85) 100%);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:0 60px;
+  }
+  .hero-text{
+    max-width:760px;
+    color:#fff;
+  }
+  .hero-eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:12.5px; font-weight:700; letter-spacing:.07em; text-transform:uppercase;
+    color:#fff; background:rgba(255,255,255,.16); backdrop-filter:blur(6px);
+    padding:8px 16px; border-radius:20px; margin-bottom:22px;
+    border:1px solid rgba(255,255,255,.25);
+  }
+  .hero-text h1{
+    font-size:52px;
+    font-weight:600;
+    line-height:1.12;
+    margin-bottom:18px;
+    text-shadow:0 4px 30px rgba(0,0,0,.3);
+  }
+  .hero-text h1 em{ font-style:italic; color:var(--gold); font-weight:500; }
+  .hero-text p{
+    font-size:17.5px;
+    font-weight:500;
+    opacity:.94;
+    margin-bottom:36px;
+    max-width:540px;
+    line-height:1.6;
+  }
+  .hero-actions{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:44px; }
+  .btn-primary{
+    background:var(--purple); color:#fff;
+    padding:15px 30px; border-radius:30px;
+    font-weight:700; font-size:15px;
+    transition:background .2s ease, transform .2s ease;
+    display:inline-block;
+  }
+  .btn-primary:hover{ background:var(--purple-deep); transform:translateY(-2px); }
+  .btn-ghost{
+    background:rgba(255,255,255,.12); color:#fff;
+    border:1.5px solid rgba(255,255,255,.4);
+    padding:14px 28px; border-radius:30px;
+    font-weight:700; font-size:15px;
+    display:inline-block;
+    transition:background .2s ease;
+  }
+  .btn-ghost:hover{ background:rgba(255,255,255,.22); }
+
+  .search-panel{
+    display:flex; align-items:center; gap:4px;
+    background:rgba(255,255,255,.97);
+    border-radius:16px; padding:8px;
+    max-width:520px;
+    box-shadow:0 24px 50px -14px rgba(0,0,0,.35);
+  }
+  .search-panel input{
+    flex:1; border:none; outline:none; padding:14px 16px;
+    font-family:'DM Sans'; font-size:14.5px; color:var(--ink); background:transparent;
+  }
+  .search-panel button{
+    background:var(--gold); border-radius:12px; width:46px; height:46px;
+    display:flex; align-items:center; justify-content:center; font-size:17px; padding:0;
+  }
+  .search-panel button:hover{ background:#dba53c; }
+
+  /* ===== TRUST STRIP ===== */
+  .trust{
+    display:flex; justify-content:center; gap:0;
+    max-width:1040px; margin:0 auto; padding:56px 24px 60px;
+    flex-wrap:wrap;
+  }
+  .trust-item{
+    padding:0 46px; text-align:center;
+    border-right:1px solid rgba(36,20,46,.1);
+  }
+  .trust-item:last-child{ border-right:none; }
+  .trust-item .n{ font-family:'Fraunces'; font-size:32px; font-weight:700; color:var(--purple); }
+  .trust-item .l{ font-size:12.5px; color:var(--muted); margin-top:6px; font-weight:600; }
+
+  /* ===== SERVICES (from DDL modules) ===== */
+  .services{ padding:20px 40px 90px; max-width:1200px; margin:0 auto; }
+  .section-head{ max-width:620px; margin:0 auto 48px; text-align:center; }
+  .section-head .eyebrow{
+    display:inline-block; font-size:12.5px; font-weight:700; letter-spacing:.07em;
+    text-transform:uppercase; color:var(--purple);
+    background:#F2E9FE; padding:7px 16px; border-radius:20px; margin-bottom:18px;
+  }
+  .section-head h2{ font-size:34px; font-weight:600; color:var(--ink); margin-bottom:12px; }
+  .section-head p{ color:var(--muted); font-size:15.5px; line-height:1.6; }
+
+  .service-grid{
+    display:grid; grid-template-columns:repeat(4, 1fr); gap:22px;
+  }
+  .service-card{
+    background:#fff; border:1px solid #F0E8F3; border-radius:20px;
+    padding:30px 24px; text-align:center;
+    transition:transform .25s ease, box-shadow .25s ease;
+  }
+  .service-card:hover{ transform:translateY(-6px); box-shadow:0 22px 44px -16px rgba(36,20,46,.16); }
+  .service-icon{
+    width:54px; height:54px; margin:0 auto 18px; border-radius:15px;
+    display:flex; align-items:center; justify-content:center; font-size:24px;
+  }
+  .si-1{ background:#F2E9FE; } .si-2{ background:#E4F4E7; } .si-3{ background:#FDEBE7; } .si-4{ background:#FFF3D9; }
+  .service-card h3{ font-size:17.5px; font-weight:600; margin-bottom:8px; }
+  .service-card p{ font-size:13.5px; color:var(--muted); line-height:1.55; }
+
+  /* ===== FOOTER ===== */
+  footer{
+    background-color:var(--violet-dark);
+    text-align:center;
+    color:#fff;
+    padding:44px 24px 26px;
+  }
+  footer .foot-logo{
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    font-family:'Fraunces'; font-size:20px; font-weight:800; margin-bottom:12px;
+  }
+  footer p{
+    font-size:13.5px;
+    opacity:.6;
+  }
+
+  /* ===== AI CHAT WIDGET ===== */
+  .chat-launcher{
+    position:fixed; bottom:26px; right:26px; z-index:200;
+    width:60px; height:60px; border-radius:50%;
+    background:linear-gradient(135deg, var(--purple), #B383F5);
+    display:flex; align-items:center; justify-content:center;
+    font-size:26px; color:#fff; cursor:pointer; border:none;
+    box-shadow:0 18px 36px -8px rgba(123,47,247,.5);
+    transition:transform .2s ease;
+  }
+  .chat-launcher:hover{ transform:scale(1.06); }
+  .chat-launcher .pulse-dot{
+    position:absolute; top:-3px; right:-3px;
+    width:14px; height:14px; border-radius:50%; background:#2E8A4C;
+    border:2px solid #fff;
+  }
+
+  .chat-window{
+    position:fixed; bottom:98px; right:26px; z-index:200;
+    width:340px; max-height:460px;
+    background:#fff; border-radius:22px; overflow:hidden;
+    box-shadow:0 30px 60px -14px rgba(36,20,46,.3);
+    display:none; flex-direction:column;
+    border:1px solid #F0E8F3;
+  }
+  .chat-window.open{ display:flex; }
+  .chat-head{
+    background:linear-gradient(135deg, var(--violet-dark), #362552);
+    color:#fff; padding:18px 20px; display:flex; align-items:center; gap:12px;
+  }
+  .chat-head .av{
+    width:34px; height:34px; border-radius:50%; background:var(--gold);
+    display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0;
+  }
+  .chat-head .info{ flex:1; }
+  .chat-head .info .name{ font-size:14px; font-weight:700; }
+  .chat-head .info .status{ font-size:11.5px; opacity:.7; }
+  .chat-head .status::before{ content:"● "; color:#4ADE80; }
+  .chat-close{ cursor:pointer; font-size:18px; opacity:.7; background:none; border:none; color:#fff; }
+
+  .chat-body{
+    flex:1; padding:18px; overflow-y:auto; background:#FAF7FD;
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .chat-bubble{
+    max-width:80%; padding:11px 14px; border-radius:14px; font-size:13.5px; line-height:1.5;
+  }
+  .chat-bubble.bot{ background:#fff; border:1px solid #F0E8F3; align-self:flex-start; color:var(--ink); }
+  .chat-bubble.user{ background:var(--purple); color:#fff; align-self:flex-end; }
+
+  .chat-suggestions{ display:flex; flex-wrap:wrap; gap:8px; padding:0 18px 14px; }
+  .chat-suggestions button{
+    background:#fff; border:1.5px solid #EFE6F2; color:var(--purple);
+    padding:8px 14px; border-radius:20px; font-size:12px; font-weight:700;
+    cursor:pointer; font-family:'DM Sans'; transition:border-color .2s ease;
+  }
+  .chat-suggestions button:hover{ border-color:var(--purple); }
+
+  .chat-input-row{
+    display:flex; align-items:center; gap:8px; padding:14px 16px;
+    border-top:1px solid #F0E8F3;
+  }
+  .chat-input-row input{
+    flex:1; border:1.5px solid #EDE3F5; border-radius:20px; padding:10px 16px;
+    outline:none; font-family:'DM Sans'; font-size:13.5px;
+  }
+  .chat-input-row input:focus{ border-color:var(--purple); }
+  .chat-input-row button{
+    width:38px; height:38px; border-radius:50%; background:var(--purple);
+    color:#fff; border:none; cursor:pointer; font-size:15px; padding:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  @@media (max-width: 900px){
+    .navdiv{ flex-wrap:wrap; gap:14px; }
+    ul{ flex-wrap:wrap; gap:2px; }
+    li a{ margin-right:0; padding:8px 10px; font-size:13px; }
+    article{ height:520px; }
+    .hero-overlay{ padding:0 24px; }
+    .hero-text h1{ font-size:32px; }
+    .service-grid{ grid-template-columns:1fr 1fr; }
+    .trust-item{ padding:0 24px; }
+  }
+</style>
+</head>
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+
+<nav class="navbar">
+    <div class="navdiv">
+        <div class="logo"><a href="/"><span class="logo-mark">🐾</span>PetHope</a></div>
+        <ul>
+            <li><a href="/">HOME</a></li>
+            <li><a href="/Pets">BROWSE PETS</a></li>
+            <li><button><a href="/Account/SignIn">Login</a></button></li>
+        </ul>
+    </div>
+</nav>
+
+<article>
+    <img src="/images/petHope.png">
+    <div class="hero-overlay">
+        <div class="hero-text">
+            <span class="hero-eyebrow">🏡 Pet Welfare &amp; Adoption Management System</span>
+            <h1>Find your <em>new best friend</em> and give them a loving home</h1>
+            <form class="search-panel" action="/Pets" method="get">
+                <input type="text" name="search" placeholder="Search breed, species — terrier, kitten...">
+                <button type="submit">🔍</button>
+            </form>
+        </div>
+    </div>
+</article>
+
+<section class="services">
+    <div class="section-head">
+        <span class="eyebrow">System Modules</span>
+        <h2>Everything a pet needs, in one place</h2>
+        <p>Built on the PetHope database — from shelter intake to health records to adoption follow-ups.</p>
+    </div>
+    <div class="service-grid">
+        <div class="service-card">
+            <div class="service-icon si-1">🏠</div>
+            <h3>Adoption</h3>
+            <p>Browse pets by shelter and category, then submit and track your adoption request.</p>
+        </div>
+        <div class="service-card">
+            <div class="service-icon si-2">🩺</div>
+            <h3>Health Records</h3>
+            <p>Every pet's checkups, health status, and medical notes stay logged and up to date.</p>
+        </div>
+        <div class="service-card">
+            <div class="service-icon si-3">📍</div>
+            <h3>Lost &amp; Found</h3>
+            <p>Report a lost pet or log a found animal to help reunite families faster.</p>
+        </div>
+        <div class="service-card">
+            <div class="service-icon si-4">📋</div>
+            <h3>Shelters &amp; Follow-Ups</h3>
+            <p>Full shelter directory plus post-adoption check-ins, all in one dashboard.</p>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="foot-logo"><span class="logo-mark">🐾</span>PetHope</div>
+    <p>© 2026 All copyrights owned by Tahrim Maria. </p>
+</footer>
+
+<!-- ===== AI Chat Widget (UI placeholder — connect to your backend/API later) ===== -->
+<button class="chat-launcher" id="chatLauncher" aria-label="Open chat assistant">
+  💬
+  <span class="pulse-dot"></span>
+</button>
+
+<div class="chat-window" id="chatWindow">
+  <div class="chat-head">
+    <div class="av">🐾</div>
+    <div class="info">
+      <div class="name">PetHope Care Assistant</div>
+      <div class="status">Online</div>
+    </div>
+    <button class="chat-close" id="chatClose">✕</button>
+  </div>
+
+  <div class="chat-body" id="chatBody">
+    <div class="chat-bubble bot">Hi! 👋 I'm the PetHope Care Assistant. Ask me about feeding, grooming, vaccinations, or general care for dogs, cats, and birds — or ask about adopting a pet here.</div>
+  </div>
+
+  <div class="chat-suggestions">
+    <button type="button" data-msg="How often should I feed my dog?">Feeding tips</button>
+    <button type="button" data-msg="How do I groom my cat?">Grooming</button>
+    <button type="button" data-msg="What vaccinations does my pet need?">Vaccinations</button>
+    <button type="button" data-msg="How does adoption work on PetWAMS?">Adoption process</button>
+  </div>
+
+  <div class="chat-input-row">
+    <input type="text" id="chatInput" placeholder="Type a message...">
+    <button type="button" id="chatSend">➤</button>
+  </div>
+</div>
+
+<script>
+  const launcher = document.getElementById('chatLauncher');
+  const win = document.getElementById('chatWindow');
+  const closeBtn = document.getElementById('chatClose');
+  const body = document.getElementById('chatBody');
+  const input = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('chatSend');
+
+  launcher.addEventListener('click', () => win.classList.toggle('open'));
+  closeBtn.addEventListener('click', () => win.classList.remove('open'));
+
+  function addBubble(text, who){
+    const div = document.createElement('div');
+    div.className = 'chat-bubble ' + who;
+    div.textContent = text;
+    body.appendChild(div);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  // ===== PetWAMS Care Assistant — lightweight keyword-based knowledge base =====
+  // No external AI call yet: matches keywords in the message to a pet-care topic.
+  // Swap getBotReply() for a real API call later if you connect an LLM backend.
+
+  const knowledgeBase = [
+    {
+      keywords: ['feed', 'food', 'eat', 'diet', 'meal'],
+      topic: 'dog',
+      reply: "🐕 Dogs: Adult dogs generally do well on 2 meals a day (puppies need 3–4, spread out). Stick to a consistent schedule, use a quality dog food appropriate for their age and size, and always keep fresh water available. Avoid chocolate, onions, grapes, and xylitol — they're toxic to dogs."
+    },
+    {
+      keywords: ['feed', 'food', 'eat', 'diet', 'meal'],
+      topic: 'cat',
+      reply: "🐈 Cats: Most adult cats do best with 2 measured meals a day rather than free-feeding, which helps prevent obesity. Kittens need 3–4 smaller meals. Cats need taurine (found in quality cat food), and dairy or excess treats can upset their stomach."
+    },
+    {
+      keywords: ['groom', 'brush', 'bath', 'fur', 'shed', 'nail'],
+      reply: "✂️ Grooming basics: Brush dogs and cats regularly (2–3x a week, daily for long-haired breeds) to reduce shedding and matting. Bathe dogs every 4–6 weeks (cats rarely need baths — they self-groom). Trim nails every 3–4 weeks, and check ears for wax buildup or odor, which can signal infection."
+    },
+    {
+      keywords: ['vaccin', 'shot', 'immuniz'],
+      reply: "💉 Vaccinations: Puppies and kittens typically need a core vaccine series starting around 6–8 weeks, with boosters every 3–4 weeks until about 16 weeks old, then annual or triennial boosters depending on the vaccine. Core vaccines cover things like rabies, distemper, and parvovirus for dogs, or panleukopenia and calicivirus for cats. Always check the exact schedule with a licensed vet."
+    },
+    {
+      keywords: ['exercise', 'walk', 'play', 'activity'],
+      reply: "🎾 Exercise: Most dogs need 30–60 minutes of activity a day (breed-dependent — high-energy breeds need more). Cats benefit from 10–15 minute play sessions a few times a day with toys that mimic hunting, like feather wands or laser pointers, to prevent boredom and weight gain."
+    },
+    {
+      keywords: ['sick', 'ill', 'symptom', 'vomit', 'diarrhea', 'lethargic', 'not eating'],
+      reply: "⚠️ Warning signs to watch for: loss of appetite for more than a day, vomiting or diarrhea lasting over 24 hours, lethargy, difficulty breathing, or sudden behavior changes. If you notice any of these, contact a veterinarian rather than waiting it out — I can't diagnose pets, but early vet care makes a big difference."
+    },
+    {
+      keywords: ['bird', 'budgerigar', 'canary', 'parrot'],
+      reply: "🐦 Birds: Most pet birds need a varied diet of quality pellets, fresh vegetables, and limited seeds/fruit as treats (avocado and chocolate are toxic to birds). They also need daily out-of-cage time for exercise and social interaction — many species are highly social and can get stressed if left alone too long."
+    },
+    {
+      keywords: ['new pet', 'first time', 'beginner', 'getting a pet', 'first pet'],
+      reply: "🏡 New pet checklist: 1) Pet-proof your space (secure wires, remove toxic plants), 2) Set up food/water bowls, a bed, and a litter box or designated potty area, 3) Schedule a vet visit within the first week, 4) Keep the first few days calm and low-key so they can settle in, and 5) Start basic routines early — feeding times, bathroom breaks, and gentle handling."
+    },
+    {
+      keywords: ['adopt', 'adoption', 'apply', 'request', 'process'],
+      reply: "📋 Adopting through PetWAMS: Browse available pets on the Pets page, open a pet's profile and click 'Adopt Now', fill out the short application (your info + why you'd be a good fit), and submit. The shelter reviews it (usually within 2–3 business days) and updates the status in your dashboard under 'My Adoption Requests'."
+    },
+    {
+      keywords: ['lost', 'missing', 'found'],
+      reply: "📍 Lost & Found: If your pet is missing, report it with their last known location and a contact number so shelters and other users can help. If you've found a stray, you can log it as a 'Found Pet' with the location and date — this helps reunite pets with their owners faster."
+    },
+    {
+      keywords: ['vaccinated', 'health status', 'healthy', 'checkup'],
+      reply: "🩺 Every pet listed on PetWAMS has a health record showing their vaccination status and last checkup date, visible right on their profile page — look for the 'Health & Vaccination' section on any Pet Details page."
+    }
+  ];
+
+  const fallbackReplies = [
+    "I can help with general pet care topics — try asking about feeding, grooming, vaccinations, exercise, or how adoption works on PetWAMS.",
+    "I'm not quite sure about that one yet. Try asking about dog or cat feeding, grooming routines, vaccination schedules, or the adoption process."
+  ];
+
+  function getBotReply(userText){
+    const text = userText.toLowerCase();
+
+    // Prefer species-specific match if species mentioned
+    const mentionsCat = /\bcat\b|kitten/.test(text);
+    const mentionsDog = /\bdog\b|puppy/.test(text);
+
+    let candidates = knowledgeBase.filter(entry =>
+      entry.keywords.some(k => text.includes(k))
+    );
+
+    if(candidates.length > 1){
+      if(mentionsCat) candidates = candidates.filter(c => c.topic !== 'dog');
+      else if(mentionsDog) candidates = candidates.filter(c => c.topic !== 'cat');
+    }
+
+    if(candidates.length > 0) return candidates[0].reply;
+
+    return fallbackReplies[Math.floor(Math.random() * fallbackReplies.length)];
+  }
+
+  function handleSend(text){
+    if(!text.trim()) return;
+    addBubble(text, 'user');
+    input.value = '';
+    setTimeout(() => addBubble(getBotReply(text), 'bot'), 500);
+  }
+
+  sendBtn.addEventListener('click', () => handleSend(input.value));
+  input.addEventListener('keydown', (e) => { if(e.key === 'Enter') handleSend(input.value); });
+
+  document.querySelectorAll('.chat-suggestions button').forEach(btn => {
+    btn.addEventListener('click', () => handleSend(btn.dataset.msg));
+  });
+</script>
+
+</body>
+</html>

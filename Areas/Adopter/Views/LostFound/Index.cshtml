@@ -1,0 +1,532 @@
+﻿@using PetWAMS.Web.Models
+
+@{
+    Layout = null;
+
+    var lostPets = ViewBag.LostPets as List<LostPet>;
+    var foundPets = ViewBag.FoundPets as List<FoundPet>;
+
+    int currentUserId = ViewBag.CurrentUserID != null
+        ? (int)ViewBag.CurrentUserID
+        : 0;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>Lost & Found — PetHope</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+            :root {
+                --purple: #7B2FF7;
+                --purple-dark: #5A1FB8;
+                --purple-light: #F2E9FE;
+                --bg: #f8f5fb;
+                --text: #24142e;
+                --muted: #756a7c;
+                --line: #eee7f4;
+                --card: #ffffff;
+                --red-bg: #FDE7EA;
+                --red: #C23E52;
+                --green-bg: #E7F8EC;
+                --green: #258447;
+                --yellow-bg: #FFF4D9;
+                --yellow: #A46B00;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                margin: 0;
+                font-family: 'DM Sans', Arial, sans-serif;
+                background: var(--bg);
+                color: var(--text);
+                min-height: 100vh;
+            }
+
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
+
+            .page {
+                width: 100%;
+                padding: 34px 120px 80px;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+
+            .page-actions {
+                display: flex;
+                justify-content: flex-end;
+                align-items: center;
+                margin-bottom: 24px;
+            }
+
+            .back {
+                color: var(--purple);
+                background: #ffffff;
+                border: 1px solid var(--line);
+                text-decoration: none;
+                font-weight: 900;
+                padding: 12px 20px;
+                border-radius: 999px;
+                box-shadow: 0 8px 22px rgba(36,20,46,.04);
+                transition: .2s ease;
+            }
+
+                .back:hover {
+                    background: var(--purple-light);
+                    color: var(--purple);
+                    transform: translateY(-1px);
+                }
+
+            .header-card {
+                background: linear-gradient(135deg, #321957 0%, #5A1FB8 48%, var(--purple) 100%);
+                color: #ffffff;
+                border-radius: 26px;
+                padding: 38px;
+                margin-bottom: 26px;
+                box-shadow: 0 18px 50px rgba(90,31,184,.18);
+            }
+
+                .header-card h1 {
+                    font-family: 'Fraunces', Georgia, serif;
+                    font-size: 42px;
+                    font-weight: 800;
+                    margin-bottom: 12px;
+                    color: #ffffff;
+                }
+
+                .header-card p {
+                    color: rgba(255,255,255,.90);
+                    font-weight: 600;
+                    line-height: 1.7;
+                    max-width: 760px;
+                    font-size: 16px;
+                }
+
+            .actions {
+                display: flex;
+                gap: 12px;
+                margin-bottom: 32px;
+                flex-wrap: wrap;
+            }
+
+            .lost-btn,
+            .found-btn {
+                color: #ffffff;
+                padding: 13px 22px;
+                border-radius: 999px;
+                text-decoration: none;
+                font-weight: 900;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 46px;
+                transition: .2s ease;
+                box-shadow: 0 8px 20px rgba(36,20,46,.08);
+            }
+
+            .lost-btn {
+                background: var(--red);
+            }
+
+            .found-btn {
+                background: var(--green);
+            }
+
+                .lost-btn:hover,
+                .found-btn:hover {
+                    color: #ffffff;
+                    transform: translateY(-1px);
+                }
+
+            .section-head {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 14px;
+                margin: 34px 0 16px;
+                flex-wrap: wrap;
+            }
+
+                .section-head h2 {
+                    font-family: 'Fraunces', Georgia, serif;
+                    font-size: 28px;
+                    font-weight: 800;
+                    color: var(--text);
+                }
+
+            .count-pill {
+                background: var(--purple-light);
+                color: var(--purple);
+                padding: 9px 15px;
+                border-radius: 999px;
+                font-size: 13px;
+                font-weight: 900;
+            }
+
+            .table-card {
+                background: var(--card);
+                border: 1px solid var(--line);
+                border-radius: 20px;
+                overflow-x: auto;
+                box-shadow: 0 8px 30px rgba(36,20,46,.05);
+                margin-bottom: 36px;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                min-width: 850px;
+            }
+
+            th {
+                background: #F3EDFB;
+                text-align: left;
+                padding: 16px;
+                font-size: 13px;
+                font-weight: 900;
+                color: var(--text);
+                white-space: nowrap;
+            }
+
+            td {
+                padding: 16px;
+                border-top: 1px solid #eeeeee;
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--text);
+                vertical-align: middle;
+            }
+
+            .lost-badge {
+                background: var(--red-bg);
+                color: var(--red);
+                padding: 7px 12px;
+                border-radius: 999px;
+                font-weight: 900;
+                font-size: 12px;
+                display: inline-flex;
+            }
+
+            .found-badge {
+                background: var(--green-bg);
+                color: var(--green);
+                padding: 7px 12px;
+                border-radius: 999px;
+                font-weight: 900;
+                font-size: 12px;
+                display: inline-flex;
+            }
+
+            .edit-btn {
+                color: var(--purple);
+                background: var(--purple-light);
+                text-decoration: none;
+                font-weight: 900;
+                padding: 8px 12px;
+                border-radius: 999px;
+                margin-right: 8px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+                .edit-btn:hover {
+                    color: var(--purple);
+                    background: #eadbff;
+                }
+
+            .delete-btn {
+                border: 0;
+                background: var(--red-bg);
+                color: var(--red);
+                padding: 8px 12px;
+                border-radius: 999px;
+                font-weight: 900;
+                cursor: pointer;
+                font-family: 'DM Sans', Arial, sans-serif;
+            }
+
+                .delete-btn:hover {
+                    background: #fbd5dc;
+                }
+
+            .empty {
+                text-align: center;
+                color: var(--muted);
+                padding: 34px;
+                font-weight: 800;
+            }
+
+            @@media(max-width: 1100px) {
+                .page {
+                    padding: 30px 48px 70px;
+                }
+            }
+
+            @@media(max-width: 700px) {
+                .page {
+                    padding: 24px 22px 60px;
+                }
+
+                .page-actions {
+                    justify-content: flex-start;
+                }
+
+                .back,
+                .lost-btn,
+                .found-btn {
+                    width: 100%;
+                }
+
+                .actions {
+                    flex-direction: column;
+                }
+
+                .header-card {
+                    padding: 30px 24px;
+                    border-radius: 22px;
+                }
+
+                    .header-card h1 {
+                        font-size: 32px;
+                    }
+            }
+    </style>
+</head>
+
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+    <main class="page">
+
+        <div class="container">
+
+            <section class="header-card">
+                <h1>Lost & Found Pets</h1>
+
+                <p>
+                    Report a missing pet or help reunite a found pet with its family.
+                    You can manage only the reports submitted from your own adopter account.
+                </p>
+            </section>
+
+            <div class="actions">
+
+                <a href="/Adopter/LostFound/CreateLost"
+                   class="lost-btn">
+                    + Report Lost Pet
+                </a>
+
+                <a href="/Adopter/LostFound/CreateFound"
+                   class="found-btn">
+                    + Report Found Pet
+                </a>
+
+            </div>
+
+            <div class="section-head">
+                <h2>🔴 Lost Pets</h2>
+
+                <div class="count-pill">
+                    @(lostPets == null ? 0 : lostPets.Count) Report(s)
+                </div>
+            </div>
+
+            <div class="table-card">
+
+                <table>
+
+                    <tr>
+                        <th>Pet</th>
+                        <th>Lost Location</th>
+                        <th>Lost Date</th>
+                        <th>Contact</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+
+                    @if (lostPets == null || lostPets.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="6" class="empty">
+                                No lost pet reports found.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in lostPets)
+                        {
+                            <tr>
+
+                                <td>@item.Pet?.PetName</td>
+
+                                <td>@item.LostLocation</td>
+
+                                <td>
+                                    @item.LostDate?.ToString("dd MMM yyyy")
+                                </td>
+
+                                <td>@item.ContactNumber</td>
+
+                                <td>
+                                    <span class="lost-badge">
+                                        Lost
+                                    </span>
+                                </td>
+
+                                <td>
+                                    @if (item.UserID == currentUserId)
+                                    {
+                                        <a href="/Adopter/LostFound/EditLost/@item.LostID"
+                                           class="edit-btn">
+                                            Edit
+                                        </a>
+
+                                        <form method="post"
+                                              action="/Adopter/LostFound/DeleteLost/@item.LostID"
+                                              style="display:inline;"
+                                              onsubmit="return confirm('Are you sure you want to delete this lost report?');">
+
+                                            @Html.AntiForgeryToken()
+
+                                            <button type="submit"
+                                                    class="delete-btn">
+                                                Delete
+                                            </button>
+
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span style="color:#8a7e91;font-weight:800;">View only</span>
+                                    }
+                                </td>
+
+                            </tr>
+                        }
+                    }
+
+                </table>
+
+            </div>
+
+            <div class="section-head">
+                <h2>🟢 Found Pets</h2>
+
+                <div class="count-pill">
+                    @(foundPets == null ? 0 : foundPets.Count) Report(s)
+                </div>
+            </div>
+
+            <div class="table-card">
+
+                <table>
+
+                    <tr>
+                        <th>Pet</th>
+                        <th>Found Location</th>
+                        <th>Found Date</th>
+                        <th>Reporter</th>
+                        <th>Contact</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+
+                    @if (foundPets == null || foundPets.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="7" class="empty">
+                                No found pet reports found.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in foundPets)
+                        {
+                            <tr>
+
+                                <td>@item.Pet?.PetName</td>
+
+                                <td>@item.FoundLocation</td>
+
+                                <td>
+                                    @item.FoundDate?.ToString("dd MMM yyyy")
+                                </td>
+
+                                <td>@item.ReporterName</td>
+
+                                <td>@item.ContactNumber</td>
+
+                                <td>
+                                    <span class="found-badge">
+                                        Found
+                                    </span>
+                                </td>
+
+                                <td>
+
+                                    @if (item.UserID == currentUserId)
+                                    {
+                                        <a href="/Adopter/LostFound/EditFound/@item.FoundID"
+                                           class="edit-btn">
+                                            Edit
+                                        </a>
+
+                                        <form method="post"
+                                              action="/Adopter/LostFound/DeleteFound/@item.FoundID"
+                                              style="display:inline;"
+                                              onsubmit="return confirm('Are you sure you want to delete this found report?');">
+
+                                            @Html.AntiForgeryToken()
+
+                                            <button type="submit"
+                                                    class="delete-btn">
+                                                Delete
+                                            </button>
+
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span style="color:#8a7e91;font-weight:800;">View only</span>
+                                    }
+
+                                </td>
+
+                            </tr>
+                        }
+                    }
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+</html>

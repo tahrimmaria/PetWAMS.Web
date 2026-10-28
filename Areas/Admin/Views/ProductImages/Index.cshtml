@@ -1,0 +1,447 @@
+﻿@using PetWAMS.Web.Models
+@using System.Collections.Generic
+@model List<PetWAMS.Web.Models.PetShopProduct>
+
+@{
+    Layout = null;
+
+    var imageCounts =
+        ViewBag.ImageCounts as Dictionary<int, int>
+        ?? new Dictionary<int, int>();
+
+    var primaryImages =
+        ViewBag.PrimaryImages as Dictionary<int, string>
+        ?? new Dictionary<int, string>();
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Product Images — PetHope</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+            :root {
+                --purple: #7B2FF7;
+                --purple-dark: #5A1FB8;
+                --purple-light: #F2E9FE;
+                --bg: #f8f5fb;
+                --text: #24142e;
+                --muted: #756a7c;
+                --line: #eee7f4;
+                --card: #ffffff;
+                --green-bg: #E7F8EC;
+                --green: #258447;
+                --red-bg: #FDE7EA;
+                --red: #C23E52;
+                --yellow-bg: #FFF4D9;
+                --yellow: #A46B00;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                background: var(--bg);
+                color: var(--text);
+                font-family: 'DM Sans', Arial, sans-serif;
+                min-height: 100vh;
+            }
+
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
+
+            .page {
+                width: 100%;
+                padding: 8px 120px 80px;
+            }
+
+            .container {
+                max-width: 1180px;
+                margin: 0 auto;
+            }
+
+            .page-head {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 18px;
+                margin-bottom: 26px;
+                flex-wrap: wrap;
+            }
+
+                .page-head h1 {
+                    font-family: 'Fraunces', Georgia, serif;
+                    font-size: 38px;
+                    font-weight: 800;
+                    margin-bottom: 8px;
+                    color: var(--text);
+                }
+
+                .page-head p {
+                    color: var(--muted);
+                    font-weight: 700;
+                    line-height: 1.6;
+                }
+
+            .top-actions {
+                display: flex;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+
+            .top-btn {
+                background: var(--purple-light);
+                color: var(--purple);
+                padding: 12px 20px;
+                border-radius: 999px;
+                font-weight: 900;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 44px;
+                transition: .2s ease;
+            }
+
+                .top-btn:hover {
+                    background: #eadbff;
+                    color: var(--purple);
+                    transform: translateY(-1px);
+                }
+
+                .top-btn.primary {
+                    background: var(--purple);
+                    color: #ffffff;
+                    box-shadow: 0 10px 24px rgba(123,47,247,.20);
+                }
+
+            .message {
+                padding: 14px 18px;
+                border-radius: 14px;
+                font-weight: 800;
+                margin-bottom: 16px;
+            }
+
+            .success {
+                background: var(--green-bg);
+                color: var(--green);
+            }
+
+            .error {
+                background: var(--red-bg);
+                color: var(--red);
+            }
+
+            .table-card {
+                background: var(--card);
+                border: 1px solid var(--line);
+                border-radius: 22px;
+                overflow: hidden;
+                box-shadow: 0 8px 25px rgba(36,20,46,.05);
+            }
+
+            .table-wrap {
+                overflow-x: auto;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                min-width: 920px;
+            }
+
+            th {
+                background: #F3EDFB;
+                text-align: left;
+                padding: 16px;
+                font-size: 14px;
+                font-weight: 900;
+                color: var(--text);
+                white-space: nowrap;
+            }
+
+            td {
+                padding: 16px;
+                border-top: 1px solid #eeeeee;
+                vertical-align: middle;
+                font-weight: 600;
+            }
+
+            .thumb {
+                width: 88px;
+                height: 68px;
+                border-radius: 14px;
+                background: #F2E9FE;
+                border: 1px solid var(--line);
+                overflow: hidden;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--purple);
+                font-size: 28px;
+            }
+
+                .thumb img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: contain;
+                    background: #ffffff;
+                }
+
+            .product-name {
+                font-weight: 900;
+                color: var(--text);
+                margin-bottom: 4px;
+            }
+
+            .muted {
+                color: var(--muted);
+                font-size: 13px;
+                font-weight: 700;
+                line-height: 1.5;
+            }
+
+            .badge {
+                background: var(--purple-light);
+                color: var(--purple);
+                padding: 7px 12px;
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 900;
+                display: inline-flex;
+                margin-bottom: 5px;
+            }
+
+                .badge.green {
+                    background: var(--green-bg);
+                    color: var(--green);
+                }
+
+                .badge.red {
+                    background: var(--red-bg);
+                    color: var(--red);
+                }
+
+            .manage-btn {
+                background: var(--purple);
+                color: #ffffff;
+                padding: 11px 16px;
+                border-radius: 999px;
+                font-weight: 900;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                transition: .2s ease;
+            }
+
+                .manage-btn:hover {
+                    background: var(--purple-dark);
+                    color: #ffffff;
+                    transform: translateY(-1px);
+                }
+
+            .empty {
+                padding: 32px;
+                text-align: center;
+                color: var(--muted);
+                font-weight: 800;
+            }
+
+            @@media(max-width: 1100px) {
+                .page {
+                    padding: 8px 48px 70px;
+                }
+            }
+
+            @@media(max-width: 700px) {
+                .page {
+                    padding: 8px 22px 60px;
+                }
+
+                .page-head h1 {
+                    font-size: 31px;
+                }
+
+                .top-btn {
+                    width: 100%;
+                }
+            }
+    </style>
+</head>
+
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+    <main class="page">
+
+        <div class="container">
+
+            <div class="page-head">
+                <div>
+                    <h1>Product Images</h1>
+                    <p>
+                        Upload and manage multiple images for Pet Care Shop products.
+                        The primary image will show in the adopter shop page.
+                    </p>
+                </div>
+
+                <div class="top-actions">
+                    <a href="/Admin/PetShop" class="top-btn">Back to Shop Products</a>
+                    <a href="/Admin" class="top-btn primary">Dashboard</a>
+                </div>
+            </div>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="message success">@TempData["Success"]</div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="message error">@TempData["Error"]</div>
+            }
+
+            <div class="table-card">
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Preview</th>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Status</th>
+                                <th>Images</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @if (Model == null || Model.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="7" class="empty">
+                                        No shop products found.
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var product in Model)
+                                {
+                                    int count = imageCounts.ContainsKey(product.ProductID)
+                                        ? imageCounts[product.ProductID]
+                                        : 0;
+
+                                    string primaryImage = primaryImages.ContainsKey(product.ProductID)
+                                        ? primaryImages[product.ProductID]
+                                        : "";
+
+                                    string statusClass = "badge";
+
+                                    if (product.ApprovalStatus == "Approved")
+                                    {
+                                        statusClass = "badge green";
+                                    }
+                                    else if (product.ApprovalStatus == "Rejected")
+                                    {
+                                        statusClass = "badge red";
+                                    }
+
+                                    <tr>
+                                        <td>
+                                            <div class="thumb">
+                                                @if (!string.IsNullOrWhiteSpace(primaryImage))
+                                                {
+                                                    <img src="@primaryImage" alt="@product.ProductName" />
+                                                }
+                                                else if (!string.IsNullOrWhiteSpace(product.ImagePath))
+                                                {
+                                                    <img src="@product.ImagePath" alt="@product.ProductName" />
+                                                }
+                                                else
+                                                {
+                                                    <span>🛒</span>
+                                                }
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            <div class="product-name">
+                                                @product.ProductName
+                                            </div>
+
+                                            <div class="muted">
+                                                @product.ProductCategory • @product.PetType
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            <div class="muted">
+                                                Original: ৳@product.OriginalPrice.ToString("0.00")
+                                            </div>
+
+                                            <strong>
+                                                Discount: ৳@product.DiscountPrice.ToString("0.00")
+                                            </strong>
+                                        </td>
+
+                                        <td>
+                                            <strong>@product.StockQuantity</strong>
+                                            <div class="muted">
+                                                Low limit: @product.LowStockLimit
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            <span class="@statusClass">
+                                                @product.ApprovalStatus
+                                            </span>
+
+                                            <br />
+
+                                            @if (product.IsActive)
+                                            {
+                                                <span class="badge green">Active</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge red">Inactive</span>
+                                            }
+                                        </td>
+
+                                        <td>
+                                            <span class="badge">
+                                                @count image(s)
+                                            </span>
+                                        </td>
+
+                                        <td>
+                                            <a href="/Admin/ProductImages/Manage/@product.ProductID"
+                                               class="manage-btn">
+                                                Manage Images
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+</html>

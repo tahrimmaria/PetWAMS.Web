@@ -1,0 +1,930 @@
+@using PetWAMS.Web.Models
+
+@{
+    Layout = null;
+
+    var adopter =
+        ViewBag.Adopter as User;
+
+    var bestPet =
+        ViewBag.BestPet as Pet;
+
+    var reasons =
+        ViewBag.Reasons as List<string>
+        ?? new List<string>();
+
+    int matchScore =
+        ViewBag.MatchScore == null
+            ? 0
+            : (int)ViewBag.MatchScore;
+
+    int totalPets =
+        ViewBag.TotalPetsAnalyzed == null
+            ? 0
+            : (int)ViewBag.TotalPetsAnalyzed;
+
+    string recommendationReason =
+        string.Join(" ", reasons);
+}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>AI Best Pet Match - PetHope</title>
+
+    <style>
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                font-family: Arial, sans-serif;
+            }
+
+            body {
+                background: #f8f5fb;
+                color: #2b2132;
+            }
+
+            .page {
+                min-height: 100vh;
+                padding: 38px 20px 60px;
+            }
+
+            .container {
+                max-width: 950px;
+                margin: auto;
+            }
+
+            /* =========================
+                       TOP BAR
+                    ========================= */
+
+            .topbar {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 24px;
+            }
+
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                color: #7131e8;
+                font-size: 24px;
+                font-weight: bold;
+            }
+
+            .brand-icon {
+                width: 44px;
+                height: 44px;
+                background: #eee2ff;
+                border-radius: 13px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .back-btn {
+                text-decoration: none;
+                color: #7131e8;
+                background: white;
+                border: 1px solid #e5d9ef;
+                padding: 11px 16px;
+                border-radius: 10px;
+                font-weight: bold;
+                font-size: 14px;
+            }
+
+                .back-btn:hover {
+                    background: #f3ecff;
+                }
+
+            /* =========================
+                       HEADER
+                    ========================= */
+
+            .header {
+                background: linear-gradient( 135deg, #7131e8, #9c4df1 );
+                color: white;
+                padding: 30px;
+                border-radius: 20px;
+                margin-bottom: 22px;
+            }
+
+                .header h1 {
+                    font-size: 29px;
+                    margin-bottom: 9px;
+                }
+
+                .header p {
+                    opacity: .92;
+                    line-height: 1.5;
+                }
+
+            /* =========================
+                       ALERTS
+                    ========================= */
+
+            .success-alert {
+                background: #e8f8ed;
+                border: 1px solid #bce7c7;
+                color: #27713b;
+                padding: 15px 18px;
+                border-radius: 12px;
+                margin-bottom: 20px;
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            .error-alert {
+                background: #fff0f2;
+                border: 1px solid #f0c4ca;
+                color: #ae3f51;
+                padding: 15px 18px;
+                border-radius: 12px;
+                margin-bottom: 20px;
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            /* =========================
+                       ERROR CARD
+                    ========================= */
+
+            .error-card {
+                background: white;
+                border: 1px solid #efccd2;
+                border-radius: 18px;
+                padding: 35px;
+                text-align: center;
+            }
+
+            .error-icon {
+                font-size: 45px;
+                margin-bottom: 15px;
+            }
+
+            .error-card h2 {
+                margin-bottom: 10px;
+            }
+
+            .error-card p {
+                color: #7e7285;
+                margin-bottom: 20px;
+                line-height: 1.6;
+            }
+
+            /* =========================
+                       BUTTONS
+                    ========================= */
+
+            .purple-btn {
+                display: inline-block;
+                text-decoration: none;
+                background: #7131e8;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 10px;
+                font-weight: bold;
+                border: none;
+                cursor: pointer;
+                font-size: 14px;
+            }
+
+                .purple-btn:hover {
+                    background: #5f22ca;
+                }
+
+            /* =========================
+                       SUMMARY
+                    ========================= */
+
+            .summary-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 18px;
+                margin-bottom: 22px;
+            }
+
+            .summary-card {
+                background: white;
+                border: 1px solid #eee5f5;
+                border-radius: 16px;
+                padding: 22px;
+            }
+
+                .summary-card small {
+                    display: block;
+                    color: #95889d;
+                    margin-bottom: 7px;
+                }
+
+                .summary-card h3 {
+                    font-size: 19px;
+                }
+
+            /* =========================
+                       RESULT CARD
+                    ========================= */
+
+            .result-card {
+                background: white;
+                border: 1px solid #e7d9f5;
+                border-radius: 22px;
+                overflow: hidden;
+                box-shadow: 0 10px 35px rgba(75,40,100,.07);
+            }
+
+            .winner-bar {
+                background: #eee2ff;
+                color: #7131e8;
+                font-weight: bold;
+                padding: 15px 25px;
+                font-size: 14px;
+            }
+
+            .result-body {
+                padding: 30px;
+            }
+
+            .pet-top {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 20px;
+                margin-bottom: 26px;
+            }
+
+            .pet-title h2 {
+                font-size: 31px;
+                margin-bottom: 7px;
+            }
+
+            .pet-title p {
+                color: #84778c;
+                font-size: 15px;
+            }
+
+            /* =========================
+                       SCORE
+                    ========================= */
+
+            .score-box {
+                min-width: 135px;
+                background: linear-gradient( 135deg, #7131e8, #9547ed );
+                color: white;
+                padding: 18px;
+                border-radius: 17px;
+                text-align: center;
+            }
+
+                .score-box strong {
+                    font-size: 32px;
+                    display: block;
+                    margin-bottom: 4px;
+                }
+
+                .score-box span {
+                    font-size: 11px;
+                    font-weight: bold;
+                    opacity: .9;
+                }
+
+            /* =========================
+                       PET INFO
+                    ========================= */
+
+            .info-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 12px;
+                margin-bottom: 25px;
+            }
+
+            .info-card {
+                background: #faf7fc;
+                border: 1px solid #f0eaf4;
+                border-radius: 12px;
+                padding: 14px;
+            }
+
+                .info-card small {
+                    display: block;
+                    color: #988b9f;
+                    margin-bottom: 5px;
+                }
+
+                .info-card strong {
+                    font-size: 14px;
+                }
+
+            /* =========================
+                       AI REASONS
+                    ========================= */
+
+            .reason-box {
+                background: #f7f1ff;
+                border: 1px solid #e4d4fa;
+                border-radius: 15px;
+                padding: 22px;
+                margin-bottom: 24px;
+            }
+
+                .reason-box h3 {
+                    color: #7131e8;
+                    margin-bottom: 15px;
+                    font-size: 18px;
+                }
+
+            .reason {
+                display: flex;
+                gap: 9px;
+                margin-bottom: 11px;
+                color: #5c5064;
+                line-height: 1.5;
+                font-size: 14px;
+            }
+
+            .check {
+                color: #2e9d57;
+                font-weight: bold;
+            }
+
+            /* =========================
+                       DESCRIPTION
+                    ========================= */
+
+            .description {
+                border-top: 1px solid #eee;
+                padding-top: 22px;
+            }
+
+                .description h3 {
+                    margin-bottom: 10px;
+                    font-size: 18px;
+                }
+
+                .description p {
+                    color: #746879;
+                    line-height: 1.7;
+                    font-size: 14px;
+                }
+
+            /* =========================
+                       NOTICE
+                    ========================= */
+
+            .notice {
+                margin-top: 22px;
+                background: #fff9e9;
+                border: 1px solid #f0dfa8;
+                color: #736025;
+                padding: 16px;
+                border-radius: 12px;
+                line-height: 1.6;
+                font-size: 13px;
+            }
+
+            /* =========================
+                       RECOMMEND BOX
+                    ========================= */
+
+            .recommend-box {
+                margin-top: 24px;
+                background: linear-gradient( 135deg, #f5edff, #fbf8ff );
+                border: 1px solid #dfccfa;
+                border-radius: 17px;
+                padding: 24px;
+            }
+
+                .recommend-box h3 {
+                    color: #7131e8;
+                    font-size: 19px;
+                    margin-bottom: 8px;
+                }
+
+                .recommend-box p {
+                    color: #695d71;
+                    line-height: 1.6;
+                    font-size: 14px;
+                    margin-bottom: 18px;
+                }
+
+            .send-btn {
+                width: 100%;
+                border: none;
+                background: linear-gradient( 135deg, #7131e8, #984cf0 );
+                color: white;
+                padding: 14px 20px;
+                border-radius: 11px;
+                font-size: 15px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+
+                .send-btn:hover {
+                    opacity: .93;
+                }
+
+            /* =========================
+                       ACTIONS
+                    ========================= */
+
+            .actions {
+                display: flex;
+                justify-content: flex-end;
+                gap: 10px;
+                margin-top: 22px;
+            }
+
+            @@media(max-width:700px) {
+
+                .summary-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .info-grid {
+                    grid-template-columns: repeat(2,1fr);
+                }
+
+                .pet-top {
+                    flex-direction: column;
+                }
+
+                .score-box {
+                    width: 100%;
+                }
+
+                .result-body {
+                    padding: 22px;
+                }
+            }
+
+    </style>
+
+</head>
+
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+
+    <div class="page">
+
+        <div class="container">
+
+
+            <!-- =========================
+             TOP BAR
+        ========================= -->
+
+            <div class="topbar">
+
+                <div class="brand">
+
+                    <div class="brand-icon">
+                        🐾
+                    </div>
+
+                    PetHope
+
+                </div>
+
+
+                <a href="/Admin/AIRecommendation"
+                   class="back-btn">
+
+                    ← New AI Analysis
+
+                </a>
+
+            </div>
+
+
+            <!-- =========================
+             HEADER
+        ========================= -->
+
+            <div class="header">
+
+                <h1>
+                    🤖 AI Best Pet Recommendation
+                </h1>
+
+                <p>
+                    AI compatibility analysis for
+                    @(adopter?.FullName ?? "Adopter")
+                </p>
+
+            </div>
+
+
+            <!-- =========================
+             SUCCESS
+        ========================= -->
+            @if (TempData["Success"] != null)
+            {
+                <div class="success-alert">
+
+                    ✓ @TempData["Success"]
+
+                </div>
+            }
+
+
+            <!-- =========================
+             ERROR
+        ========================= -->
+            @if (TempData["Error"] != null)
+            {
+                <div class="error-alert">
+
+                    ⚠ @TempData["Error"]
+
+                </div>
+            }
+
+
+            @if (ViewBag.Error != null)
+            {
+
+                <div class="error-card">
+
+                    <div class="error-icon">
+                        ⚠️
+                    </div>
+
+                    <h2>
+                        Recommendation Unavailable
+                    </h2>
+
+                    <p>
+                        @ViewBag.Error
+                    </p>
+
+                    <a href="/Admin/AIRecommendation"
+                       class="purple-btn">
+
+                        Go Back
+
+                    </a>
+
+                </div>
+
+            }
+            else if (bestPet != null && adopter != null)
+            {
+
+                <!-- =========================
+                 SUMMARY
+            ========================= -->
+
+                <div class="summary-grid">
+
+
+                    <div class="summary-card">
+
+                        <small>
+                            Selected Adopter
+                        </small>
+
+                        <h3>
+                            @adopter.FullName
+                        </h3>
+
+                    </div>
+
+
+                    <div class="summary-card">
+
+                        <small>
+                            Available Pets Analysed
+                        </small>
+
+                        <h3>
+                            @totalPets Pets
+                        </h3>
+
+                    </div>
+
+
+                </div>
+
+
+                <!-- =========================
+                 RESULT
+            ========================= -->
+
+                <div class="result-card">
+
+
+                    <div class="winner-bar">
+
+                        🏆 BEST MATCH AMONG ALL AVAILABLE PETS
+
+                    </div>
+
+
+                    <div class="result-body">
+
+
+                        <!-- PET -->
+
+                        <div class="pet-top">
+
+
+                            <div class="pet-title">
+
+                                <h2>
+                                    @bestPet.PetName
+                                </h2>
+
+                                <p>
+
+                                    @(bestPet.Category?.CategoryName ?? "Pet")
+
+                                    •
+
+                                    @(bestPet.Breed ?? "Unknown Breed")
+
+                                </p>
+
+                            </div>
+
+
+                            <!-- SCORE -->
+
+                            <div class="score-box">
+
+                                <strong>
+                                    @matchScore%
+                                </strong>
+
+                                <span>
+                                    COMPATIBILITY SCORE
+                                </span>
+
+                            </div>
+
+
+                        </div>
+
+
+                        <!-- =========================
+                         INFORMATION
+                    ========================= -->
+
+                        <div class="info-grid">
+
+
+                            <div class="info-card">
+
+                                <small>
+                                    Category
+                                </small>
+
+                                <strong>
+                                    @(bestPet.Category?.CategoryName ?? "N/A")
+                                </strong>
+
+                            </div>
+
+
+                            <div class="info-card">
+
+                                <small>
+                                    Breed
+                                </small>
+
+                                <strong>
+                                    @(bestPet.Breed ?? "N/A")
+                                </strong>
+
+                            </div>
+
+
+                            <div class="info-card">
+
+                                <small>
+                                    Age
+                                </small>
+
+                                <strong>
+
+                                    @if (bestPet.Age.HasValue)
+                                    {
+                                        @($"{bestPet.Age.Value} Years")
+                                    }
+                                    else
+                                    {
+                                        @("N/A")
+                                    }
+
+                                </strong>
+
+                            </div>
+
+
+                            <div class="info-card">
+
+                                <small>
+                                    Gender
+                                </small>
+
+                                <strong>
+                                    @(bestPet.Gender ?? "N/A")
+                                </strong>
+
+                            </div>
+
+
+                        </div>
+
+
+                        <!-- =========================
+                         REASONS
+                    ========================= -->
+
+                        <div class="reason-box">
+
+                            <h3>
+                                🤖 Why AI Selected @bestPet.PetName
+                            </h3>
+
+
+                            @foreach (var reason in reasons)
+                            {
+                                <div class="reason">
+
+                                    <span class="check">
+                                        ✓
+                                    </span>
+
+                                    <span>
+                                        @reason
+                                    </span>
+
+                                </div>
+                            }
+
+
+                        </div>
+
+
+                        <!-- =========================
+                         DESCRIPTION
+                    ========================= -->
+
+                        <div class="description">
+
+                            <h3>
+                                About @bestPet.PetName
+                            </h3>
+
+                            <p>
+
+                                @if (string.IsNullOrWhiteSpace(
+                                    bestPet.Description))
+                                {
+                                    @("No additional pet description is currently available.")
+                                }
+                                else
+                                {
+                                    @bestPet.Description
+                                }
+
+                            </p>
+
+                        </div>
+
+
+                        <!-- =========================
+                         NOTICE
+                    ========================= -->
+
+                        <div class="notice">
+
+                            🤖 <strong>AI Recommendation:</strong>
+
+                            The recommendation engine compared
+
+                            <strong>
+                                @totalPets currently available pets
+                            </strong>
+
+                            using the adopter's saved preference profile.
+
+                            <strong>
+                                @bestPet.PetName
+                            </strong>
+
+                            received the highest compatibility score.
+
+                        </div>
+
+
+                        <!-- =========================
+                         SEND TO ADOPTER
+                    ========================= -->
+
+                        <div class="recommend-box">
+
+                            <h3>
+                                📨 Send Recommendation to Adopter
+                            </h3>
+
+                            <p>
+
+                                AI recommends
+                                <strong>@bestPet.PetName</strong>
+                                as the best available pet for
+                                <strong>@adopter.FullName</strong>
+                                with a
+                                <strong>@matchScore% match</strong>.
+
+                                Review the result and send it
+                                to the adopter.
+
+                            </p>
+
+
+                            <form method="post"
+                                  action="/Admin/AIRecommendation/SendRecommendation">
+
+                                @Html.AntiForgeryToken()
+
+
+                                <input type="hidden"
+                                       name="userId"
+                                       value="@adopter.UserID" />
+
+
+                                <input type="hidden"
+                                       name="petId"
+                                       value="@bestPet.PetID" />
+
+
+                                <input type="hidden"
+                                       name="matchScore"
+                                       value="@matchScore" />
+
+
+                                <input type="hidden"
+                                       name="recommendationReason"
+                                       value="@recommendationReason" />
+
+
+                                <button type="submit"
+                                        class="send-btn">
+
+                                    📨 Recommend @bestPet.PetName
+                                    to @adopter.FullName
+
+                                </button>
+
+                            </form>
+
+
+                        </div>
+
+
+                        <!-- =========================
+                         ACTIONS
+                    ========================= -->
+
+                        <div class="actions">
+
+                            <a href="/Admin/Pets"
+                               class="purple-btn">
+
+                                View All Pets
+
+                            </a>
+
+                        </div>
+
+
+                    </div>
+
+
+                </div>
+
+            }
+
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

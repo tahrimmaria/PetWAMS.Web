@@ -1,0 +1,1314 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using PetWAMS.Web.Models
+@model List<PetWAMS.Web.Models.PetShopProduct>
+
+@inject PetWAMS.Web.Data.PetWamsDbContext Db
+
+@{
+    Layout = null;
+
+    int cartCount = 0;
+
+    if (ViewBag.CartCount != null)
+    {
+        cartCount = (int)ViewBag.CartCount;
+    }
+
+    string selectedPetType = ViewBag.PetType as string ?? "";
+    string selectedCategory = ViewBag.Category as string ?? "";
+
+    string petLabel = "All Pet Types";
+
+    if (selectedPetType == "Cat")
+    {
+        petLabel = "Cat";
+    }
+    else if (selectedPetType == "Dog")
+    {
+        petLabel = "Dog";
+    }
+    else if (selectedPetType == "Bird")
+    {
+        petLabel = "Bird";
+    }
+    else if (selectedPetType == "All")
+    {
+        petLabel = "Common Items";
+    }
+
+    string categoryLabel = string.IsNullOrWhiteSpace(selectedCategory)
+        ? "All Categories"
+        : selectedCategory;
+
+    int productCount = Model == null ? 0 : Model.Count;
+
+    List<int> productIds = Model == null
+        ? new List<int>()
+        : Model.Select(p => p.ProductID).ToList();
+
+    List<PetShopProductVariant> variantList = productIds.Count == 0
+        ? new List<PetShopProductVariant>()
+        : await Db.PetShopProductVariants
+            .AsNoTracking()
+            .Where(v =>
+                productIds.Contains(v.ProductID) &&
+                v.IsActive)
+            .OrderBy(v => v.VariantName)
+            .ToListAsync();
+
+    Dictionary<int, List<PetShopProductVariant>> productVariants =
+        variantList
+            .GroupBy(v => v.ProductID)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+    Dictionary<int, List<PetShopProductImage>> productImages =
+        ViewBag.ProductImages as Dictionary<int, List<PetShopProductImage>>
+        ?? new Dictionary<int, List<PetShopProductImage>>();
+
+    List<PetShopProductImage> productImageList =
+        ViewBag.ProductImages as List<PetShopProductImage>
+        ?? new List<PetShopProductImage>();
+
+    if (productImages.Count == 0 && productImageList.Count > 0)
+    {
+        productImages =
+            productImageList
+                .GroupBy(x => x.ProductID)
+                .ToDictionary(g => g.Key, g => g.ToList());
+    }
+}
+
+@functions {
+    private string FilterUrl(string petType, string category)
+    {
+        var query = new System.Collections.Generic.List<string>();
+
+        if (!string.IsNullOrWhiteSpace(petType))
+        {
+            query.Add("petType=" + System.Uri.EscapeDataString(petType));
+        }
+
+        if (!string.IsNullOrWhiteSpace(category))
+        {
+            query.Add("category=" + System.Uri.EscapeDataString(category));
+        }
+
+        if (query.Count == 0)
+        {
+            return "/PetCareShop";
+        }
+
+        return "/PetCareShop?" + string.Join("&", query);
+    }
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pet Care Shop — PetHope</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+            :root {
+                --purple: #7B2FF7;
+                --purple-dark: #5A1FB8;
+                --purple-light: #F2E9FE;
+                --purple-soft: #F7F0FF;
+                --bg: #f8f5fb;
+                --text: #24142e;
+                --muted: #756a7c;
+                --line: #eee7f4;
+                --green-bg: #E7F8EC;
+                --green: #258447;
+                --red-bg: #FDE7EA;
+                --red: #C23E52;
+                --yellow-bg: #FFF4D9;
+                --yellow: #A46B00;
+                --dark-chip: #574866;
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                background: var(--bg);
+                color: var(--text);
+                font-family: 'DM Sans', Arial, sans-serif;
+            }
+
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
+
+            .navbar {
+                height: 82px;
+                background: var(--bg);
+                border: none;
+                box-shadow: none;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 64px;
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+
+            .logo {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-family: 'Fraunces', Georgia, serif;
+                font-weight: 800;
+                font-size: 29px;
+                color: var(--purple);
+            }
+
+            .logo-mark {
+                width: 43px;
+                height: 43px;
+                border-radius: 14px;
+                background: linear-gradient(135deg, var(--purple), #B383F5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #ffffff;
+                font-size: 20px;
+            }
+
+            .nav-actions {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+
+            .nav-btn {
+                background: var(--purple-light);
+                color: var(--purple);
+                padding: 12px 22px;
+                border-radius: 999px;
+                font-weight: 900;
+                border: none;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+                .nav-btn:hover {
+                    background: #eadbff;
+                }
+
+                .nav-btn.primary {
+                    background: var(--purple);
+                    color: #ffffff;
+                }
+
+                    .nav-btn.primary:hover {
+                        background: var(--purple-dark);
+                    }
+
+            .container {
+                max-width: 1280px;
+                margin: 0 auto;
+                padding: 30px 24px 80px;
+            }
+
+            .message {
+                padding: 14px 18px;
+                border-radius: 14px;
+                font-weight: 800;
+                margin-bottom: 16px;
+            }
+
+                .message.success {
+                    background: var(--green-bg);
+                    color: var(--green);
+                }
+
+                .message.error {
+                    background: var(--red-bg);
+                    color: var(--red);
+                }
+
+            .filter-panel {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 24px;
+                padding: 22px;
+                margin-bottom: 28px;
+                box-shadow: 0 8px 26px rgba(36,20,46,.045);
+            }
+
+            .filter-top {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 18px;
+                margin-bottom: 16px;
+            }
+
+            .filter-title {
+                margin: 0;
+                font-size: 22px;
+                font-weight: 900;
+                color: var(--text);
+            }
+
+            .filter-subtitle {
+                margin: 5px 0 0;
+                color: var(--muted);
+                font-weight: 700;
+                line-height: 1.5;
+            }
+
+            .clear-btn {
+                background: #faf8fd;
+                border: 1px solid var(--line);
+                color: var(--purple);
+                padding: 11px 17px;
+                border-radius: 999px;
+                font-weight: 900;
+                white-space: nowrap;
+            }
+
+            .filter-row {
+                display: grid;
+                grid-template-columns: 145px 1fr;
+                gap: 16px;
+                align-items: center;
+                padding: 12px 0;
+                border-top: 1px solid #f2edf6;
+            }
+
+            .filter-label {
+                font-weight: 900;
+                color: var(--text);
+            }
+
+            .pill-group {
+                display: flex;
+                align-items: center;
+                gap: 11px;
+                flex-wrap: wrap;
+            }
+
+            .filter-pill {
+                background: var(--purple-light);
+                color: var(--purple);
+                padding: 10px 17px;
+                border-radius: 999px;
+                font-weight: 900;
+                font-size: 14px;
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
+            }
+
+                .filter-pill:hover {
+                    background: #eadbff;
+                }
+
+                .filter-pill.active {
+                    background: var(--purple);
+                    color: #ffffff;
+                    box-shadow: 0 8px 20px rgba(123,47,247,.22);
+                }
+
+            .active-summary {
+                margin-top: 14px;
+                background: var(--purple-soft);
+                color: var(--purple);
+                border-radius: 18px;
+                padding: 14px 18px;
+                font-weight: 900;
+                display: flex;
+                justify-content: space-between;
+                gap: 14px;
+                flex-wrap: wrap;
+            }
+
+                .active-summary span {
+                    color: var(--text);
+                }
+
+            .section-head {
+                display: flex;
+                align-items: end;
+                justify-content: space-between;
+                gap: 18px;
+                flex-wrap: wrap;
+                margin-bottom: 20px;
+            }
+
+            .section-title {
+                font-size: 30px;
+                font-weight: 900;
+                margin: 0;
+                color: var(--text);
+            }
+
+            .section-note {
+                color: var(--muted);
+                font-weight: 700;
+                line-height: 1.5;
+                margin: 5px 0 0;
+            }
+
+            .count-badge {
+                background: #ffffff;
+                color: var(--purple);
+                border: 1px solid var(--line);
+                padding: 12px 18px;
+                border-radius: 999px;
+                font-weight: 900;
+                box-shadow: 0 8px 22px rgba(36,20,46,.04);
+            }
+
+            .product-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 24px;
+            }
+
+            .product-card {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 24px;
+                padding: 20px;
+                box-shadow: 0 8px 25px rgba(36,20,46,.05);
+                transition: .2s ease;
+                position: relative;
+            }
+
+                .product-card:hover {
+                    transform: translateY(-4px);
+                    box-shadow: 0 14px 34px rgba(36,20,46,.08);
+                }
+
+            .product-image {
+                height: 178px;
+                border-radius: 20px;
+                background: linear-gradient(135deg, #F0E5FA, #F8F0FF);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+                margin-bottom: 12px;
+                color: var(--purple);
+                font-size: 45px;
+                font-weight: 900;
+                position: relative;
+            }
+
+                .product-image img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: contain;
+                    background: #ffffff;
+                    display: block;
+                }
+
+            .photo-badge {
+                position: absolute;
+                right: 12px;
+                bottom: 12px;
+                background: var(--dark-chip);
+                color: #ffffff;
+                padding: 8px 12px;
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 900;
+                z-index: 2;
+            }
+
+            .image-thumbs {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 14px;
+                flex-wrap: wrap;
+            }
+
+            .image-thumb {
+                width: 42px;
+                height: 42px;
+                border-radius: 11px;
+                border: 1px solid var(--line);
+                background: #ffffff;
+                padding: 3px;
+                cursor: pointer;
+                overflow: hidden;
+            }
+
+                .image-thumb.active {
+                    border: 2px solid var(--purple);
+                }
+
+                .image-thumb img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: contain;
+                }
+
+            .tags {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+                margin-bottom: 12px;
+            }
+
+            .tag {
+                background: var(--purple-light);
+                color: var(--purple);
+                padding: 7px 12px;
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 900;
+            }
+
+            .product-name {
+                font-size: 21px;
+                font-weight: 900;
+                margin: 0 0 8px;
+                color: var(--text);
+            }
+
+            .description {
+                color: var(--muted);
+                font-weight: 600;
+                line-height: 1.5;
+                min-height: 44px;
+                margin-bottom: 14px;
+            }
+
+            .variant-box {
+                background: #faf8fd;
+                border: 1px solid var(--line);
+                border-radius: 18px;
+                padding: 13px;
+                margin-bottom: 14px;
+            }
+
+            .variant-title {
+                font-size: 13px;
+                font-weight: 900;
+                color: var(--text);
+                margin-bottom: 10px;
+            }
+
+            .variant-options {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+
+            .variant-option {
+                border: 1px solid #e4d7ef;
+                background: #ffffff;
+                color: var(--text);
+                padding: 8px 10px;
+                border-radius: 999px;
+                font-family: inherit;
+                font-weight: 900;
+                font-size: 12px;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
+                transition: .18s ease;
+            }
+
+                .variant-option.active {
+                    border-color: var(--purple);
+                    background: var(--purple);
+                    color: #ffffff;
+                    box-shadow: 0 8px 16px rgba(123,47,247,.18);
+                }
+
+                .variant-option:disabled {
+                    opacity: .45;
+                    cursor: not-allowed;
+                }
+
+            .color-dot {
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                background: var(--purple-light);
+                border: 2px solid #ffffff;
+                box-shadow: 0 0 0 1px #d7cbe3;
+                flex: 0 0 auto;
+            }
+
+            .variant-selected-text {
+                color: var(--muted);
+                font-weight: 800;
+                font-size: 13px;
+                margin-top: 10px;
+                line-height: 1.4;
+            }
+
+            .price-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 14px;
+                margin-bottom: 14px;
+            }
+
+            .price {
+                display: flex;
+                align-items: baseline;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+
+            .discount-price {
+                font-size: 24px;
+                font-weight: 900;
+                color: var(--text);
+            }
+
+            .original-price {
+                color: var(--muted);
+                text-decoration: line-through;
+                font-weight: 800;
+            }
+
+            .discount-badge {
+                background: var(--green-bg);
+                color: var(--green);
+                padding: 7px 10px;
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 900;
+                white-space: nowrap;
+            }
+
+            .stock-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                margin-bottom: 16px;
+                color: var(--muted);
+                font-size: 14px;
+                font-weight: 800;
+            }
+
+            .stock-good {
+                color: var(--green);
+            }
+
+            .stock-low {
+                color: var(--yellow);
+            }
+
+            .stock-out {
+                color: var(--red);
+            }
+
+            .add-btn {
+                width: 100%;
+                border: none;
+                background: var(--purple);
+                color: #ffffff;
+                padding: 14px 18px;
+                border-radius: 999px;
+                font-family: inherit;
+                font-size: 15px;
+                font-weight: 900;
+                cursor: pointer;
+                box-shadow: 0 8px 18px rgba(123,47,247,.18);
+            }
+
+                .add-btn:hover {
+                    background: var(--purple-dark);
+                }
+
+                .add-btn:disabled {
+                    background: #ccc;
+                    color: #777;
+                    cursor: not-allowed;
+                    box-shadow: none;
+                }
+
+            .empty {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 22px;
+                padding: 38px;
+                color: var(--muted);
+                font-weight: 800;
+                text-align: center;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+            }
+
+                .empty strong {
+                    display: block;
+                    color: var(--text);
+                    font-size: 22px;
+                    margin-bottom: 8px;
+                }
+
+                .empty a {
+                    display: inline-flex;
+                    margin-top: 18px;
+                    background: var(--purple);
+                    color: #ffffff;
+                    padding: 12px 18px;
+                    border-radius: 999px;
+                    font-weight: 900;
+                }
+
+            .policy-box {
+                margin-top: 34px;
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 24px;
+                padding: 24px;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+            }
+
+                .policy-box h2 {
+                    margin: 0 0 12px;
+                    font-size: 22px;
+                    font-weight: 900;
+                }
+
+            .policy-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 16px;
+                margin-top: 18px;
+            }
+
+            .policy-item {
+                background: #faf8fd;
+                border: 1px solid #f0e9f5;
+                border-radius: 18px;
+                padding: 16px;
+            }
+
+                .policy-item strong {
+                    display: block;
+                    font-weight: 900;
+                    margin-bottom: 6px;
+                }
+
+                .policy-item span {
+                    color: var(--muted);
+                    font-weight: 600;
+                    line-height: 1.5;
+                    font-size: 14px;
+                }
+
+            @@media (max-width: 1050px) {
+                .product-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+
+                .navbar {
+                    padding: 0 26px;
+                }
+            }
+
+            @@media (max-width: 760px) {
+                .navbar {
+                    height: auto;
+                    padding: 18px;
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 15px;
+                }
+
+                .nav-actions {
+                    width: 100%;
+                }
+
+                .nav-btn {
+                    flex: 1;
+                    padding: 11px 14px;
+                    font-size: 13px;
+                }
+
+                .container {
+                    padding-top: 22px;
+                }
+
+                .filter-top {
+                    flex-direction: column;
+                }
+
+                .filter-row {
+                    grid-template-columns: 1fr;
+                    gap: 10px;
+                }
+
+                .product-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .policy-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .section-title {
+                    font-size: 25px;
+                }
+            }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <a href="/" class="logo">
+            <span class="logo-mark">🐾</span>
+            <span>PetHope</span>
+        </a>
+
+        <div class="nav-actions">
+            <a href="/Adopter/Dashboard" class="nav-btn">Back to Dashboard</a>
+            <a href="/PetCareShop/MyOrders" class="nav-btn">My Orders</a>
+            <a href="/PetCareShop/Cart" class="nav-btn primary">Cart (@cartCount)</a>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="message success">@TempData["Success"]</div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="message error">@TempData["Error"]</div>
+        }
+
+        <div class="filter-panel">
+
+            <div class="filter-top">
+                <div>
+                    <h2 class="filter-title">Find Items</h2>
+                    <p class="filter-subtitle">
+                        Select pet type and category together to find suitable products.
+                    </p>
+                </div>
+
+                <a href="/PetCareShop" class="clear-btn">Clear Filters</a>
+            </div>
+
+            <div class="filter-row">
+                <div class="filter-label">Pet Type</div>
+
+                <div class="pill-group">
+                    <a href="@FilterUrl("", selectedCategory)" class="filter-pill @(string.IsNullOrWhiteSpace(selectedPetType) ? "active" : "")">All Pets</a>
+                    <a href="@FilterUrl("Cat", selectedCategory)" class="filter-pill @(selectedPetType == "Cat" ? "active" : "")">🐱 Cat</a>
+                    <a href="@FilterUrl("Dog", selectedCategory)" class="filter-pill @(selectedPetType == "Dog" ? "active" : "")">🐶 Dog</a>
+                    <a href="@FilterUrl("Bird", selectedCategory)" class="filter-pill @(selectedPetType == "Bird" ? "active" : "")">🦜 Bird</a>
+                    <a href="@FilterUrl("All", selectedCategory)" class="filter-pill @(selectedPetType == "All" ? "active" : "")">🐾 Common Items</a>
+                </div>
+            </div>
+
+            <div class="filter-row">
+                <div class="filter-label">Category</div>
+
+                <div class="pill-group">
+                    <a href="@FilterUrl(selectedPetType, "")" class="filter-pill @(string.IsNullOrWhiteSpace(selectedCategory) ? "active" : "")">All Categories</a>
+                    <a href="@FilterUrl(selectedPetType, "Food")" class="filter-pill @(selectedCategory == "Food" ? "active" : "")">🍲 Food</a>
+                    <a href="@FilterUrl(selectedPetType, "Accessory")" class="filter-pill @(selectedCategory == "Accessory" ? "active" : "")">🎀 Accessory</a>
+                    <a href="@FilterUrl(selectedPetType, "Care")" class="filter-pill @(selectedCategory == "Care" ? "active" : "")">🧴 Care</a>
+                    <a href="@FilterUrl(selectedPetType, "Vet Care")" class="filter-pill @(selectedCategory == "Vet Care" ? "active" : "")">🩺 Vet Care</a>
+                </div>
+            </div>
+
+            <div class="active-summary">
+                <div>
+                    Showing:
+                    <span>@petLabel</span>
+                    +
+                    <span>@categoryLabel</span>
+                </div>
+
+                <div>
+                    Result: <span>@productCount item(s)</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="section-head">
+            <div>
+                <h2 class="section-title">Available Discount Items</h2>
+                <p class="section-note">
+                    Select color/variant before adding product to cart.
+                </p>
+            </div>
+
+            <div class="count-badge">
+                @productCount Product(s)
+            </div>
+        </div>
+
+        @if (Model == null || Model.Count == 0)
+        {
+            <div class="empty">
+                <strong>No product found</strong>
+                No item available for <strong>@petLabel + @categoryLabel</strong>.
+                <br />
+                Try another pet type or category.
+
+                <br />
+                <a href="/PetCareShop">Clear Filters</a>
+            </div>
+        }
+        else
+        {
+            <div class="product-grid">
+
+                @foreach (var product in Model)
+                {
+                    string emoji = "🐾";
+
+                    if (product.ProductCategory == "Food")
+                    {
+                        emoji = "🍲";
+                    }
+                    else if (product.ProductCategory == "Vet Care")
+                    {
+                        emoji = "🩺";
+                    }
+                    else if (product.ProductCategory == "Care")
+                    {
+                        emoji = "🧴";
+                    }
+                    else if (product.PetType == "Bird")
+                    {
+                        emoji = "🦜";
+                    }
+                    else if (product.PetType == "Cat")
+                    {
+                        emoji = "🐱";
+                    }
+                    else if (product.PetType == "Dog")
+                    {
+                        emoji = "🐶";
+                    }
+
+                    int discountPercent = 0;
+
+                    if (product.OriginalPrice > 0 && product.DiscountPrice < product.OriginalPrice)
+                    {
+                        discountPercent = (int)Math.Round(((product.OriginalPrice - product.DiscountPrice) / product.OriginalPrice) * 100);
+                    }
+
+                    List<PetShopProductImage> imagesForProduct =
+                        productImages.ContainsKey(product.ProductID)
+                            ? productImages[product.ProductID]
+                                .OrderByDescending(x => x.IsPrimary)
+                                .ThenBy(x => x.ProductImageID)
+                                .ToList()
+                            : new List<PetShopProductImage>();
+
+                    List<PetShopProductVariant> variantsForProduct =
+                        productVariants.ContainsKey(product.ProductID)
+                            ? productVariants[product.ProductID]
+                            : new List<PetShopProductVariant>();
+
+                    bool hasVariants = variantsForProduct.Count > 0;
+
+                    PetShopProductVariant? firstAvailableVariant =
+                        variantsForProduct.FirstOrDefault(v => v.StockQuantity > 0);
+
+                    PetShopProductVariant? firstVariant =
+                        firstAvailableVariant ?? variantsForProduct.FirstOrDefault();
+
+                    string mainImage = "";
+
+                    if (hasVariants && firstVariant != null && !string.IsNullOrWhiteSpace(firstVariant.ImagePath))
+                    {
+                        mainImage = firstVariant.ImagePath;
+                    }
+                    else if (imagesForProduct.Count > 0 && !string.IsNullOrWhiteSpace(imagesForProduct[0].ImagePath))
+                    {
+                        mainImage = imagesForProduct[0].ImagePath;
+                    }
+                    else if (!string.IsNullOrWhiteSpace(product.ImagePath))
+                    {
+                        mainImage = product.ImagePath;
+                    }
+
+                    int stockQuantity = hasVariants
+                        ? variantsForProduct.Where(v => v.StockQuantity > 0).Sum(v => v.StockQuantity)
+                        : product.StockQuantity;
+
+                    string stockClass = "stock-good";
+                    string stockText = "In Stock";
+
+                    if (stockQuantity <= 0)
+                    {
+                        stockClass = "stock-out";
+                        stockText = "Out of Stock";
+                    }
+                    else if (stockQuantity <= product.LowStockLimit)
+                    {
+                        stockClass = "stock-low";
+                        stockText = "Low Stock";
+                    }
+
+                    int photoCount = hasVariants
+                        ? variantsForProduct.Count(v => !string.IsNullOrWhiteSpace(v.ImagePath))
+                        : imagesForProduct.Count;
+
+                    if (photoCount == 0 && !string.IsNullOrWhiteSpace(mainImage))
+                    {
+                        photoCount = 1;
+                    }
+
+                    string selectedVariantText = "";
+
+                    if (firstVariant != null)
+                    {
+                        selectedVariantText =
+                            "Selected: " +
+                            firstVariant.VariantName +
+                            " | Stock: " +
+                            firstVariant.StockQuantity;
+                    }
+
+                    <div class="product-card">
+
+                        <div class="product-image">
+                            <img class="main-product-img"
+                                 src="@mainImage"
+                                 alt="@product.ProductName"
+                                 style="display:@(string.IsNullOrWhiteSpace(mainImage) ? "none" : "block")" />
+
+                            <span class="emoji-placeholder"
+                                  style="display:@(string.IsNullOrWhiteSpace(mainImage) ? "block" : "none")">
+                                @emoji
+                            </span>
+
+                            @if (photoCount > 1)
+                            {
+                                <span class="photo-badge">
+                                    @photoCount photos
+                                </span>
+                            }
+                        </div>
+
+                        @if (hasVariants)
+                        {
+                            <div class="image-thumbs">
+                                @foreach (var variant in variantsForProduct)
+                                {
+                                    if (!string.IsNullOrWhiteSpace(variant.ImagePath))
+                                    {
+                                        <button type="button"
+                                                class="image-thumb variant-image-thumb @(firstVariant != null && variant.ProductVariantID == firstVariant.ProductVariantID ? "active" : "")"
+                                                data-variant-id="@variant.ProductVariantID"
+                                                data-image="@variant.ImagePath"
+                                                data-name="@variant.VariantName"
+                                                data-stock="@variant.StockQuantity">
+                                            <img src="@variant.ImagePath"
+                                                 alt="@variant.VariantName" />
+                                        </button>
+                                    }
+                                }
+                            </div>
+                        }
+                        else if (imagesForProduct.Count > 0)
+                        {
+                            <div class="image-thumbs">
+                                @foreach (var image in imagesForProduct)
+                                {
+                                    <button type="button"
+                                            class="image-thumb normal-image-thumb @(image == imagesForProduct[0] ? "active" : "")"
+                                            data-image="@image.ImagePath">
+                                        <img src="@image.ImagePath"
+                                             alt="@product.ProductName" />
+                                    </button>
+                                }
+                            </div>
+                        }
+
+                        <div class="tags">
+                            <span class="tag">@product.ProductCategory</span>
+                            <span class="tag">@product.PetType</span>
+                        </div>
+
+                        <h3 class="product-name">@product.ProductName</h3>
+
+                        <div class="description">
+                            @(string.IsNullOrWhiteSpace(product.Description) ? "Essential discounted pet care item for adopters." : product.Description)
+                        </div>
+
+                        @if (hasVariants)
+                        {
+                            <div class="variant-box">
+                                <div class="variant-title">
+                                    Select Color / Variant
+                                </div>
+
+                                <div class="variant-options">
+                                    @foreach (var variant in variantsForProduct)
+                                    {
+                                        string dotColor = string.IsNullOrWhiteSpace(variant.ColorCode)
+                                            ? "#F2E9FE"
+                                            : variant.ColorCode;
+
+                                        bool isActive =
+                                            firstVariant != null &&
+                                            variant.ProductVariantID == firstVariant.ProductVariantID;
+
+                                        <button type="button"
+                                                class="variant-option @(isActive ? "active" : "")"
+                                                data-variant-id="@variant.ProductVariantID"
+                                                data-image="@(variant.ImagePath ?? "")"
+                                                data-name="@variant.VariantName"
+                                                data-stock="@variant.StockQuantity"
+                                            @(variant.StockQuantity <= 0 ? "disabled" : "")>
+                                            <span class="color-dot"
+                                                  style="background:@dotColor">
+                                            </span>
+                                            @variant.VariantName
+                                        </button>
+                                    }
+                                </div>
+
+                                <div class="variant-selected-text">
+                                    @selectedVariantText
+                                </div>
+                            </div>
+                        }
+
+                        <div class="price-row">
+                            <div class="price">
+                                <span class="discount-price">৳@product.DiscountPrice.ToString("0.00")</span>
+                                <span class="original-price">৳@product.OriginalPrice.ToString("0.00")</span>
+                            </div>
+
+                            @if (discountPercent > 0)
+                            {
+                                <span class="discount-badge">@discountPercent% OFF</span>
+                            }
+                        </div>
+
+                        <div class="stock-row">
+                            <span class="@stockClass stock-status-text">@stockText</span>
+                            <span class="stock-value">Stock: @stockQuantity</span>
+                        </div>
+
+                        <form action="/PetCareShopVariantCart/AddToCart" method="post">
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden"
+                                   name="productId"
+                                   value="@product.ProductID" />
+
+                            <input type="hidden"
+                                   name="productVariantId"
+                                   class="selected-variant-input"
+                                   value="@(firstAvailableVariant != null ? firstAvailableVariant.ProductVariantID.ToString() : "")" />
+
+                            @if (stockQuantity > 0)
+                            {
+                                <button type="submit" class="add-btn">
+                                    Add to Cart
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="button" class="add-btn" disabled>
+                                    Out of Stock
+                                </button>
+                            }
+                        </form>
+
+                    </div>
+                }
+
+            </div>
+        }
+
+        <div class="policy-box">
+            <h2>Business Logic Applied</h2>
+
+            <div class="policy-grid">
+                <div class="policy-item">
+                    <strong>Variant Selection</strong>
+                    <span>Adopter can select color or variant before adding to cart.</span>
+                </div>
+
+                <div class="policy-item">
+                    <strong>Variant Stock</strong>
+                    <span>Each color/variant has separate stock from admin side.</span>
+                </div>
+
+                <div class="policy-item">
+                    <strong>Cart Control</strong>
+                    <span>Selected variant ID is saved with cart item.</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+            document.addEventListener("click", function(event) {
+                const variantBtn = event.target.closest(".variant-option");
+
+                if (variantBtn) {
+                    if (variantBtn.disabled) {
+                        return;
+                    }
+
+                    const card = variantBtn.closest(".product-card");
+
+                    if (!card) {
+                        return;
+                    }
+
+                    const variantId = variantBtn.getAttribute("data-variant-id");
+                    const image = variantBtn.getAttribute("data-image");
+                    const name = variantBtn.getAttribute("data-name");
+                    const stock = parseInt(variantBtn.getAttribute("data-stock") || "0");
+
+                    card.querySelectorAll(".variant-option").forEach(function(btn) {
+                        btn.classList.remove("active");
+                    });
+
+                    card.querySelectorAll(".image-thumb").forEach(function(btn) {
+                        btn.classList.remove("active");
+                    });
+
+                    variantBtn.classList.add("active");
+
+                    const matchingThumb = card.querySelector('.variant-image-thumb[data-variant-id="' + variantId + '"]');
+
+                    if (matchingThumb) {
+                        matchingThumb.classList.add("active");
+                    }
+
+                    const input = card.querySelector(".selected-variant-input");
+
+                    if (input) {
+                        input.value = variantId;
+                    }
+
+                    const img = card.querySelector(".main-product-img");
+                    const emoji = card.querySelector(".emoji-placeholder");
+
+                    if (image && image.trim() !== "") {
+                        if (img) {
+                            img.src = image;
+                            img.style.display = "block";
+                        }
+
+                        if (emoji) {
+                            emoji.style.display = "none";
+                        }
+                    }
+
+                    const selectedText = card.querySelector(".variant-selected-text");
+
+                    if (selectedText) {
+                        selectedText.textContent = "Selected: " + name + " | Stock: " + stock;
+                    }
+
+                    const stockValue = card.querySelector(".stock-value");
+
+                    if (stockValue) {
+                        stockValue.textContent = "Stock: " + stock;
+                    }
+
+                    const stockStatus = card.querySelector(".stock-status-text");
+
+                    if (stockStatus) {
+                        stockStatus.classList.remove("stock-good", "stock-low", "stock-out");
+
+                        if (stock <= 0) {
+                            stockStatus.textContent = "Out of Stock";
+                            stockStatus.classList.add("stock-out");
+                        }
+                        else {
+                            stockStatus.textContent = "In Stock";
+                            stockStatus.classList.add("stock-good");
+                        }
+                    }
+
+                    const addBtn = card.querySelector(".add-btn");
+
+                    if (addBtn) {
+                        addBtn.disabled = stock <= 0;
+                        addBtn.textContent = stock <= 0 ? "Out of Stock" : "Add to Cart";
+                    }
+
+                    return;
+                }
+
+                const variantThumb = event.target.closest(".variant-image-thumb");
+
+                if (variantThumb) {
+                    const card = variantThumb.closest(".product-card");
+
+                    if (!card) {
+                        return;
+                    }
+
+                    const variantId = variantThumb.getAttribute("data-variant-id");
+                    const variantButton = card.querySelector('.variant-option[data-variant-id="' + variantId + '"]');
+
+                    if (variantButton && !variantButton.disabled) {
+                        variantButton.click();
+                    }
+
+                    return;
+                }
+
+                const normalThumb = event.target.closest(".normal-image-thumb");
+
+                if (normalThumb) {
+                    const card = normalThumb.closest(".product-card");
+
+                    if (!card) {
+                        return;
+                    }
+
+                    const image = normalThumb.getAttribute("data-image");
+
+                    const img = card.querySelector(".main-product-img");
+                    const emoji = card.querySelector(".emoji-placeholder");
+
+                    if (image && image.trim() !== "") {
+                        if (img) {
+                            img.src = image;
+                            img.style.display = "block";
+                        }
+
+                        if (emoji) {
+                            emoji.style.display = "none";
+                        }
+                    }
+
+                    card.querySelectorAll(".normal-image-thumb").forEach(function(btn) {
+                        btn.classList.remove("active");
+                    });
+
+                    normalThumb.classList.add("active");
+                }
+            });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,469 @@
+﻿@model PetWAMS.Web.Models.Invoice
+
+@{
+    Layout = null;
+}
+
+
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+
+    <title>Admin Invoice - PetHope</title>
+
+
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+
+    <style>
+
+            :root {
+                --purple: #7B2FF7;
+                --dark: #24142e;
+                --muted: #756a7c;
+                --bg: #faf7ff;
+                --green: #258447;
+            }
+
+
+            body {
+                margin: 0;
+                background: var(--bg);
+                font-family: 'DM Sans',sans-serif;
+                color: var(--dark);
+            }
+
+
+            .container {
+                max-width: 900px;
+                margin: 50px auto;
+                padding: 20px;
+            }
+
+
+            .invoice-card {
+                background: white;
+                border-radius: 30px;
+                padding: 45px;
+                box-shadow: 0 15px 40px rgba(0,0,0,.08);
+            }
+
+
+
+            .header {
+                display: flex;
+                justify-content: space-between;
+            }
+
+
+
+            .logo {
+                font-family: 'Fraunces',serif;
+                font-size: 42px;
+                color: var(--purple);
+            }
+
+
+            .title {
+                text-align: right;
+            }
+
+
+                .title h1 {
+                    margin: 0;
+                    font-size: 32px;
+                }
+
+
+
+            .line {
+                height: 1px;
+                background: #eee;
+                margin: 30px 0;
+            }
+
+
+
+            .section-title {
+                font-size: 18px;
+                font-weight: 900;
+                margin-bottom: 15px;
+            }
+
+
+
+            .row {
+                display: flex;
+                justify-content: space-between;
+                padding: 10px 0;
+            }
+
+
+            .label {
+                color: var(--muted);
+                font-weight: 700;
+            }
+
+
+            .value {
+                font-weight: 800;
+            }
+
+
+
+            .items {
+                margin-top: 15px;
+            }
+
+
+
+            .item {
+                display: flex;
+                justify-content: space-between;
+                padding: 14px 0;
+                border-bottom: 1px solid #eee;
+            }
+
+
+
+            .total {
+                display: flex;
+                justify-content: space-between;
+                font-size: 24px;
+                font-weight: 900;
+                margin-top: 30px;
+            }
+
+
+
+            .status {
+                color: var(--green);
+            }
+
+
+
+            .actions {
+                text-align: center;
+                margin-top: 35px;
+            }
+
+
+
+            button {
+                background: var(--purple);
+                color: white;
+                border: none;
+                padding: 14px 35px;
+                border-radius: 30px;
+                font-weight: 900;
+                cursor: pointer;
+            }
+
+
+
+            .back {
+                display: inline-block;
+                margin-bottom: 20px;
+                color: var(--purple);
+                font-weight: 800;
+            }
+
+    </style>
+
+</head>
+
+
+
+<body>
+
+
+    <div class="container">
+
+
+        <a href="/Admin/PetShop/Orders" class="back">
+            ← Back to Orders
+        </a>
+
+
+
+        <div class="invoice-card">
+
+
+            <div class="header">
+
+
+                <div>
+
+                    <div class="logo">
+                        PetHope
+                    </div>
+
+                    <p>
+                        Admin Invoice Record
+                    </p>
+
+
+                </div>
+
+
+
+                <div class="title">
+
+                    <h1>
+                        Invoice
+                    </h1>
+
+                    <div>
+                        @Model.InvoiceNumber
+                    </div>
+
+                    <div>
+                        @Model.InvoiceDate.ToString("dd MMM yyyy")
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+
+
+            <div class="line"></div>
+
+
+
+
+            <div class="section-title">
+                Customer Information
+            </div>
+
+
+
+            <div class="row">
+
+                <span class="label">
+                    Name
+                </span>
+
+                <span class="value">
+                    @Model.User?.FullName
+                </span>
+
+            </div>
+
+
+
+            <div class="row">
+
+                <span class="label">
+                    Email
+                </span>
+
+                <span class="value">
+                    @Model.User?.Email
+                </span>
+
+            </div>
+
+
+
+
+
+            <div class="line"></div>
+
+
+
+
+            <div class="section-title">
+                Payment Information
+            </div>
+
+
+
+            <div class="row">
+
+                <span class="label">
+                    Payment Method
+                </span>
+
+                <span class="value">
+                    @Model.PaymentMethod
+                </span>
+
+            </div>
+
+
+
+            <div class="row">
+
+                <span class="label">
+                    Payment Status
+                </span>
+
+                <span class="value status">
+                    @Model.PaymentStatus
+                </span>
+
+            </div>
+            @if (Model.Order != null && Model.Order.PaymentStatus == "Refund Pending")
+            {
+                <div class="row">
+                    <span class="label">
+                        Refund Status
+                    </span>
+
+                    <span class="value" style="color:#A46B00;">
+                        Processing
+                    </span>
+                </div>
+
+                <div class="row">
+                    <span class="label">
+                        Refund Amount
+                    </span>
+
+                    <span class="value">
+                        ৳@Model.Order.TotalAmount.ToString("0.00")
+                    </span>
+                </div>
+            }
+
+            @if (Model.Order != null && Model.Order.PaymentStatus == "Refunded")
+            {
+                <div class="row">
+                    <span class="label">
+                        Refund Status
+                    </span>
+
+                    <span class="value status">
+                        Completed
+                    </span>
+                </div>
+
+                <div class="row">
+                    <span class="label">
+                        Refund Amount
+                    </span>
+
+                    <span class="value">
+                        ৳@Model.Order.RefundAmount.ToString("0.00")
+                    </span>
+                </div>
+
+                @if (Model.Order.RefundCompletedAt != null)
+                {
+                    <div class="row">
+                        <span class="label">
+                            Refund Date
+                        </span>
+
+                        <span class="value">
+                            @Model.Order.RefundCompletedAt.Value.ToString("dd MMM yyyy hh:mm tt")
+                        </span>
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(Model.Order.RefundNote))
+                {
+                    <div class="row">
+                        <span class="label">
+                            Refund Note
+                        </span>
+
+                        <span class="value">
+                            @Model.Order.RefundNote
+                        </span>
+                    </div>
+                }
+            }
+
+
+
+
+
+
+            <div class="line"></div>
+
+
+
+
+            <div class="section-title">
+                Products
+            </div>
+
+
+
+            <div class="items">
+
+
+                @foreach (var item in Model.Order.OrderItems)
+                {
+
+                    <div class="item">
+
+                        <span>
+                            @item.ProductName
+                            <br>
+                            <small>
+                                @item.Quantity × ৳@item.UnitPrice
+                            </small>
+                        </span>
+
+
+                        <strong>
+                            ৳@item.LineTotal.ToString("0.00")
+                        </strong>
+
+
+                    </div>
+
+                }
+
+
+            </div>
+
+
+
+
+
+            <div class="total">
+
+                <span>
+                    Total Amount
+                </span>
+
+
+                <span>
+                    ৳@Model.Amount.ToString("0.00")
+                </span>
+
+
+            </div>
+
+
+
+
+            <div class="actions">
+
+                <button onclick="window.print()">
+                    Print Invoice
+                </button>
+
+
+            </div>
+
+
+
+        </div>
+
+
+    </div>
+
+
+</body>
+
+</html>

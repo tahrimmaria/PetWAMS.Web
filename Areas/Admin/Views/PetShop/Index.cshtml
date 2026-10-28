@@ -1,0 +1,931 @@
+﻿@model List<PetWAMS.Web.Models.PetShopProduct>
+
+@{
+    Layout = null;
+
+    int totalProducts = Convert.ToInt32(ViewBag.TotalProducts ?? 0);
+    int pendingProducts = Convert.ToInt32(ViewBag.PendingProducts ?? 0);
+    int approvedProducts = Convert.ToInt32(ViewBag.ApprovedProducts ?? 0);
+    int lowStockProducts = Convert.ToInt32(ViewBag.LowStockProducts ?? 0);
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Pet Shop — PetHope</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+            :root {
+                --purple: #7B2FF7;
+                --purple-dark: #5A1FB8;
+                --bg: #f8f5fb;
+                --text: #24142e;
+                --muted: #756a7c;
+                --line: #eee7f4;
+                --card: #ffffff;
+                --green-bg: #E7F8EC;
+                --green: #258447;
+                --red-bg: #FDE7EA;
+                --red: #C23E52;
+                --yellow-bg: #FFF4D9;
+                --yellow: #A46B00;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            html,
+            body {
+                width: 100%;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            body {
+                background: var(--bg);
+                color: var(--text);
+                font-family: 'DM Sans', Arial, sans-serif;
+                min-height: 100vh;
+            }
+
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
+
+            .page {
+                display: grid;
+                grid-template-columns: 280px minmax(0, 1fr);
+                min-height: 100vh;
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .sidebar {
+                background: #ffffff;
+                border-right: 1px solid var(--line);
+                padding: 32px 24px;
+                display: flex;
+                flex-direction: column;
+                min-width: 0;
+            }
+
+            .logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-family: 'Fraunces', Georgia, serif;
+                font-weight: 800;
+                font-size: 26px;
+                color: var(--purple);
+                margin-bottom: 42px;
+            }
+
+            .logo-mark {
+                width: 38px;
+                height: 38px;
+                border-radius: 12px;
+                background: linear-gradient(135deg, var(--purple), #B383F5);
+                color: #ffffff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .panel-title {
+                font-size: 12px;
+                font-weight: 900;
+                color: #a092ad;
+                text-transform: uppercase;
+                margin-bottom: 12px;
+            }
+
+            .menu {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+                .menu a {
+                    min-height: 52px;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 0 16px;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    font-weight: 800;
+                    color: #5c5268;
+                }
+
+                    .menu a.active {
+                        background: var(--purple);
+                        color: #ffffff;
+                    }
+
+                    .menu a:hover {
+                        background: #F2E9FE;
+                        color: var(--purple);
+                    }
+
+            .logout {
+                color: #d9435e !important;
+                margin-top: 20px;
+            }
+
+            .main {
+                padding: 36px 36px 70px;
+                min-width: 0;
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .top-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 18px;
+                margin-bottom: 28px;
+                width: 100%;
+                max-width: 100%;
+            }
+
+                .top-row h1 {
+                    font-size: 34px;
+                    font-weight: 900;
+                    flex: 0 0 auto;
+                }
+
+            .top-actions {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+                justify-content: flex-end;
+                max-width: 760px;
+            }
+
+            .top-btn {
+                background: #F2E9FE;
+                color: var(--purple);
+                padding: 11px 16px;
+                border-radius: 30px;
+                font-weight: 900;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                white-space: nowrap;
+            }
+
+                .top-btn.primary {
+                    background: var(--purple);
+                    color: #ffffff;
+                }
+
+                .top-btn:hover {
+                    background: #eadbff;
+                    color: var(--purple);
+                }
+
+                .top-btn.primary:hover {
+                    background: var(--purple-dark);
+                    color: #ffffff;
+                }
+
+            .stats {
+                display: grid;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: 16px;
+                margin-bottom: 28px;
+                width: 100%;
+            }
+
+            .stat-card {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 18px;
+                padding: 22px;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+                min-width: 0;
+            }
+
+                .stat-card .icon {
+                    font-size: 28px;
+                    margin-bottom: 12px;
+                }
+
+                .stat-card strong {
+                    display: block;
+                    font-size: 28px;
+                    font-weight: 900;
+                    margin-bottom: 4px;
+                }
+
+                .stat-card span {
+                    color: var(--muted);
+                    font-weight: 700;
+                }
+
+            .message {
+                padding: 14px 18px;
+                border-radius: 14px;
+                font-weight: 800;
+                margin-bottom: 14px;
+            }
+
+            .success {
+                background: var(--green-bg);
+                color: var(--green);
+            }
+
+            .error {
+                background: var(--red-bg);
+                color: var(--red);
+            }
+
+            .section {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 20px;
+                padding: 24px;
+                margin-bottom: 28px;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                overflow: hidden;
+            }
+
+                .section h2 {
+                    font-size: 24px;
+                    font-weight: 900;
+                    margin-bottom: 16px;
+                }
+
+            .form-grid {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 14px;
+            }
+
+            .form-group {
+                margin-bottom: 14px;
+                min-width: 0;
+            }
+
+            .full-row {
+                grid-column: 1 / -1;
+            }
+
+            label {
+                display: block;
+                font-weight: 900;
+                margin-bottom: 7px;
+                color: var(--text);
+            }
+
+            input,
+            select,
+            textarea {
+                width: 100%;
+                max-width: 100%;
+                border: 1px solid var(--line);
+                border-radius: 12px;
+                padding: 12px 14px;
+                font-family: inherit;
+                outline: none;
+                color: var(--text);
+                min-width: 0;
+            }
+
+            textarea {
+                min-height: 90px;
+                resize: vertical;
+            }
+
+                input:focus,
+                select:focus,
+                textarea:focus {
+                    border-color: var(--purple);
+                }
+
+            .submit-btn {
+                border: none;
+                background: var(--purple);
+                color: #ffffff;
+                padding: 13px 20px;
+                border-radius: 30px;
+                font-family: inherit;
+                font-weight: 900;
+                cursor: pointer;
+            }
+
+                .submit-btn:hover {
+                    background: var(--purple-dark);
+                }
+
+            .table-wrap {
+                width: 100%;
+                max-width: 100%;
+                overflow-x: auto;
+                border: 1px solid var(--line);
+                border-radius: 16px;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                min-width: 1050px;
+            }
+
+            th {
+                background: #F3EDFB;
+                text-align: left;
+                padding: 14px;
+                font-weight: 900;
+                white-space: nowrap;
+            }
+
+            td {
+                padding: 14px;
+                border-top: 1px solid #eeeeee;
+                vertical-align: top;
+            }
+
+            .product-name {
+                font-weight: 900;
+                margin-bottom: 4px;
+            }
+
+            .muted {
+                color: var(--muted);
+                font-size: 13px;
+                font-weight: 600;
+                line-height: 1.5;
+            }
+
+            .badge {
+                display: inline-block;
+                padding: 6px 11px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 900;
+                background: #F2E9FE;
+                color: var(--purple);
+                margin-bottom: 5px;
+            }
+
+                .badge.green {
+                    background: var(--green-bg);
+                    color: var(--green);
+                }
+
+                .badge.red {
+                    background: var(--red-bg);
+                    color: var(--red);
+                }
+
+                .badge.yellow {
+                    background: var(--yellow-bg);
+                    color: var(--yellow);
+                }
+
+            .action-row {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+
+            .image-action-row {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .small-btn {
+                border: none;
+                padding: 8px 12px;
+                border-radius: 12px;
+                font-family: inherit;
+                font-weight: 900;
+                cursor: pointer;
+                background: #F2E9FE;
+                color: var(--purple);
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 34px;
+                white-space: nowrap;
+            }
+
+                .small-btn.green {
+                    background: var(--green-bg);
+                    color: var(--green);
+                }
+
+                .small-btn.red {
+                    background: var(--red-bg);
+                    color: var(--red);
+                }
+
+                .small-btn.yellow {
+                    background: var(--yellow-bg);
+                    color: var(--yellow);
+                }
+
+                .small-btn.purple {
+                    background: var(--purple);
+                    color: #ffffff;
+                }
+
+                .small-btn:hover {
+                    opacity: .9;
+                }
+
+            .mini-form {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(90px, 1fr));
+                gap: 8px;
+                width: 100%;
+                min-width: 0;
+            }
+
+                .mini-form input {
+                    padding: 9px 10px;
+                }
+
+                .mini-form button {
+                    grid-column: 1 / -1;
+                }
+
+            @@media (max-width: 1200px) {
+                .top-row {
+                    flex-direction: column;
+                }
+
+                .top-actions {
+                    justify-content: flex-start;
+                    max-width: 100%;
+                }
+
+                .stats {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+
+                .form-grid {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+            }
+
+            @@media (max-width: 900px) {
+                .page {
+                    grid-template-columns: 1fr;
+                }
+
+                .sidebar {
+                    border-right: none;
+                    border-bottom: 1px solid var(--line);
+                }
+
+                .main {
+                    padding: 28px 22px 60px;
+                }
+            }
+
+            @@media (max-width: 650px) {
+                .stats,
+                .form-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .top-row h1 {
+                    font-size: 29px;
+                }
+
+                .top-btn,
+                .submit-btn {
+                    width: 100%;
+                }
+
+                .section {
+                    padding: 20px;
+                }
+            }
+    </style>
+</head>
+
+<body>
+
+    <div class="page">
+
+        <aside class="sidebar">
+
+            <a href="/Admin" class="logo">
+                <span class="logo-mark">🐾</span>
+                <span>PetHope</span>
+            </a>
+
+            <div class="panel-title">Admin Panel</div>
+
+            <nav class="menu">
+                <a href="/Admin">🏠 Dashboard</a>
+                <a href="/Admin/PetShop" class="active">🛒 Shop Products</a>
+                <a href="/Admin/ProductImages">🖼️ Product Images</a>
+                <a href="/Admin/ProductVariants">🎨 Product Variants</a>
+                <a href="/Admin/PetShop/Orders">📦 Shop Orders</a>
+                <a href="/Admin/PetShop/Complaints">💬 Complaints</a>
+                <a href="/Admin/PetShop/Report">📊 Shop Report</a>
+                <a href="/Admin/Payment">💳 Payment Transactions</a>
+                <a href="/Account/Logout" class="logout">↩ Logout</a>
+            </nav>
+
+        </aside>
+
+        <main class="main">
+
+            <div class="top-row">
+                <h1>Pet Care Shop Products</h1>
+
+                <div class="top-actions">
+                    <a href="/Admin/ProductImages" class="top-btn">Product Images</a>
+                    <a href="/Admin/ProductVariants" class="top-btn">Product Variants</a>
+                    <a href="/Admin/PetShop/Orders" class="top-btn">Orders</a>
+                    <a href="/Admin/PetShop/Complaints" class="top-btn">Complaints</a>
+                    <a href="/Admin/PetShop/Report" class="top-btn primary">Report</a>
+                </div>
+            </div>
+
+            <section class="stats">
+
+                <div class="stat-card">
+                    <div class="icon">🛒</div>
+                    <strong>@totalProducts</strong>
+                    <span>Total Products</span>
+                </div>
+
+                <div class="stat-card">
+                    <div class="icon">⏳</div>
+                    <strong>@pendingProducts</strong>
+                    <span>Pending Approval</span>
+                </div>
+
+                <div class="stat-card">
+                    <div class="icon">✅</div>
+                    <strong>@approvedProducts</strong>
+                    <span>Approved Products</span>
+                </div>
+
+                <div class="stat-card">
+                    <div class="icon">⚠️</div>
+                    <strong>@lowStockProducts</strong>
+                    <span>Low Stock</span>
+                </div>
+
+            </section>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="message success">
+                    @TempData["Success"]
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="message error">
+                    @TempData["Error"]
+                </div>
+            }
+
+            <section class="section">
+
+                <h2>Add New Product</h2>
+
+                <form action="/Admin/PetShop/AddProduct" method="post">
+
+                    @Html.AntiForgeryToken()
+
+                    <div class="form-grid">
+
+                        <div class="form-group">
+                            <label>Product Name</label>
+
+                            <input type="text"
+                                   name="productName"
+                                   placeholder="Premium Cat Food"
+                                   required />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Category</label>
+
+                            <select name="productCategory" required>
+                                <option value="">Select</option>
+                                <option value="Food">Food</option>
+                                <option value="Accessory">Accessory</option>
+                                <option value="Care">Care</option>
+                                <option value="Vet Care">Vet Care</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Pet Type</label>
+
+                            <select name="petType" required>
+                                <option value="">Select</option>
+                                <option value="Cat">Cat</option>
+                                <option value="Dog">Dog</option>
+                                <option value="Bird">Bird</option>
+                                <option value="All">All</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Original Price</label>
+
+                            <input type="number"
+                                   step="0.01"
+                                   name="originalPrice"
+                                   required />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Discount Price</label>
+
+                            <input type="number"
+                                   step="0.01"
+                                   name="discountPrice"
+                                   required />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Stock Quantity</label>
+
+                            <input type="number"
+                                   name="stockQuantity"
+                                   required />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Low Stock Limit</label>
+
+                            <input type="number"
+                                   name="lowStockLimit"
+                                   value="5"
+                                   required />
+                        </div>
+
+                        <div class="form-group full-row">
+                            <label>Description</label>
+
+                            <textarea name="description"
+                                      placeholder="Write product details"></textarea>
+                        </div>
+
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        Add Product as Pending
+                    </button>
+
+                </form>
+
+            </section>
+
+            <section class="section">
+
+                <h2>Product Approval & Inventory</h2>
+
+                <div class="table-wrap">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Status</th>
+                                <th>Images / Variants</th>
+                                <th>Update Price/Stock</th>
+                                <th>Policy Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @if (Model == null || Model.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="7"
+                                        style="text-align:center;color:#756a7c;font-weight:800;padding:35px;">
+                                        No product found.
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var product in Model)
+                                {
+                                    string statusClass = "yellow";
+
+                                    if (product.ApprovalStatus == "Approved")
+                                    {
+                                        statusClass = "green";
+                                    }
+                                    else if (product.ApprovalStatus == "Rejected")
+                                    {
+                                        statusClass = "red";
+                                    }
+
+                                    <tr>
+
+                                        <td>
+                                            <div class="product-name">
+                                                @product.ProductName
+                                            </div>
+
+                                            <div class="muted">
+                                                @product.ProductCategory • @product.PetType
+                                                <br />
+                                                @product.Description
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            <div class="muted">
+                                                Original: ৳@product.OriginalPrice.ToString("0.00")
+                                            </div>
+
+                                            <strong>
+                                                Discount: ৳@product.DiscountPrice.ToString("0.00")
+                                            </strong>
+                                        </td>
+
+                                        <td>
+                                            <strong>
+                                                @product.StockQuantity
+                                            </strong>
+
+                                            <div class="muted">
+                                                Low limit: @product.LowStockLimit
+                                            </div>
+
+                                            @if (product.StockQuantity <= product.LowStockLimit)
+                                            {
+                                                <span class="badge red">
+                                                    Low Stock
+                                                </span>
+                                            }
+                                        </td>
+
+                                        <td>
+                                            <span class="badge @statusClass">
+                                                @product.ApprovalStatus
+                                            </span>
+
+                                            <br />
+
+                                            @if (product.IsActive)
+                                            {
+                                                <span class="badge green">
+                                                    Active
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge red">
+                                                    Inactive
+                                                </span>
+                                            }
+                                        </td>
+
+                                        <td>
+                                            <div class="image-action-row">
+                                                <a href="/Admin/ProductImages/Manage/@product.ProductID"
+                                                   class="small-btn purple">
+                                                    Manage Images
+                                                </a>
+
+                                                <a href="/Admin/ProductVariants/Manage/@product.ProductID"
+                                                   class="small-btn green">
+                                                    Manage Variants
+                                                </a>
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            <form class="mini-form"
+                                                  action="/Admin/PetShop/UpdateProduct"
+                                                  method="post">
+
+                                                @Html.AntiForgeryToken()
+
+                                                <input type="hidden"
+                                                       name="productId"
+                                                       value="@product.ProductID" />
+
+                                                <input type="number"
+                                                       step="0.01"
+                                                       name="originalPrice"
+                                                       value="@product.OriginalPrice" />
+
+                                                <input type="number"
+                                                       step="0.01"
+                                                       name="discountPrice"
+                                                       value="@product.DiscountPrice" />
+
+                                                <input type="number"
+                                                       name="stockQuantity"
+                                                       value="@product.StockQuantity" />
+
+                                                <input type="number"
+                                                       name="lowStockLimit"
+                                                       value="@product.LowStockLimit" />
+
+                                                <button type="submit"
+                                                        class="small-btn">
+                                                    Update
+                                                </button>
+
+                                            </form>
+                                        </td>
+
+                                        <td>
+                                            <div class="action-row">
+
+                                                <form action="/Admin/PetShop/ApproveProduct"
+                                                      method="post">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <input type="hidden"
+                                                           name="productId"
+                                                           value="@product.ProductID" />
+
+                                                    <button type="submit"
+                                                            class="small-btn green">
+                                                        Approve
+                                                    </button>
+
+                                                </form>
+
+                                                <form action="/Admin/PetShop/RejectProduct"
+                                                      method="post">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <input type="hidden"
+                                                           name="productId"
+                                                           value="@product.ProductID" />
+
+                                                    <button type="submit"
+                                                            class="small-btn red">
+                                                        Reject
+                                                    </button>
+
+                                                </form>
+
+                                                <form action="/Admin/PetShop/ToggleProductStatus"
+                                                      method="post">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <input type="hidden"
+                                                           name="productId"
+                                                           value="@product.ProductID" />
+
+                                                    <button type="submit"
+                                                            class="small-btn yellow">
+                                                        @(product.IsActive ? "Deactivate" : "Activate")
+                                                    </button>
+
+                                                </form>
+
+                                            </div>
+                                        </td>
+
+                                    </tr>
+                                }
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</body>
+</html>

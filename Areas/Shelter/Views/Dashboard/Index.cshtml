@@ -1,0 +1,481 @@
+@{
+    Layout = null;
+
+    var fullName = ViewBag.FullName as string ?? "Shelter Staff";
+    var totalPets = ViewBag.TotalPets ?? 0;
+    var pendingRequests = ViewBag.PendingRequests ?? 0;
+    var totalAdoptions = ViewBag.TotalAdoptions ?? 0;
+    var needingCheckup = ViewBag.NeedingCheckup ?? 0;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Shelter Dashboard — PetHope</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+            :root {
+                --purple: #7B2FF7;
+                --purple-dark: #5A1FB8;
+                --dark: #241A3D;
+                --bg: #f8f5fb;
+                --text: #24142e;
+                --muted: #756a7c;
+                --card: #ffffff;
+                --line: #eee7f4;
+                --gold: #F6C54F;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                background: var(--bg);
+                color: var(--text);
+                font-family: 'DM Sans', Arial, sans-serif;
+                min-height: 100vh;
+            }
+
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
+
+            .page {
+                display: grid;
+                grid-template-columns: 280px 1fr;
+                min-height: 100vh;
+            }
+
+            .sidebar {
+                background: #ffffff;
+                border-right: 1px solid var(--line);
+                padding: 32px 24px;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-family: 'Fraunces', Georgia, serif;
+                font-weight: 800;
+                font-size: 26px;
+                color: var(--purple);
+                margin-bottom: 50px;
+            }
+
+            .logo-mark {
+                width: 38px;
+                height: 38px;
+                border-radius: 12px;
+                background: linear-gradient(135deg, var(--purple), #B383F5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 18px;
+                color: #ffffff;
+            }
+
+            .panel-title {
+                font-size: 12px;
+                font-weight: 800;
+                color: #a092ad;
+                letter-spacing: .04em;
+                text-transform: uppercase;
+                margin-bottom: 12px;
+            }
+
+            .menu {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+                .menu a {
+                    height: 52px;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 0 16px;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    font-weight: 800;
+                    color: #5c5268;
+                }
+
+                    .menu a.active {
+                        background: var(--purple);
+                        color: #ffffff;
+                    }
+
+                    .menu a:hover {
+                        background: #F2E9FE;
+                        color: var(--purple);
+                    }
+
+                    .menu a.active:hover {
+                        background: var(--purple);
+                        color: #ffffff;
+                    }
+
+            .logout {
+                margin-top: auto;
+                color: #d9435e !important;
+            }
+
+            .main {
+                padding: 36px 48px 70px;
+            }
+
+            .top-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 28px;
+            }
+
+                .top-row h1 {
+                    font-size: 34px;
+                    font-weight: 800;
+                    color: var(--text);
+                }
+
+            .user-box {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-weight: 800;
+            }
+
+            .avatar {
+                width: 46px;
+                height: 46px;
+                border-radius: 50%;
+                background: var(--gold);
+                color: var(--text);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 800;
+            }
+
+            .hero {
+                background: linear-gradient(135deg, #2B1B4D, #8B35F7);
+                border-radius: 22px;
+                padding: 34px;
+                color: white;
+                margin-bottom: 30px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 20px;
+            }
+
+                .hero h2 {
+                    font-family: 'Fraunces', Georgia, serif;
+                    font-size: 30px;
+                    margin-bottom: 8px;
+                }
+
+                .hero p {
+                    color: rgba(255,255,255,.86);
+                    font-size: 16px;
+                }
+
+            .hero-btn {
+                background: var(--gold);
+                color: var(--text);
+                padding: 14px 24px;
+                border-radius: 30px;
+                font-weight: 800;
+                white-space: nowrap;
+            }
+
+            .stats {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 18px;
+                margin-bottom: 34px;
+            }
+
+            .stat-card {
+                background: var(--card);
+                border: 1px solid var(--line);
+                border-radius: 18px;
+                padding: 24px;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+            }
+
+            .stat-icon {
+                width: 48px;
+                height: 48px;
+                border-radius: 14px;
+                background: #F2E9FE;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 23px;
+                margin-bottom: 16px;
+            }
+
+            .stat-number {
+                font-size: 30px;
+                font-weight: 800;
+                color: var(--text);
+                margin-bottom: 4px;
+            }
+
+            .stat-label {
+                color: var(--muted);
+                font-weight: 600;
+            }
+
+            .section-title {
+                font-size: 24px;
+                font-weight: 800;
+                margin-bottom: 18px;
+            }
+
+            .management-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 18px;
+                margin-bottom: 34px;
+            }
+
+            .management-card {
+                background: var(--card);
+                border: 1px solid var(--line);
+                border-radius: 18px;
+                padding: 26px;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+                transition: .2s ease;
+            }
+
+                .management-card:hover {
+                    transform: translateY(-4px);
+                    box-shadow: 0 18px 35px rgba(36,20,46,.09);
+                }
+
+                .management-card .big-icon {
+                    font-size: 34px;
+                    margin-bottom: 18px;
+                }
+
+                .management-card h3 {
+                    font-size: 21px;
+                    font-weight: 800;
+                    margin-bottom: 8px;
+                }
+
+                .management-card p {
+                    color: var(--muted);
+                    line-height: 1.5;
+                }
+
+            .table-card {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 18px;
+                overflow-x: auto;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                min-width: 700px;
+            }
+
+            th {
+                background: #F3EDFB;
+                text-align: left;
+                padding: 16px;
+                font-size: 14px;
+                font-weight: 800;
+            }
+
+            td {
+                padding: 16px;
+                border-top: 1px solid #eee;
+                font-size: 14px;
+            }
+
+            .badge {
+                display: inline-block;
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 800;
+                background: #FFF4D9;
+                color: #A46B00;
+            }
+
+            @@media (max-width: 1100px) {
+                .stats,
+                .management-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+
+            @@media (max-width: 800px) {
+                .page {
+                    grid-template-columns: 1fr;
+                }
+
+                .sidebar {
+                    position: relative;
+                    border-right: 0;
+                    border-bottom: 1px solid var(--line);
+                }
+
+                .main {
+                    padding: 28px 22px 50px;
+                }
+
+                .stats,
+                .management-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .top-row,
+                .hero {
+                    align-items: flex-start;
+                    gap: 16px;
+                    flex-direction: column;
+                }
+            }
+    </style>
+</head>
+
+<body>
+
+    <div class="page">
+
+        <aside class="sidebar">
+
+            <a href="/" class="logo">
+                <span class="logo-mark">🐾</span>
+                <span>PetHope</span>
+            </a>
+
+            <div class="panel-title">Shelter Panel</div>
+
+            <nav class="menu">
+                <a href="/Shelter" class="active">🏠 Dashboard</a>
+                <a href="/Shelter/Pets/Create">➕ Add Pet</a>
+                <a href="/Shelter/Pets">🐾 Manage Pets</a>
+                <a href="/Shelter/AdoptionRequests">📋 Adoption Requests</a>
+                <a href="/Shelter/HealthRecords">🩺 Health Records</a>
+                <a href="/Shelter/FollowUps">📋 Follow-Ups</a>
+                <a href="/Shelter/Profile">🏥 Shelter Profile</a>
+                <a href="/Account/Logout" class="logout">↩ Logout</a>
+            </nav>
+
+        </aside>
+
+        <main class="main">
+
+            <div class="top-row">
+                <h1>Shelter Dashboard</h1>
+
+                <div class="user-box">
+                    <span>@fullName</span>
+                    <div class="avatar">S</div>
+                </div>
+            </div>
+
+            <section class="hero">
+                <div>
+                    <h2>Welcome back, @fullName 👋</h2>
+                    <p>Manage pets, adoption requests, health records and follow-ups from your shelter dashboard.</p>
+                </div>
+            </section>
+
+            <section class="stats">
+
+                <div class="stat-card">
+                    <div class="stat-icon">🐾</div>
+                    <div class="stat-number">@totalPets</div>
+                    <div class="stat-label">Total Pets</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">⏳</div>
+                    <div class="stat-number">@pendingRequests</div>
+                    <div class="stat-label">Pending Requests</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">🏠</div>
+                    <div class="stat-number">@totalAdoptions</div>
+                    <div class="stat-label">Total Adoptions</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">🩺</div>
+                    <div class="stat-number">@needingCheckup</div>
+                    <div class="stat-label">Needing Checkup</div>
+                </div>
+
+            </section>
+
+            <h2 class="section-title">Management</h2>
+
+            <section class="management-grid">
+
+                <a href="/Shelter/Pets/Create" class="management-card">
+                    <div class="big-icon">➕</div>
+                    <h3>Add Pet</h3>
+                    <p>Add a new pet record for adoption.</p>
+                </a>
+
+                <a href="/Shelter/Pets" class="management-card">
+                    <div class="big-icon">🐾</div>
+                    <h3>Manage Pets</h3>
+                    <p>View, edit and manage your shelter pets.</p>
+                </a>
+
+                <a href="/Shelter/AdoptionRequests" class="management-card">
+                    <div class="big-icon">📋</div>
+                    <h3>Adoption Requests</h3>
+                    <p>Approve or reject adoption requests.</p>
+                </a>
+
+                <a href="/Shelter/HealthRecords" class="management-card">
+                    <div class="big-icon">🩺</div>
+                    <h3>Health Records</h3>
+                    <p>Maintain pet health and vaccination records.</p>
+                </a>
+
+                <a href="/Shelter/FollowUps" class="management-card">
+                    <div class="big-icon">📋</div>
+                    <h3>Follow-Ups</h3>
+                    <p>Record post-adoption follow-up information.</p>
+                </a>
+
+                <a href="/Shelter/Profile" class="management-card">
+                    <div class="big-icon">🏥</div>
+                    <h3>Shelter Profile</h3>
+                    <p>View and manage shelter profile information.</p>
+                </a>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</body>
+</html>

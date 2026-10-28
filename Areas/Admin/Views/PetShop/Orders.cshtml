@@ -1,0 +1,1062 @@
+﻿@model List<PetWAMS.Web.Models.PetShopOrder>
+
+@{
+    Layout = null;
+
+    int totalOrders = Model == null ? 0 : Model.Count;
+
+    int paidOrders = Model == null ? 0 : Model.Count(o => o.PaymentStatus == "Paid");
+
+    int pendingPayments = Model == null ? 0 : Model.Count(o => o.PaymentStatus == "Pending");
+
+    int confirmedOrders = Model == null ? 0 : Model.Count(o => o.OrderStatus == "Confirmed");
+
+    int deliveredOrders = Model == null ? 0 : Model.Count(o => o.DeliveryStatus == "Delivered");
+
+    int cancellationRequests = Model == null ? 0 : Model.Count(o => o.CancellationRequested && o.CancellationStatus == "Pending Approval");
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shop Orders — PetHope Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+            :root {
+                --purple: #7B2FF7;
+                --purple-dark: #5A1FB8;
+                --purple-light: #F2E9FE;
+                --bg: #f8f5fb;
+                --sidebar: #ffffff;
+                --text: #24142e;
+                --muted: #756a7c;
+                --line: #eee7f4;
+                --green-bg: #E7F8EC;
+                --green: #258447;
+                --red-bg: #FDE7EA;
+                --red: #C23E52;
+                --yellow-bg: #FFF4D9;
+                --yellow: #A46B00;
+                --blue-bg: #EAF2FF;
+                --blue: #235DAD;
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                background: var(--bg);
+                color: var(--text);
+                font-family: 'DM Sans', Arial, sans-serif;
+            }
+
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
+
+            .admin-layout {
+                display: grid;
+                grid-template-columns: 280px 1fr;
+                min-height: 100vh;
+            }
+
+            .sidebar {
+                background: var(--sidebar);
+                border-right: 1px solid var(--line);
+                padding: 34px 24px;
+                position: sticky;
+                top: 0;
+                height: 100vh;
+            }
+
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-family: 'Fraunces', Georgia, serif;
+                font-size: 27px;
+                font-weight: 800;
+                color: var(--purple);
+                margin-bottom: 44px;
+            }
+
+            .brand-mark {
+                width: 42px;
+                height: 42px;
+                border-radius: 13px;
+                background: linear-gradient(135deg, var(--purple), #B383F5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #ffffff;
+                font-size: 20px;
+            }
+
+            .side-label {
+                color: #a297ad;
+                font-weight: 900;
+                font-size: 12px;
+                margin-bottom: 18px;
+                text-transform: uppercase;
+            }
+
+            .menu {
+                display: grid;
+                gap: 12px;
+            }
+
+                .menu a {
+                    padding: 15px 17px;
+                    border-radius: 12px;
+                    font-weight: 900;
+                    color: #4a3c55;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+
+                    .menu a:hover,
+                    .menu a.active {
+                        background: var(--purple);
+                        color: #ffffff;
+                    }
+
+            .logout {
+                margin-top: 42px;
+                color: var(--red) !important;
+            }
+
+            .main {
+                padding: 38px 50px 70px;
+            }
+
+            .topbar {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 18px;
+                margin-bottom: 28px;
+            }
+
+            .page-title {
+                font-family: 'Fraunces', Georgia, serif;
+                font-size: 40px;
+                margin: 0 0 8px;
+            }
+
+            .subtitle {
+                color: var(--muted);
+                font-weight: 700;
+                line-height: 1.6;
+                margin: 0;
+            }
+
+            .top-actions {
+                display: flex;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+
+            .top-btn {
+                background: var(--purple-light);
+                color: var(--purple);
+                padding: 12px 18px;
+                border-radius: 999px;
+                font-weight: 900;
+            }
+
+                .top-btn.primary {
+                    background: var(--purple);
+                    color: #ffffff;
+                }
+
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(5, 1fr);
+                gap: 18px;
+                margin-bottom: 28px;
+            }
+
+            .stat-card {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 20px;
+                padding: 22px;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+            }
+
+            .stat-icon {
+                font-size: 30px;
+                margin-bottom: 10px;
+            }
+
+            .stat-value {
+                font-size: 30px;
+                font-weight: 900;
+                margin-bottom: 5px;
+            }
+
+            .stat-label {
+                color: var(--muted);
+                font-weight: 900;
+            }
+
+            .message {
+                padding: 14px 18px;
+                border-radius: 14px;
+                font-weight: 800;
+                margin-bottom: 16px;
+            }
+
+                .message.success {
+                    background: var(--green-bg);
+                    color: var(--green);
+                }
+
+                .message.error {
+                    background: var(--red-bg);
+                    color: var(--red);
+                }
+
+            .order-card {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 22px;
+                padding: 26px;
+                margin-bottom: 24px;
+                box-shadow: 0 8px 25px rgba(36,20,46,.05);
+            }
+
+            .order-head {
+                display: flex;
+                justify-content: space-between;
+                gap: 18px;
+                flex-wrap: wrap;
+                padding-bottom: 18px;
+                border-bottom: 1px solid #eeeeee;
+                margin-bottom: 18px;
+            }
+
+            .order-number {
+                font-size: 25px;
+                font-weight: 900;
+                margin-bottom: 6px;
+            }
+
+            .muted {
+                color: var(--muted);
+                font-weight: 700;
+                line-height: 1.6;
+            }
+
+            .badges {
+                display: flex;
+                justify-content: flex-end;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+
+            .badge {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 8px 13px;
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 900;
+                background: var(--purple-light);
+                color: var(--purple);
+            }
+
+                .badge.green {
+                    background: var(--green-bg);
+                    color: var(--green);
+                }
+
+                .badge.red {
+                    background: var(--red-bg);
+                    color: var(--red);
+                }
+
+                .badge.yellow {
+                    background: var(--yellow-bg);
+                    color: var(--yellow);
+                }
+
+                .badge.blue {
+                    background: var(--blue-bg);
+                    color: var(--blue);
+                }
+
+            .info-grid {
+                display: grid;
+                grid-template-columns: .8fr 1.2fr;
+                gap: 20px;
+                margin-bottom: 18px;
+            }
+
+            .info-box {
+                background: #faf8fd;
+                border: 1px solid #f0e9f5;
+                border-radius: 18px;
+                padding: 18px;
+            }
+
+            .info-title {
+                font-size: 18px;
+                font-weight: 900;
+                margin: 0 0 14px;
+            }
+
+            .info-line {
+                display: grid;
+                grid-template-columns: 150px 1fr;
+                gap: 12px;
+                padding: 8px 0;
+                border-bottom: 1px solid #eeeeee;
+            }
+
+                .info-line:last-child {
+                    border-bottom: none;
+                }
+
+                .info-line span {
+                    color: var(--muted);
+                    font-weight: 800;
+                }
+
+                .info-line strong {
+                    font-weight: 900;
+                    word-break: break-word;
+                }
+
+            .old-demo-note {
+                margin-top: 12px;
+                background: var(--yellow-bg);
+                color: var(--yellow);
+                padding: 12px 14px;
+                border-radius: 14px;
+                font-weight: 800;
+                line-height: 1.5;
+            }
+
+            .items {
+                background: #faf8fd;
+                border-radius: 18px;
+                padding: 16px;
+                margin-bottom: 20px;
+            }
+
+            .item-line {
+                display: flex;
+                justify-content: space-between;
+                gap: 16px;
+                padding: 11px 0;
+                border-bottom: 1px solid #eeeeee;
+            }
+
+                .item-line:last-child {
+                    border-bottom: none;
+                }
+
+            .item-name {
+                font-weight: 900;
+                color: var(--text);
+            }
+
+            .total-line {
+                font-size: 19px;
+                font-weight: 900;
+                padding-top: 12px;
+            }
+
+            .action-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+            }
+
+            .action-box {
+                background: #faf8fd;
+                border: 1px solid #f0e9f5;
+                border-radius: 18px;
+                padding: 20px;
+            }
+
+            .invoice-btn {
+                display: inline-block;
+                background: var(--purple);
+                color: #ffffff;
+                padding: 12px 22px;
+                border-radius: 999px;
+                font-weight: 900;
+            }
+
+                .invoice-btn:hover {
+                    background: var(--purple-dark);
+                }
+
+            .action-box h3 {
+                margin: 0 0 14px;
+                font-size: 19px;
+                font-weight: 900;
+            }
+
+            select,
+            textarea {
+                width: 100%;
+                border: 1px solid var(--line);
+                border-radius: 14px;
+                padding: 13px 15px;
+                font-family: inherit;
+                outline: none;
+                background: #ffffff;
+                margin-bottom: 12px;
+            }
+
+            textarea {
+                min-height: 88px;
+                resize: vertical;
+            }
+
+                select:focus,
+                textarea:focus {
+                    border-color: var(--purple);
+                }
+
+            .action-btn {
+                border: none;
+                background: var(--purple);
+                color: #ffffff;
+                padding: 12px 18px;
+                border-radius: 999px;
+                font-family: inherit;
+                font-weight: 900;
+                cursor: pointer;
+            }
+
+                .action-btn:hover {
+                    background: var(--purple-dark);
+                }
+
+            .danger-btn {
+                background: var(--red);
+            }
+
+                .danger-btn:hover {
+                    background: #a72f43;
+                }
+
+            .success-btn {
+                background: var(--green);
+            }
+
+                .success-btn:hover {
+                    background: #1f6f3d;
+                }
+
+            .empty {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 22px;
+                padding: 38px;
+                color: var(--muted);
+                font-weight: 800;
+                text-align: center;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+            }
+
+            @@media (max-width: 1180px) {
+                .stats-grid {
+                    grid-template-columns: repeat(3, 1fr);
+                }
+
+                .info-grid,
+                .action-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            @@media (max-width: 860px) {
+                .admin-layout {
+                    grid-template-columns: 1fr;
+                }
+
+                .sidebar {
+                    position: static;
+                    height: auto;
+                }
+
+                .main {
+                    padding: 28px 20px 60px;
+                }
+
+                .stats-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .info-line {
+                    grid-template-columns: 1fr;
+                    gap: 4px;
+                }
+            }
+    </style>
+</head>
+
+<body>
+
+    <div class="admin-layout">
+
+        <aside class="sidebar">
+            <a href="/Admin/Dashboard" class="brand">
+                <span class="brand-mark">🐾</span>
+                <span>PetHope</span>
+            </a>
+
+            <div class="side-label">Admin Panel</div>
+
+            <nav class="menu">
+                <a href="/Admin/Dashboard">🏠 Dashboard</a>
+                <a href="/Admin/PetShop">🛒 Shop Products</a>
+                <a href="/Admin/PetShop/Orders" class="active">📦 Shop Orders</a>
+                <a href="/Admin/PetShop/Complaints">💬 Complaints</a>
+                <a href="/Admin/PetShop/Report">📊 Shop Report</a>
+                <a href="/Account/Logout" class="logout">↩ Logout</a>
+            </nav>
+        </aside>
+
+        <main class="main">
+
+            <div class="topbar">
+                <div>
+                    <h1 class="page-title">Shop Orders</h1>
+                    <p class="subtitle">
+                        Admin can monitor SSLCommerz payments, delivery status, cancellation requests and order policy.
+                    </p>
+                </div>
+
+                <div class="top-actions">
+                    <a href="/Admin/PetShop" class="top-btn">Products</a>
+                    <a href="/Admin/PetShop/Report" class="top-btn primary">Report</a>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📦</div>
+                    <div class="stat-value">@totalOrders</div>
+                    <div class="stat-label">Total Orders</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">💳</div>
+                    <div class="stat-value">@paidOrders</div>
+                    <div class="stat-label">Paid Orders</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">⏳</div>
+                    <div class="stat-value">@pendingPayments</div>
+                    <div class="stat-label">Pending Payments</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-value">@confirmedOrders</div>
+                    <div class="stat-label">Confirmed Orders</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-value">@cancellationRequests</div>
+                    <div class="stat-label">Cancellation Requests</div>
+                </div>
+            </div>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="message success">@TempData["Success"]</div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="message error">@TempData["Error"]</div>
+            }
+
+            @if (Model == null || Model.Count == 0)
+            {
+                <div class="empty">
+                    No shop orders found.
+                </div>
+            }
+            else
+            {
+                @foreach (var order in Model)
+                {
+                    bool isPaid = order.PaymentStatus == "Paid";
+                    bool isPending = order.PaymentStatus == "Pending";
+
+                    bool isRefundPending = order.PaymentStatus == "Refund Pending";
+                    bool isRefundProcessing = order.PaymentStatus == "Refund Processing";
+                    bool isRefunded = order.PaymentStatus == "Refunded";
+                    bool isRefundCancelled = order.PaymentStatus == "Refund Cancelled";
+
+                    bool hasRefundReference =
+                        !string.IsNullOrWhiteSpace(order.RefundReferenceID);
+
+                    bool isFailed =
+                        order.PaymentStatus == "Failed" ||
+                        order.PaymentStatus == "Validation Failed" ||
+                        order.PaymentStatus == "Session Failed" ||
+                        order.PaymentStatus == "Session Error" ||
+                        order.OrderStatus == "Payment Failed";
+
+                    bool isCancelled =
+                        order.OrderStatus == "Cancelled" ||
+                        order.OrderStatus == "Payment Cancelled" ||
+                        order.PaymentStatus == "Cancelled" ||
+                        isRefundCancelled;
+
+                    string paymentBadge = "blue";
+
+                    if (isPaid || isRefunded)
+                    {
+                        paymentBadge = "green";
+                    }
+                    else if (isPending || isRefundPending || isRefundProcessing)
+                    {
+                        paymentBadge = "yellow";
+                    }
+                    else if (isFailed || isCancelled)
+                    {
+                        paymentBadge = "red";
+                    }
+
+                    bool isOldDemoOrder =
+                        order.PaymentMethod == "Demo Payment" &&
+                        string.IsNullOrWhiteSpace(order.TransactionID);
+
+                    <div class="order-card">
+
+                        <div class="order-head">
+                            <div>
+                                <div class="order-number">@order.OrderNumber</div>
+
+                                <div class="muted">
+                                    Ordered on: @order.OrderDate.ToString("dd MMM yyyy hh:mm tt")
+                                </div>
+
+                                <div class="muted">
+                                    User:
+                                    @(order.User == null ? "Unknown User" : order.User.FullName)
+                                </div>
+                            </div>
+
+                            <div class="badges">
+                                <span class="badge blue">@order.OrderStatus</span>
+                                <span class="badge @paymentBadge">@order.PaymentStatus</span>
+                                <span class="badge">@order.DeliveryStatus</span>
+
+                                @if (order.CancellationRequested)
+                                {
+                                    <span class="badge yellow">@order.CancellationStatus</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="info-grid">
+
+                            <div class="info-box">
+                                <h3 class="info-title">Customer & Delivery</h3>
+
+                                <div class="info-line">
+                                    <span>Customer</span>
+                                    <strong>@(string.IsNullOrWhiteSpace(order.CustomerName) ? "Not Available" : order.CustomerName)</strong>
+                                </div>
+
+                                <div class="info-line">
+                                    <span>Phone</span>
+                                    <strong>@(string.IsNullOrWhiteSpace(order.Phone) ? "Not Available" : order.Phone)</strong>
+                                </div>
+
+                                <div class="info-line">
+                                    <span>Address</span>
+                                    <strong>@(string.IsNullOrWhiteSpace(order.DeliveryAddress) ? "Not Available" : order.DeliveryAddress)</strong>
+                                </div>
+
+                                <div class="info-line">
+                                    <span>Total Amount</span>
+                                    <strong>৳@order.TotalAmount.ToString("0.00")</strong>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h3 class="info-title">SSLCommerz Payment Details</h3>
+
+                                <div class="info-line">
+                                    <span>Payment Method</span>
+                                    <strong>@(string.IsNullOrWhiteSpace(order.PaymentMethod) ? "Not Available" : order.PaymentMethod)</strong>
+                                </div>
+
+                                <div class="info-line">
+                                    <span>Transaction ID</span>
+                                    <strong>@(string.IsNullOrWhiteSpace(order.TransactionID) ? "Not Available" : order.TransactionID)</strong>
+                                </div>
+
+                                <div class="info-line">
+                                    <span>Validation ID</span>
+                                    <strong>@(string.IsNullOrWhiteSpace(order.ValidationID) ? "Not Available" : order.ValidationID)</strong>
+                                </div>
+
+                                <div class="info-line">
+                                    <span>Bank Tran ID</span>
+                                    <strong>@(string.IsNullOrWhiteSpace(order.BankTransactionID) ? "Not Available" : order.BankTransactionID)</strong>
+                                </div>
+
+                                <div class="info-line">
+                                    <span>Card / MFS Type</span>
+                                    <strong>@(string.IsNullOrWhiteSpace(order.CardType) ? "Not Available" : order.CardType)</strong>
+                                </div>
+
+                                <div class="info-line">
+                                    <span>Gateway Status</span>
+                                    <strong>@(string.IsNullOrWhiteSpace(order.GatewayStatus) ? "Not Available" : order.GatewayStatus)</strong>
+                                </div>
+
+                                @if (order.PaymentValidatedAt != null)
+                                {
+                                    <div class="info-line">
+                                        <span>Validated At</span>
+                                        <strong>@order.PaymentValidatedAt.Value.ToString("dd MMM yyyy hh:mm tt")</strong>
+                                    </div>
+                                }
+
+                                @if (isOldDemoOrder)
+                                {
+                                    <div class="old-demo-note">
+                                        This is an old demo payment order. SSLCommerz transaction data is not applicable.
+                                    </div>
+                                }
+
+                                @if (!string.IsNullOrWhiteSpace(order.RefundTransactionID) ||
+                                     !string.IsNullOrWhiteSpace(order.RefundReferenceID) ||
+                                     !string.IsNullOrWhiteSpace(order.RefundGatewayStatus) ||
+                                     order.RefundAmount > 0)
+                                {
+                                    <div style="margin-top:18px; padding-top:16px; border-top:1px solid #eeeeee;">
+                                        <h3 class="info-title" style="margin-bottom:10px;">SSLCommerz Refund Details</h3>
+
+                                        <div class="info-line">
+                                            <span>Refund Status</span>
+                                            <strong>@(string.IsNullOrWhiteSpace(order.RefundStatus) ? "Not Available" : order.RefundStatus)</strong>
+                                        </div>
+
+                                        <div class="info-line">
+                                            <span>Refund Amount</span>
+                                            <strong>৳@order.RefundAmount.ToString("0.00")</strong>
+                                        </div>
+
+                                        <div class="info-line">
+                                            <span>Refund Tran ID</span>
+                                            <strong>@(string.IsNullOrWhiteSpace(order.RefundTransactionID) ? "Not Available" : order.RefundTransactionID)</strong>
+                                        </div>
+
+                                        <div class="info-line">
+                                            <span>Refund Ref ID</span>
+                                            <strong>@(string.IsNullOrWhiteSpace(order.RefundReferenceID) ? "Not Available" : order.RefundReferenceID)</strong>
+                                        </div>
+
+                                        <div class="info-line">
+                                            <span>Gateway Status</span>
+                                            <strong>@(string.IsNullOrWhiteSpace(order.RefundGatewayStatus) ? "Not Available" : order.RefundGatewayStatus)</strong>
+                                        </div>
+
+                                        @if (!string.IsNullOrWhiteSpace(order.RefundGatewayMessage))
+                                        {
+                                            <div class="info-line">
+                                                <span>Gateway Message</span>
+                                                <strong>@order.RefundGatewayMessage</strong>
+                                            </div>
+                                        }
+
+                                        @if (order.RefundInitiatedAt != null)
+                                        {
+                                            <div class="info-line">
+                                                <span>Initiated At</span>
+                                                <strong>@order.RefundInitiatedAt.Value.ToString("dd MMM yyyy hh:mm tt")</strong>
+                                            </div>
+                                        }
+
+                                        @if (order.RefundLastCheckedAt != null)
+                                        {
+                                            <div class="info-line">
+                                                <span>Last Checked</span>
+                                                <strong>@order.RefundLastCheckedAt.Value.ToString("dd MMM yyyy hh:mm tt")</strong>
+                                            </div>
+                                        }
+
+                                        @if (order.RefundCompletedAt != null)
+                                        {
+                                            <div class="info-line">
+                                                <span>Completed At</span>
+                                                <strong>@order.RefundCompletedAt.Value.ToString("dd MMM yyyy hh:mm tt")</strong>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+
+                        </div>
+
+                        <div class="items">
+                            @if (order.OrderItems != null && order.OrderItems.Count > 0)
+                            {
+                                @foreach (var item in order.OrderItems)
+                                {
+                                    <div class="item-line">
+                                        <div>
+                                            <div class="item-name">@item.ProductName</div>
+                                            <div class="muted">
+                                                ৳@item.UnitPrice.ToString("0.00") × @item.Quantity
+                                            </div>
+                                        </div>
+
+                                        <strong>৳@item.LineTotal.ToString("0.00")</strong>
+                                    </div>
+                                }
+                            }
+
+                            <div class="item-line total-line">
+                                <span>Total</span>
+                                <span>৳@order.TotalAmount.ToString("0.00")</span>
+                            </div>
+                        </div>
+
+                        <div class="action-grid">
+                            <div class="action-box">
+
+                                <h3>Invoice</h3>
+
+                                <p class="muted">
+                                    View generated invoice for this order.
+                                </p>
+
+
+                                <a href="/Admin/PetShop/Invoice/@order.OrderID"
+                                   class="invoice-btn">
+
+                                    View Invoice
+
+                                </a>
+
+                            </div>
+
+                            <div class="action-box">
+                                <h3>Delivery Status Update</h3>
+
+                                @if (!isPaid)
+                                {
+                                    <p class="muted">
+                                        Delivery status can be updated after successful payment confirmation.
+                                    </p>
+                                }
+                                else if (order.OrderStatus == "Cancelled")
+                                {
+                                    <p class="muted">
+                                        Cancelled order delivery cannot be updated.
+                                    </p>
+                                }
+                                else
+                                {
+                                    <form action="/Admin/PetShop/UpdateDeliveryStatus" method="post">
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden" name="orderId" value="@order.OrderID" />
+
+                                        <select name="deliveryStatus" required>
+                                            <option value="Processing" selected="@(order.DeliveryStatus == "Processing")">Processing</option>
+                                            <option value="Shipped" selected="@(order.DeliveryStatus == "Shipped")">Shipped</option>
+                                            <option value="Out for Delivery" selected="@(order.DeliveryStatus == "Out for Delivery")">Out for Delivery</option>
+                                            <option value="Delivered" selected="@(order.DeliveryStatus == "Delivered")">Delivered</option>
+                                            <option value="Hold" selected="@(order.DeliveryStatus == "Hold")">Hold</option>
+                                        </select>
+
+                                        <button type="submit" class="action-btn">
+                                            Update Delivery
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+
+                            <div class="action-box">
+                                <h3>Cancellation & SSLCommerz Refund</h3>
+
+                                @if (order.CancellationRequested && order.CancellationStatus == "Pending Approval")
+                                {
+                                    <p class="muted">
+                                        Customer Reason:
+                                        <strong>@order.CancellationReason</strong>
+                                    </p>
+
+                                    <form action="/Admin/PetShop/ApproveCancellation" method="post" style="display:inline-block;">
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden" name="orderId" value="@order.OrderID" />
+
+                                        <button type="submit" class="action-btn success-btn">
+                                            Approve Cancellation
+                                        </button>
+                                    </form>
+
+                                    <form action="/Admin/PetShop/RejectCancellation" method="post" style="display:inline-block; margin-left:8px;">
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden" name="orderId" value="@order.OrderID" />
+
+                                        <button type="submit" class="action-btn danger-btn">
+                                            Reject
+                                        </button>
+                                    </form>
+                                }
+                                else if (order.CancellationRequested)
+                                {
+                                    <p class="muted">
+                                        Cancellation Status:
+                                        <strong>@order.CancellationStatus</strong><br />
+                                        Reason: @(string.IsNullOrWhiteSpace(order.CancellationReason) ? "Not Available" : order.CancellationReason)
+                                    </p>
+                                }
+                                else
+                                {
+                                    <p class="muted">
+                                        No cancellation request for this order.
+                                    </p>
+                                }
+
+                                @if (hasRefundReference && !isRefunded)
+                                {
+                                    <hr />
+
+                                    <p class="muted">
+                                        A real SSLCommerz refund has already been initiated.
+                                        Use the button below to ask SSLCommerz for the latest refund status.
+                                    </p>
+
+                                    <form action="/Admin/PetShop/CheckRefundStatus" method="post">
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden"
+                                               name="orderId"
+                                               value="@order.OrderID" />
+
+                                        <button type="submit"
+                                                class="action-btn">
+                                            Check Refund Status
+                                        </button>
+                                    </form>
+                                }
+                                else if (isRefundPending)
+                                {
+                                    <hr />
+
+                                    <p class="muted">
+                                        Cancellation is approved and the payment is waiting for an actual SSLCommerz refund request.
+                                    </p>
+
+                                    @if (string.IsNullOrWhiteSpace(order.BankTransactionID))
+                                    {
+                                        <div class="old-demo-note">
+                                            Bank transaction ID is missing. SSLCommerz automatic refund cannot be started for this order.
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <form action="/Admin/PetShop/CompleteRefund" method="post">
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="orderId"
+                                                   value="@order.OrderID" />
+
+                                            <button type="submit"
+                                                    class="action-btn success-btn"
+                                                    onclick="return confirm('Send this refund request to SSLCommerz now?');">
+                                                Initiate SSLCommerz Refund
+                                            </button>
+                                        </form>
+                                    }
+                                }
+                                else if (isRefundProcessing)
+                                {
+                                    <hr />
+
+                                    <p class="muted">
+                                        Refund is currently processing at SSLCommerz.
+                                    </p>
+
+                                    @if (hasRefundReference)
+                                    {
+                                        <form action="/Admin/PetShop/CheckRefundStatus" method="post">
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="orderId"
+                                                   value="@order.OrderID" />
+
+                                            <button type="submit" class="action-btn">
+                                                Check Refund Status
+                                            </button>
+                                        </form>
+                                    }
+                                }
+                                else if (isRefunded)
+                                {
+                                    <hr />
+
+                                    <div class="message success" style="margin-bottom:0;">
+                                        ✓ SSLCommerz confirmed this refund as completed.
+                                        @if (order.RefundCompletedAt != null)
+                                        {
+                                            <span>
+                                                Completed on @order.RefundCompletedAt.Value.ToString("dd MMM yyyy hh:mm tt").
+                                            </span>
+                                        }
+                                    </div>
+                                }
+                                else if (isRefundCancelled)
+                                {
+                                    <hr />
+
+                                    <div class="message error" style="margin-bottom:0;">
+                                        SSLCommerz reports that this refund was cancelled. Review the transaction before taking further action.
+                                    </div>
+                                }
+                                else if (order.RefundStatus == "Failed")
+                                {
+                                    <hr />
+
+                                    <div class="message error" style="margin-bottom:0;">
+                                        The last refund attempt failed. The order has not been marked as refunded.
+                                    </div>
+                                }
+                            </div>
+
+                        </div>
+
+                    </div>
+                }
+            }
+
+        </main>
+
+    </div>
+
+</body>
+</html>

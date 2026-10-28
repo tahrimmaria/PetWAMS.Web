@@ -1,0 +1,186 @@
+@model PetWAMS.Web.Models.FoundPet
+@using PetWAMS.Web.Models
+
+@{
+    Layout = null;
+    var pets = ViewBag.Pets as List<Pet>;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Edit Found Pet Report — PetHope</title>
+
+    <style>
+            body {
+                margin: 0;
+                font-family: Arial, sans-serif;
+                background: #f8f5fb;
+                color: #24142e;
+            }
+
+            .topbar {
+                background: #241A3D;
+                color: white;
+                padding: 22px 45px;
+                display: flex;
+                justify-content: space-between;
+            }
+
+            .container {
+                max-width: 800px;
+                margin: 40px auto;
+                padding: 0 25px;
+            }
+
+            .back {
+                color: #7B2FF7;
+                text-decoration: none;
+                font-weight: bold;
+            }
+
+            h1 {
+                margin: 25px 0;
+            }
+
+            .card {
+                background: white;
+                padding: 30px;
+                border-radius: 18px;
+                box-shadow: 0 8px 30px rgba(0,0,0,.06);
+            }
+
+            .field {
+                margin-bottom: 20px;
+            }
+
+            label {
+                display: block;
+                font-weight: bold;
+                margin-bottom: 8px;
+            }
+
+            input,
+            select {
+                width: 100%;
+                padding: 12px;
+                border: 1px solid #ddd;
+                border-radius: 10px;
+                box-sizing: border-box;
+            }
+
+            .btn {
+                border: 0;
+                background: #2E8A4C;
+                color: white;
+                padding: 12px 22px;
+                border-radius: 10px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+    </style>
+</head>
+
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+
+    <div class="topbar">
+        <strong>🐾 PetHope</strong>
+        <span>Edit Found Report</span>
+    </div>
+
+    <div class="container">
+
+        <a href="/Adopter/LostFound" class="back">
+            ← Back to Lost & Found
+        </a>
+
+        <h1>Edit Found Pet Report</h1>
+
+        <div class="card">
+
+            <form method="post"
+                  action="/Adopter/LostFound/EditFound">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       name="FoundID"
+                       value="@Model.FoundID" />
+
+                <div class="field">
+                    <label>Pet</label>
+
+                    <select name="PetID" required>
+                        @if (pets != null)
+                        {
+                            @foreach (var pet in pets)
+                            {
+                                if (pet.PetID == Model.PetID)
+                                {
+                                    <option value="@pet.PetID" selected>
+                                        @pet.PetName
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@pet.PetID">
+                                        @pet.PetName
+                                    </option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Found Location</label>
+
+                    <input type="text"
+                           name="FoundLocation"
+                           value="@Model.FoundLocation"
+                           required />
+                </div>
+
+                <div class="field">
+                    <label>Found Date</label>
+
+                    <input type="date"
+                           name="FoundDate"
+                           value="@Model.FoundDate?.ToString("yyyy-MM-dd")"
+                           required />
+                </div>
+
+                <div class="field">
+                    <label>Reporter Name</label>
+
+                    <input type="text"
+                           name="ReporterName"
+                           value="@Model.ReporterName"
+                           required />
+                </div>
+
+                <div class="field">
+                    <label>Contact Number</label>
+
+                    <input type="text"
+                           name="ContactNumber"
+                           value="@Model.ContactNumber"
+                           required />
+                </div>
+
+                <button type="submit" class="btn">
+                    Update Found Report
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

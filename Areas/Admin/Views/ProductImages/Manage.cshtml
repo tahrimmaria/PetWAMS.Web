@@ -1,0 +1,502 @@
+﻿@using PetWAMS.Web.Models
+@model PetWAMS.Web.Models.PetShopProduct
+
+@{
+    Layout = null;
+
+    var productImages =
+        ViewBag.ProductImages as List<PetShopProductImage>
+        ?? new List<PetShopProductImage>();
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Product Images — PetHope</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+            :root {
+                --purple: #7B2FF7;
+                --purple-dark: #5A1FB8;
+                --purple-light: #F2E9FE;
+                --bg: #f8f5fb;
+                --text: #24142e;
+                --muted: #756a7c;
+                --line: #eee7f4;
+                --card: #ffffff;
+                --green-bg: #E7F8EC;
+                --green: #258447;
+                --red-bg: #FDE7EA;
+                --red: #C23E52;
+                --yellow-bg: #FFF4D9;
+                --yellow: #A46B00;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                background: var(--bg);
+                color: var(--text);
+                font-family: 'DM Sans', Arial, sans-serif;
+                min-height: 100vh;
+            }
+
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
+
+            .page {
+                width: 100%;
+                padding: 8px 120px 80px;
+            }
+
+            .container {
+                max-width: 1180px;
+                margin: 0 auto;
+            }
+
+            .page-head {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 18px;
+                margin-bottom: 24px;
+                flex-wrap: wrap;
+            }
+
+                .page-head h1 {
+                    font-family: 'Fraunces', Georgia, serif;
+                    font-size: 38px;
+                    font-weight: 800;
+                    color: var(--text);
+                    margin-bottom: 8px;
+                }
+
+                .page-head p {
+                    color: var(--muted);
+                    font-weight: 700;
+                    line-height: 1.6;
+                }
+
+            .back-btn {
+                background: var(--purple-light);
+                color: var(--purple);
+                padding: 12px 20px;
+                border-radius: 999px;
+                font-weight: 900;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 44px;
+                transition: .2s ease;
+            }
+
+                .back-btn:hover {
+                    background: #eadbff;
+                    color: var(--purple);
+                    transform: translateY(-1px);
+                }
+
+            .product-info {
+                background: linear-gradient(135deg, #321957 0%, #5A1FB8 48%, var(--purple) 100%);
+                color: #ffffff;
+                border-radius: 24px;
+                padding: 30px;
+                margin-bottom: 24px;
+                box-shadow: 0 14px 36px rgba(90,31,184,.14);
+            }
+
+                .product-info h2 {
+                    font-family: 'Fraunces', Georgia, serif;
+                    font-size: 32px;
+                    font-weight: 800;
+                    margin-bottom: 10px;
+                }
+
+                .product-info p {
+                    color: rgba(255,255,255,.90);
+                    font-weight: 700;
+                    line-height: 1.6;
+                }
+
+            .message {
+                padding: 14px 18px;
+                border-radius: 14px;
+                font-weight: 800;
+                margin-bottom: 16px;
+            }
+
+            .success {
+                background: var(--green-bg);
+                color: var(--green);
+            }
+
+            .error {
+                background: var(--red-bg);
+                color: var(--red);
+            }
+
+            .upload-card {
+                background: var(--card);
+                border: 1px solid var(--line);
+                border-radius: 22px;
+                padding: 24px;
+                margin-bottom: 26px;
+                box-shadow: 0 8px 25px rgba(36,20,46,.05);
+            }
+
+                .upload-card h3 {
+                    font-size: 23px;
+                    font-weight: 900;
+                    margin-bottom: 8px;
+                }
+
+                .upload-card p {
+                    color: var(--muted);
+                    font-weight: 700;
+                    line-height: 1.6;
+                    margin-bottom: 18px;
+                }
+
+            input[type="file"] {
+                width: 100%;
+                border: 1px dashed #d7c8e8;
+                background: #faf8fd;
+                border-radius: 16px;
+                padding: 18px;
+                font-family: inherit;
+                font-weight: 800;
+                margin-bottom: 18px;
+            }
+
+            .upload-btn {
+                border: none;
+                background: var(--purple);
+                color: #ffffff;
+                padding: 13px 22px;
+                border-radius: 999px;
+                font-family: inherit;
+                font-weight: 900;
+                cursor: pointer;
+                box-shadow: 0 10px 24px rgba(123,47,247,.20);
+                transition: .2s ease;
+            }
+
+                .upload-btn:hover {
+                    background: var(--purple-dark);
+                    transform: translateY(-1px);
+                }
+
+            .gallery-title {
+                font-size: 24px;
+                font-weight: 900;
+                margin-bottom: 16px;
+            }
+
+            .image-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 22px;
+            }
+
+            .image-card {
+                background: var(--card);
+                border: 1px solid var(--line);
+                border-radius: 22px;
+                overflow: hidden;
+                box-shadow: 0 8px 25px rgba(36,20,46,.05);
+            }
+
+            .image-box {
+                height: 230px;
+                background: #ffffff;
+                border-bottom: 1px solid var(--line);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+            }
+
+                .image-box img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: contain;
+                    background: #ffffff;
+                }
+
+            .image-info {
+                padding: 18px;
+            }
+
+            .badge {
+                display: inline-flex;
+                background: var(--purple-light);
+                color: var(--purple);
+                padding: 7px 12px;
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 900;
+                margin-bottom: 12px;
+            }
+
+                .badge.green {
+                    background: var(--green-bg);
+                    color: var(--green);
+                }
+
+            .image-actions {
+                display: flex;
+                gap: 9px;
+                flex-wrap: wrap;
+            }
+
+            .small-btn {
+                border: none;
+                background: var(--purple-light);
+                color: var(--purple);
+                padding: 9px 13px;
+                border-radius: 999px;
+                font-family: inherit;
+                font-weight: 900;
+                cursor: pointer;
+                transition: .2s ease;
+            }
+
+                .small-btn:hover {
+                    background: #eadbff;
+                }
+
+                .small-btn.green {
+                    background: var(--green-bg);
+                    color: var(--green);
+                }
+
+                .small-btn.red {
+                    background: var(--red-bg);
+                    color: var(--red);
+                }
+
+            .empty {
+                background: var(--card);
+                border: 1px solid var(--line);
+                border-radius: 22px;
+                padding: 34px;
+                color: var(--muted);
+                font-weight: 800;
+                text-align: center;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+            }
+
+            @@media(max-width: 1100px) {
+                .page {
+                    padding: 8px 48px 70px;
+                }
+
+                .image-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+
+            @@media(max-width: 700px) {
+                .page {
+                    padding: 8px 22px 60px;
+                }
+
+                .page-head h1 {
+                    font-size: 31px;
+                }
+
+                .back-btn,
+                .upload-btn {
+                    width: 100%;
+                }
+
+                .image-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .product-info {
+                    padding: 26px 22px;
+                }
+
+                    .product-info h2 {
+                        font-size: 28px;
+                    }
+            }
+    </style>
+</head>
+
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+    <main class="page">
+
+        <div class="container">
+
+            <div class="page-head">
+                <div>
+                    <h1>Manage Product Images</h1>
+                    <p>
+                        Upload multiple images and choose one primary image for shop display.
+                    </p>
+                </div>
+
+                <a href="/Admin/ProductImages" class="back-btn">
+                    ← Back to Product Images
+                </a>
+            </div>
+
+            <section class="product-info">
+                <h2>@Model.ProductName</h2>
+
+                <p>
+                    @Model.ProductCategory • @Model.PetType
+                    <br />
+                    Discount Price: ৳@Model.DiscountPrice.ToString("0.00")
+                    |
+                    Stock: @Model.StockQuantity
+                </p>
+            </section>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="message success">@TempData["Success"]</div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="message error">@TempData["Error"]</div>
+            }
+
+            <section class="upload-card">
+                <h3>Upload New Images</h3>
+
+                <p>
+                    You can select multiple images together. Supported format:
+                    jpg, jpeg, png, webp.
+                </p>
+
+                <form action="/Admin/ProductImages/Upload"
+                      method="post"
+                      enctype="multipart/form-data">
+
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden"
+                           name="productId"
+                           value="@Model.ProductID" />
+
+                    <input type="file"
+                           name="images"
+                           accept=".jpg,.jpeg,.png,.webp"
+                           multiple
+                           required />
+
+                    <button type="submit" class="upload-btn">
+                        Upload Images
+                    </button>
+
+                </form>
+            </section>
+
+            <h2 class="gallery-title">
+                Product Image Gallery
+            </h2>
+
+            @if (productImages.Count == 0)
+            {
+                <div class="empty">
+                    No image uploaded for this product yet.
+                </div>
+            }
+            else
+            {
+                <div class="image-grid">
+
+                    @foreach (var image in productImages)
+                    {
+                        <div class="image-card">
+
+                            <div class="image-box">
+                                <img src="@image.ImagePath" alt="@Model.ProductName" />
+                            </div>
+
+                            <div class="image-info">
+
+                                @if (image.IsPrimary)
+                                {
+                                    <span class="badge green">
+                                        Primary Image
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge">
+                                        Extra Image
+                                    </span>
+                                }
+
+                                <div class="image-actions">
+
+                                    @if (!image.IsPrimary)
+                                    {
+                                        <form action="/Admin/ProductImages/SetPrimary"
+                                              method="post">
+
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="imageId"
+                                                   value="@image.ProductImageID" />
+
+                                            <button type="submit"
+                                                    class="small-btn green">
+                                                Set Primary
+                                            </button>
+
+                                        </form>
+                                    }
+
+                                    <form action="/Admin/ProductImages/Delete"
+                                          method="post"
+                                          onsubmit="return confirm('Are you sure you want to delete this image?');">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden"
+                                               name="imageId"
+                                               value="@image.ProductImageID" />
+
+                                        <button type="submit"
+                                                class="small-btn red">
+                                            Delete
+                                        </button>
+
+                                    </form>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+            }
+
+        </div>
+
+    </main>
+
+</body>
+</html>

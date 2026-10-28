@@ -1,0 +1,228 @@
+@using PetWAMS.Web.Models
+@model FollowUp
+
+@{
+    Layout = null;
+    var adoptions = ViewBag.Adoptions as List<Adoption>;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Add Follow-Up — PetHope</title>
+
+    <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                font-family: Arial, sans-serif;
+                background: #f8f5fb;
+                color: #24142e;
+            }
+
+            .topbar {
+                background: #241A3D;
+                color: white;
+                padding: 22px 45px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .container {
+                max-width: 800px;
+                margin: 40px auto;
+                padding: 0 25px;
+            }
+
+            .back {
+                color: #7B2FF7;
+                text-decoration: none;
+                font-weight: bold;
+            }
+
+            h1 {
+                margin: 25px 0 8px;
+            }
+
+            .subtitle {
+                color: #756a7c;
+                margin-bottom: 25px;
+            }
+
+            .card {
+                background: white;
+                padding: 30px;
+                border-radius: 18px;
+                box-shadow: 0 8px 30px rgba(0,0,0,.06);
+            }
+
+            .field {
+                margin-bottom: 20px;
+            }
+
+            label {
+                display: block;
+                font-weight: bold;
+                margin-bottom: 8px;
+            }
+
+            input,
+            select,
+            textarea {
+                width: 100%;
+                padding: 12px;
+                border: 1px solid #ddd;
+                border-radius: 10px;
+                font-size: 14px;
+                font-family: Arial, sans-serif;
+            }
+
+            textarea {
+                min-height: 120px;
+                resize: vertical;
+            }
+
+            .btn {
+                border: none;
+                background: #7B2FF7;
+                color: white;
+                padding: 13px 22px;
+                border-radius: 10px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+
+                .btn:hover {
+                    opacity: .9;
+                }
+    </style>
+</head>
+
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+
+    <div class="topbar">
+        <strong>🐾 PetHope</strong>
+        <span>Add Follow-Up</span>
+    </div>
+
+    <div class="container">
+
+        <a href="/Shelter/FollowUps" class="back">
+            ← Back to Follow-Ups
+        </a>
+
+        <h1>Add Adoption Follow-Up</h1>
+
+        <div class="subtitle">
+            Record the condition of a pet after adoption.
+        </div>
+
+        <div class="card">
+
+            <form method="post"
+                  action="/Shelter/FollowUps/Create">
+
+                @Html.AntiForgeryToken()
+
+                <div class="field">
+
+                    <label>Adoption / Pet / Adopter</label>
+
+                    <select name="AdoptionID" required>
+
+                        <option value="">
+                            -- Select Adoption --
+                        </option>
+
+                        @if (adoptions != null)
+                        {
+                            @foreach (var adoption in adoptions)
+                            {
+                                <option value="@adoption.AdoptionID">
+                                    #@adoption.AdoptionID -
+                                    @adoption.Pet?.PetName -
+                                    @adoption.User?.FullName
+                                </option>
+                            }
+                        }
+
+                    </select>
+
+                </div>
+
+                <div class="field">
+
+                    <label>Follow-Up Date</label>
+
+                    <input type="date"
+                           name="FollowUpDate"
+                           value="@DateTime.Today.ToString("yyyy-MM-dd")"
+                           required />
+
+                </div>
+
+                <div class="field">
+
+                    <label>Health Condition</label>
+
+                    <select name="HealthCondition" required>
+
+                        <option value="">
+                            -- Select Condition --
+                        </option>
+
+                        <option value="Excellent">
+                            Excellent
+                        </option>
+
+                        <option value="Good">
+                            Good
+                        </option>
+
+                        <option value="Stable">
+                            Stable
+                        </option>
+
+                        <option value="Needs Attention">
+                            Needs Attention
+                        </option>
+
+                        <option value="Critical">
+                            Critical
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="field">
+
+                    <label>Remarks</label>
+
+                    <textarea name="Remarks"
+                              placeholder="Write follow-up notes here..."></textarea>
+
+                </div>
+
+                <button type="submit" class="btn">
+                    Save Follow-Up
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

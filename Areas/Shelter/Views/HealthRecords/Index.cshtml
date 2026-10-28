@@ -1,0 +1,200 @@
+﻿@model List<PetWAMS.Web.Models.HealthRecord>
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Health Records — PetHope</title>
+
+    <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                font-family: Arial, sans-serif;
+                background: #f8f5fb;
+                color: #24142e;
+            }
+
+            .topbar {
+                background: #241A3D;
+                color: white;
+                padding: 22px 45px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 40px auto;
+                padding: 0 25px;
+            }
+
+            .back {
+                color: #7B2FF7;
+                text-decoration: none;
+                font-weight: bold;
+            }
+
+            h1 {
+                margin: 25px 0;
+            }
+
+            .add-btn {
+                display: inline-block;
+                margin-bottom: 20px;
+                background: #7B2FF7;
+                color: white;
+                padding: 11px 18px;
+                border-radius: 10px;
+                text-decoration: none;
+                font-weight: bold;
+            }
+
+            .table-card {
+                background: white;
+                border-radius: 18px;
+                overflow: hidden;
+                box-shadow: 0 8px 30px rgba(0,0,0,.06);
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            th {
+                background: #F3EDFB;
+                text-align: left;
+                padding: 16px;
+                font-size: 13px;
+            }
+
+            td {
+                padding: 16px;
+                border-top: 1px solid #eee;
+                font-size: 14px;
+            }
+
+            .status {
+                background: #E4F4E7;
+                color: #2E8A4C;
+                padding: 6px 11px;
+                border-radius: 20px;
+                font-weight: bold;
+                font-size: 12px;
+            }
+
+            .edit {
+                color: #7B2FF7;
+                font-weight: bold;
+                text-decoration: none;
+            }
+
+            .empty {
+                text-align: center;
+                color: #7f7486;
+                padding: 30px;
+            }
+    </style>
+</head>
+
+<body>
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+    <div class="topbar">
+        <strong>🐾 PetHope Shelter</strong>
+        <span>Health Records</span>
+    </div>
+
+    <div class="container">
+
+        <h1>Pet Health Records</h1>
+
+        <a href="/Shelter/HealthRecords/Create" class="add-btn">
+            + Add Health Record
+        </a>
+
+        <div class="table-card">
+
+            <table>
+                <tr>
+                    <th>Health ID</th>
+                    <th>Pet</th>
+                    <th>Health Status</th>
+                    <th>Medical Notes</th>
+                    <th>Checkup Date</th>
+                    <th>Action</th>
+                </tr>
+
+                @if (Model == null || Model.Count == 0)
+                {
+                    <tr>
+                        <td colspan="6" class="empty">
+                            No health records found.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var record in Model)
+                    {
+                        <tr>
+                            <td>@record.HealthID</td>
+
+                            <td>
+                                @record.Pet?.PetName
+                            </td>
+
+                            <td>
+                                <span class="status">
+                                    @record.HealthStatus
+                                </span>
+                            </td>
+
+                            <td>
+                                @record.MedicalNotes
+                            </td>
+
+                            <td>
+                                @record.CheckupDate?.ToString("dd MMM yyyy")
+                            </td>
+                            <td>
+                                <a href="/Shelter/HealthRecords/Edit/@record.HealthID"
+                                   class="edit"
+                                   style="margin-right:12px;">
+                                    Edit
+                                </a>
+
+                                <form method="post"
+                                      action="/Shelter/HealthRecords/Delete/@record.HealthID"
+                                      style="display:inline;"
+                                      onsubmit="return confirm('Are you sure you want to delete this health record?');">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <button type="submit"
+                                            style="border:0;background:#FDEBE7;color:#C34A5A;padding:7px 12px;border-radius:8px;font-weight:bold;cursor:pointer;">
+                                        Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+
+            </table>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

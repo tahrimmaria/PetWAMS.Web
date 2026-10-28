@@ -1,0 +1,2288 @@
+@model IEnumerable<dynamic>
+@using Microsoft.AspNetCore.Http
+@using PetWAMS.Web.Models
+@using System.Reflection
+
+@{
+    Layout = null;
+
+    var fullName = ViewBag.FullName as string
+        ?? Context.Session.GetString("FullName")
+        ?? "Adopter";
+
+    var email = ViewBag.Email as string
+        ?? Context.Session.GetString("Email")
+        ?? "";
+
+    var phone = ViewBag.Phone as string
+        ?? Context.Session.GetString("Phone")
+        ?? "";
+
+    var address = ViewBag.Address as string
+        ?? Context.Session.GetString("Address")
+        ?? "";
+
+    var totalRequests = ViewBag.TotalRequests ?? 0;
+    var pendingReview = ViewBag.PendingReview ?? ViewBag.PendingCount ?? 0;
+    var successfulAdoptions = ViewBag.SuccessfulAdoptions ?? ViewBag.ApprovedCount ?? 0;
+
+    var myRequests = Model?.ToList() ?? new List<dynamic>();
+
+    var latestRecommendation = ViewBag.LatestRecommendation as PetRecommendation;
+
+    bool hasAiRecommendation =
+        latestRecommendation != null &&
+        latestRecommendation.Pet != null;
+
+    bool isNewRecommendation =
+        ViewBag.IsNewRecommendation == true;
+
+    bool hasSavedPreference =
+        ViewBag.HasSavedPreference == true;
+
+    string savedPreferenceText =
+        ViewBag.PreferenceText as string
+        ?? "";
+
+    string noRecommendationMessage =
+        ViewBag.NoRecommendationMessage as string
+        ?? "No suitable available pet match was found for your saved preference.";
+
+    string aiRecommendationError =
+        ViewBag.AiRecommendationError as string
+        ?? "";
+
+    string recommendationPetName = "";
+    string recommendationPetCategory = "Pet";
+    string recommendationPetBreed = "Unknown Breed";
+    string recommendationPetGender = "Gender unknown";
+    string recommendationPetAge = "Age unknown";
+    int recommendationMatchScore = 0;
+    int recommendationPetId = 0;
+
+    var recommendationReasons = new List<string>();
+
+    if (hasAiRecommendation)
+    {
+        object pet = latestRecommendation!.Pet!;
+
+        recommendationPetId = ToInt(GetValue(pet, "PetID", "PetId", "ID", "Id"));
+        recommendationPetName = Text(GetValue(pet, "PetName", "Name", "Title"));
+        recommendationPetCategory = GetPetCategoryName(pet);
+        recommendationPetBreed = Text(GetValue(pet, "Breed", "PetBreed"));
+        recommendationPetGender = Text(GetValue(pet, "Gender", "PetGender"));
+        recommendationPetAge = Text(GetValue(pet, "Age", "PetAge"));
+        recommendationMatchScore = latestRecommendation.MatchScore;
+
+        if (recommendationPetId == 0)
+        {
+            recommendationPetId = latestRecommendation.PetID;
+        }
+
+        string reasonText = latestRecommendation.RecommendationReason ?? "";
+
+        reasonText = reasonText.Replace(
+            "ML.NET AI generated:",
+            "",
+            StringComparison.OrdinalIgnoreCase
+        );
+
+        reasonText = reasonText.Replace(
+            "ML.NET AI generated based on adopter preference.",
+            "",
+            StringComparison.OrdinalIgnoreCase
+        );
+
+        reasonText = reasonText.Replace(
+            "ML.NET AI generated based on your saved natural-language pet preference.",
+            "",
+            StringComparison.OrdinalIgnoreCase
+        );
+
+        var splitReasons =
+            reasonText.Split(
+                "|",
+                StringSplitOptions.RemoveEmptyEntries
+            );
+
+        foreach (var reason in splitReasons)
+        {
+            if (!string.IsNullOrWhiteSpace(reason))
+            {
+                recommendationReasons.Add(
+                    reason.Trim()
+                );
+            }
+        }
+
+        if (recommendationReasons.Count == 0)
+        {
+            recommendationReasons.Add(
+                "ML.NET AI selected this pet from your saved preference and available pet data."
+            );
+        }
+    }
+
+    if (string.IsNullOrWhiteSpace(recommendationPetName))
+    {
+        recommendationPetName = "Recommended Pet";
+    }
+
+    var initial =
+        string.IsNullOrWhiteSpace(fullName)
+            ? "A"
+            : fullName.Trim().Substring(0, 1).ToUpper();
+}
+
+
+@functions {
+
+    private object? GetValue(
+        object? obj,
+        params string[] propertyNames)
+    {
+        if (obj == null)
+        {
+            return null;
+        }
+
+        var type = obj.GetType();
+
+        foreach (var name in propertyNames)
+        {
+            var prop =
+                type.GetProperty(
+                    name,
+                    BindingFlags.Public
+                    |
+                    BindingFlags.Instance
+                    |
+                    BindingFlags.IgnoreCase
+                );
+
+            if (prop != null)
+            {
+                return prop.GetValue(obj);
+            }
+        }
+
+        return null;
+    }
+
+
+    private string Text(object? value)
+    {
+        return value?.ToString()?.Trim() ?? "";
+    }
+
+
+    private int ToInt(object? value)
+    {
+        if (value == null)
+        {
+            return 0;
+        }
+
+        int number;
+
+        if (int.TryParse(
+            value.ToString(),
+            out number))
+        {
+            return number;
+        }
+
+        return 0;
+    }
+
+
+    private DateTime ToDate(object? value)
+    {
+        if (value == null)
+        {
+            return DateTime.Now;
+        }
+
+        DateTime date;
+
+        if (DateTime.TryParse(
+            value.ToString(),
+            out date))
+        {
+            return date;
+        }
+
+        return DateTime.Now;
+    }
+
+
+    private string GetPetName(object request)
+    {
+        object? petObject =
+            GetValue(
+                request,
+                "Pet"
+            );
+
+        if (petObject != null)
+        {
+            string petName =
+                Text(
+                    GetValue(
+                        petObject,
+                        "PetName",
+                        "Name",
+                        "Title"
+                    )
+                );
+
+            if (!string.IsNullOrWhiteSpace(
+                petName))
+            {
+                return petName;
+            }
+        }
+
+        return "Unknown Pet";
+    }
+
+
+    private string GetPetCategoryName(object pet)
+    {
+        string directCategory =
+            Text(
+                GetValue(
+                    pet,
+                    "PetCategory",
+                    "CategoryName",
+                    "Type",
+                    "Species"
+                )
+            );
+
+        if (!string.IsNullOrWhiteSpace(
+            directCategory))
+        {
+            return directCategory;
+        }
+
+        object? categoryObject =
+            GetValue(
+                pet,
+                "Category",
+                "PetCategory"
+            );
+
+        if (categoryObject != null)
+        {
+            string categoryName =
+                Text(
+                    GetValue(
+                        categoryObject,
+                        "CategoryName",
+                        "Name",
+                        "Title"
+                    )
+                );
+
+            if (!string.IsNullOrWhiteSpace(
+                categoryName))
+            {
+                return categoryName;
+            }
+        }
+
+        return "Pet";
+    }
+
+
+    private string GetStatusClass(string status)
+    {
+        if (status.Equals(
+            "Approved",
+            StringComparison.OrdinalIgnoreCase))
+        {
+            return "status-approved";
+        }
+
+        if (status.Equals(
+            "Rejected",
+            StringComparison.OrdinalIgnoreCase))
+        {
+            return "status-rejected";
+        }
+
+        return "status-pending";
+    }
+
+
+    private string GetStatusNote(string status)
+    {
+        if (status.Equals(
+            "Pending",
+            StringComparison.OrdinalIgnoreCase))
+        {
+            return "Waiting for review";
+        }
+
+        if (status.Equals(
+            "Approved",
+            StringComparison.OrdinalIgnoreCase))
+        {
+            return "Approved by shelter";
+        }
+
+        if (status.Equals(
+            "Rejected",
+            StringComparison.OrdinalIgnoreCase))
+        {
+            return "Request rejected";
+        }
+
+        return "Completed";
+    }
+}
+
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>
+        Adopter Dashboard — PetHope
+    </title>
+
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=DM+Sans:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+
+    <style>
+
+            :root {
+                --purple: #7B2FF7;
+                --purple-dark: #5A1FB8;
+                --purple-light: #F2E9FE;
+                --purple-border: #D7B8FF;
+                --dark: #241A3D;
+                --bg: #f8f5fb;
+                --text: #24142e;
+                --muted: #756a7c;
+                --card: #ffffff;
+                --line: #eee7f4;
+                --gold: #F6C54F;
+                --green-bg: #E7F8EC;
+                --green: #258447;
+                --yellow-bg: #FFF4D9;
+                --yellow: #A46B00;
+                --red-bg: #FDE7EA;
+                --red: #C23E52;
+            }
+
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+
+            html {
+                scroll-behavior: smooth;
+            }
+
+
+            body {
+                background: var(--bg);
+                color: var(--text);
+                font-family: 'DM Sans', Arial, sans-serif;
+                min-height: 100vh;
+            }
+
+
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
+
+
+            .page {
+                display: grid;
+                grid-template-columns: 280px 1fr;
+                min-height: 100vh;
+            }
+
+
+            /* =====================================================
+                       SIDEBAR
+                    ===================================================== */
+
+            .sidebar {
+                background: #ffffff;
+                border-right: 1px solid var(--line);
+                padding: 32px 24px;
+                display: flex;
+                flex-direction: column;
+            }
+
+
+            .logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-family: 'Fraunces', Georgia, serif;
+                font-weight: 800;
+                font-size: 26px;
+                color: var(--purple);
+                margin-bottom: 50px;
+            }
+
+
+            .logo-mark {
+                width: 38px;
+                height: 38px;
+                border-radius: 12px;
+                background: linear-gradient( 135deg, var(--purple), #B383F5 );
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 18px;
+                color: #ffffff;
+            }
+
+
+            .panel-title {
+                font-size: 12px;
+                font-weight: 800;
+                color: #a092ad;
+                letter-spacing: .04em;
+                text-transform: uppercase;
+                margin-bottom: 12px;
+            }
+
+
+            .profile-card {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 18px;
+                padding: 18px;
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                margin-bottom: 26px;
+            }
+
+
+            .profile-avatar {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                background: var(--purple);
+                color: #ffffff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 800;
+                font-size: 18px;
+                flex-shrink: 0;
+            }
+
+
+            .profile-card strong {
+                display: block;
+                font-size: 16px;
+                margin-bottom: 3px;
+            }
+
+
+            .profile-card span {
+                color: var(--muted);
+                font-size: 13px;
+                font-weight: 600;
+            }
+
+
+            .menu {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+
+                .menu a {
+                    min-height: 52px;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 0 16px;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    font-weight: 800;
+                    color: #5c5268;
+                }
+
+
+                    .menu a.active {
+                        background: var(--purple);
+                        color: #ffffff;
+                    }
+
+
+                    .menu a:hover {
+                        background: #F2E9FE;
+                        color: var(--purple);
+                    }
+
+
+                    .menu a.active:hover {
+                        background: var(--purple);
+                        color: #ffffff;
+                    }
+
+
+            .logout {
+                margin-top: auto;
+                color: #d9435e !important;
+            }
+
+
+            /* =====================================================
+                       MAIN
+                    ===================================================== */
+
+            .main {
+                padding: 36px 48px 70px;
+            }
+
+
+            .top-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 28px;
+            }
+
+
+                .top-row h1 {
+                    font-size: 34px;
+                    font-weight: 800;
+                    color: var(--text);
+                }
+
+
+            .user-box {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-weight: 800;
+            }
+
+
+            .avatar {
+                width: 46px;
+                height: 46px;
+                border-radius: 50%;
+                background: var(--purple);
+                color: #ffffff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 800;
+            }
+
+
+            /* =====================================================
+                       HERO
+                    ===================================================== */
+
+            .hero {
+                background: linear-gradient( 135deg, #2B1B4D, #8B35F7 );
+                border-radius: 22px;
+                padding: 34px;
+                color: #ffffff;
+                margin-bottom: 30px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 20px;
+            }
+
+
+                .hero h2 {
+                    font-family: 'Fraunces', Georgia, serif;
+                    font-size: 30px;
+                    margin-bottom: 8px;
+                }
+
+
+                .hero p {
+                    color: rgba(255,255,255,.86);
+                    font-size: 16px;
+                    line-height: 1.6;
+                }
+
+
+            .hero-actions {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+                margin-top: 22px;
+            }
+
+
+            .hero-btn {
+                background: var(--purple);
+                color: #ffffff;
+                padding: 14px 24px;
+                border-radius: 30px;
+                font-weight: 800;
+                white-space: nowrap;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                transition: .2s ease;
+            }
+
+
+                .hero-btn:hover {
+                    background: var(--purple-dark);
+                    color: #ffffff;
+                    transform: translateY(-1px);
+                }
+
+
+                .hero-btn.secondary {
+                    background: var(--purple-light);
+                    color: var(--purple);
+                    border: 1px solid var(--purple-border);
+                }
+
+
+                    .hero-btn.secondary:hover {
+                        background: #e9daff;
+                        color: var(--purple-dark);
+                    }
+
+
+            /* =====================================================
+                       STATS
+                    ===================================================== */
+
+            .stats {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 18px;
+                margin-bottom: 34px;
+            }
+
+
+            .stat-card {
+                background: var(--card);
+                border: 1px solid var(--line);
+                border-radius: 18px;
+                padding: 24px;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+            }
+
+
+            .stat-icon {
+                width: 48px;
+                height: 48px;
+                border-radius: 14px;
+                background: #F2E9FE;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 23px;
+                margin-bottom: 16px;
+            }
+
+
+            .stat-number {
+                font-size: 30px;
+                font-weight: 800;
+                color: var(--text);
+                margin-bottom: 4px;
+            }
+
+
+            .stat-label {
+                color: var(--muted);
+                font-weight: 600;
+            }
+
+
+            /* =====================================================
+                       PET CARE SHOP
+                    ===================================================== */
+
+            .shop-quick-card {
+                margin-bottom: 34px;
+                background: linear-gradient( 135deg, #7B2FF7, #B383F5 );
+                color: #ffffff;
+                border-radius: 24px;
+                padding: 26px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 20px;
+                box-shadow: 0 14px 35px rgba(123,47,247,.22);
+            }
+
+
+                .shop-quick-card h2 {
+                    margin: 0 0 8px;
+                    font-size: 26px;
+                    font-weight: 900;
+                    font-family: 'Fraunces', Georgia, serif;
+                }
+
+
+                .shop-quick-card p {
+                    margin: 0;
+                    color: rgba(255,255,255,.88);
+                    line-height: 1.6;
+                    font-weight: 600;
+                }
+
+
+            .shop-quick-btn {
+                background: #ffffff;
+                color: #7B2FF7;
+                padding: 14px 22px;
+                border-radius: 999px;
+                font-weight: 900;
+                white-space: nowrap;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+
+                .shop-quick-btn:hover {
+                    color: #5A1FB8;
+                    transform: translateY(-1px);
+                }
+
+
+            /* =====================================================
+                       MANAGEMENT
+                    ===================================================== */
+
+            .section-title {
+                font-size: 24px;
+                font-weight: 800;
+                margin-bottom: 18px;
+            }
+
+
+            .management-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 18px;
+                margin-bottom: 34px;
+            }
+
+
+            .management-card {
+                background: var(--card);
+                border: 1px solid var(--line);
+                border-radius: 18px;
+                padding: 26px;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+                transition: .2s ease;
+            }
+
+
+                .management-card:hover {
+                    transform: translateY(-4px);
+                    border-color: #D7B8FF;
+                    box-shadow: 0 18px 35px rgba(123,47,247,.10);
+                }
+
+
+                .management-card .big-icon {
+                    font-size: 34px;
+                    margin-bottom: 18px;
+                }
+
+
+                .management-card h3 {
+                    font-size: 21px;
+                    font-weight: 800;
+                    margin-bottom: 8px;
+                }
+
+
+                .management-card p {
+                    color: var(--muted);
+                    line-height: 1.5;
+                }
+
+
+            .shop-card {
+                border-color: #D7B8FF;
+                background: linear-gradient( 180deg, #ffffff, #FBF7FF );
+            }
+
+
+            /* =====================================================
+                       RECOMMENDATION
+                    ===================================================== */
+
+            .section-head {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 16px;
+                margin-bottom: 18px;
+            }
+
+
+                .section-head h2 {
+                    font-family: 'Fraunces', Georgia, serif;
+                    font-size: 26px;
+                    font-weight: 800;
+                }
+
+
+            .pill {
+                background: #F2E9FE;
+                color: var(--purple);
+                padding: 8px 16px;
+                border-radius: 30px;
+                font-size: 13px;
+                font-weight: 800;
+            }
+
+
+            .new-pill {
+                background: var(--yellow-bg);
+                color: var(--yellow);
+                padding: 8px 16px;
+                border-radius: 30px;
+                font-size: 13px;
+                font-weight: 800;
+                margin-left: 8px;
+            }
+
+
+            .recommend-card {
+                background: #ffffff;
+                border: 1px solid #D7B8FF;
+                border-radius: 18px;
+                overflow: hidden;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+                margin-bottom: 34px;
+            }
+
+
+            .recommend-top {
+                background: linear-gradient( 135deg, #7B2FF7, #A855F7 );
+                color: #ffffff;
+                padding: 16px 24px;
+                font-weight: 800;
+            }
+
+
+            .recommend-body {
+                padding: 28px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 24px;
+            }
+
+
+            .recommend-info {
+                flex: 1;
+            }
+
+
+                .recommend-info h3 {
+                    font-family: 'Fraunces', Georgia, serif;
+                    font-size: 30px;
+                    margin-bottom: 8px;
+                }
+
+
+            .recommend-meta {
+                color: var(--muted);
+                font-weight: 700;
+                margin-bottom: 18px;
+            }
+
+
+            .recommend-info p {
+                color: var(--muted);
+                line-height: 1.7;
+                max-width: 760px;
+            }
+
+
+            .reason-list {
+                margin-top: 16px;
+                padding-left: 20px;
+                color: var(--muted);
+                line-height: 1.7;
+                font-weight: 600;
+            }
+
+
+            .recommend-actions {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+                margin-top: 22px;
+            }
+
+
+            .recommend-btn {
+                border: none;
+                border-radius: 999px;
+                padding: 14px 24px;
+                font-family: 'DM Sans', Arial, sans-serif;
+                font-size: 14px;
+                font-weight: 900;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                cursor: pointer;
+                transition: .2s ease;
+            }
+
+
+                .recommend-btn:hover {
+                    transform: translateY(-2px);
+                    text-decoration: none;
+                }
+
+
+                .recommend-btn.adopt {
+                    background: var(--purple);
+                    color: #ffffff;
+                    box-shadow: 0 10px 22px rgba(123,47,247,.20);
+                }
+
+
+                    .recommend-btn.adopt:hover {
+                        background: var(--purple-dark);
+                        color: #ffffff;
+                    }
+
+
+                .recommend-btn.details {
+                    background: #F2E9FE;
+                    color: var(--purple);
+                }
+
+
+                    .recommend-btn.details:hover {
+                        background: #eadbff;
+                        color: var(--purple);
+                    }
+
+
+            .score {
+                width: 130px;
+                height: 130px;
+                min-width: 130px;
+                border-radius: 50%;
+                border: 8px solid #E7D0FF;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+                color: var(--purple);
+                font-weight: 800;
+            }
+
+
+                .score strong {
+                    font-size: 30px;
+                    font-family: 'Fraunces', Georgia, serif;
+                }
+
+
+                .score span {
+                    font-size: 11px;
+                    color: var(--muted);
+                }
+
+
+            .preference-note {
+                margin-top: 16px;
+                padding: 14px 16px;
+                border-radius: 12px;
+                border: 1px solid #E1D0FF;
+                background: #F7F1FF;
+                color: var(--purple-dark);
+                font-size: 13px;
+                line-height: 1.6;
+                font-weight: 700;
+            }
+
+
+            .ai-error-note {
+                margin-top: 12px;
+                padding: 14px 16px;
+                border-radius: 12px;
+                border: 1px solid #F1C9D2;
+                background: #FFF4F6;
+                color: #A33A50;
+                font-size: 13px;
+                line-height: 1.6;
+                font-weight: 700;
+            }
+
+
+            /* =====================================================
+                       GENERAL DASHBOARD SECTION
+                    ===================================================== */
+
+            .dashboard-section {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 18px;
+                padding: 28px;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+                margin-bottom: 28px;
+            }
+
+
+                .dashboard-section h2 {
+                    font-size: 25px;
+                    font-weight: 800;
+                    margin-bottom: 10px;
+                }
+
+
+                .dashboard-section p {
+                    color: var(--muted);
+                    line-height: 1.6;
+                }
+
+
+            /* =====================================================
+                       REQUEST TABLE
+                    ===================================================== */
+
+            .table-card {
+                margin-top: 20px;
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 16px;
+                overflow-x: auto;
+            }
+
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                min-width: 720px;
+            }
+
+
+            th {
+                background: #F3EDFB;
+                text-align: left;
+                padding: 15px;
+                font-size: 14px;
+                font-weight: 800;
+                white-space: nowrap;
+            }
+
+
+            td {
+                padding: 15px;
+                border-top: 1px solid #eeeeee;
+                font-size: 14px;
+                vertical-align: middle;
+            }
+
+
+            .status {
+                display: inline-block;
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 800;
+            }
+
+
+            .status-pending {
+                background: var(--yellow-bg);
+                color: var(--yellow);
+            }
+
+
+            .status-approved {
+                background: var(--green-bg);
+                color: var(--green);
+            }
+
+
+            .status-rejected {
+                background: var(--red-bg);
+                color: var(--red);
+            }
+
+
+            /* =====================================================
+                       PROFILE
+                    ===================================================== */
+
+            .profile-grid {
+                margin-top: 20px;
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 18px;
+            }
+
+
+            .profile-box {
+                background: #faf8fd;
+                border-radius: 14px;
+                padding: 18px;
+            }
+
+
+                .profile-box label {
+                    display: block;
+                    color: var(--muted);
+                    font-size: 13px;
+                    font-weight: 700;
+                    margin-bottom: 8px;
+                }
+
+
+                .profile-box strong {
+                    font-size: 16px;
+                    font-weight: 800;
+                    color: var(--text);
+                }
+
+
+            .empty {
+                color: var(--muted);
+                font-weight: 700;
+                padding: 18px 0;
+            }
+
+
+            /* =====================================================
+                       RESPONSIVE
+                    ===================================================== */
+
+            @@media (max-width: 1100px) {
+
+                .stats,
+                .management-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+
+
+            @@media (max-width: 800px) {
+
+                .page {
+                    grid-template-columns: 1fr;
+                }
+
+
+                .sidebar {
+                    position: relative;
+                    border-right: 0;
+                    border-bottom: 1px solid var(--line);
+                }
+
+
+                .main {
+                    padding: 28px 22px 50px;
+                }
+
+
+                .stats,
+                .management-grid {
+                    grid-template-columns: 1fr;
+                }
+
+
+                .top-row,
+                .hero,
+                .recommend-body,
+                .shop-quick-card {
+                    align-items: flex-start;
+                    gap: 16px;
+                    flex-direction: column;
+                }
+
+
+                .profile-grid {
+                    grid-template-columns: 1fr;
+                }
+
+
+                .section-head {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+
+
+                .recommend-actions {
+                    width: 100%;
+                }
+
+
+                .recommend-btn {
+                    width: 100%;
+                }
+
+
+                .score {
+                    width: 110px;
+                    height: 110px;
+                    min-width: 110px;
+                }
+            }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <div class="page">
+
+
+        <!-- =====================================================
+             SIDEBAR
+        ====================================================== -->
+
+        <aside class="sidebar">
+
+
+            <a href="/"
+               class="logo">
+
+                <span class="logo-mark">
+                    🐾
+                </span>
+
+                <span>
+                    PetHope
+                </span>
+
+            </a>
+
+
+            <div class="profile-card">
+
+                <div class="profile-avatar">
+                    @initial
+                </div>
+
+                <div>
+
+                    <strong>
+                        @fullName
+                    </strong>
+
+                    <span>
+                        Adopter
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="panel-title">
+                Adopter Panel
+            </div>
+
+
+            <nav class="menu">
+
+
+                <a href="/Adopter"
+                   class="active">
+
+                    🏠 Dashboard
+
+                </a>
+
+
+                <a href="#requests">
+
+                    📋 Adoption Requests
+
+                </a>
+
+
+                <a href="/Adopter/Preferences">
+
+                    🤖 My Pet Preferences
+
+                </a>
+
+
+                <a href="/PetCareShop">
+
+                    🛒 Pet Care Shop
+
+                </a>
+
+
+                <a href="#profile">
+
+                    👤 My Profile
+
+                </a>
+
+
+                <a href="/Pets">
+
+                    🐾 Browse Pets
+
+                </a>
+
+
+                <a href="/Adopter/LostFound">
+
+                    📍 Lost & Found
+
+                </a>
+
+
+                <a href="/Account/Logout"
+                   class="logout">
+
+                    ↩ Logout
+
+                </a>
+
+
+            </nav>
+
+
+        </aside>
+
+
+        <!-- =====================================================
+             MAIN
+        ====================================================== -->
+
+        <main class="main">
+
+
+            <!-- =================================================
+                 TOP
+            ================================================== -->
+
+            <div class="top-row">
+
+
+                <h1>
+                    Adopter Dashboard
+                </h1>
+
+
+                <div class="user-box">
+
+                    <span>
+                        @fullName
+                    </span>
+
+                    <div class="avatar">
+                        @initial
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+            <!-- =================================================
+                 HERO
+            ================================================== -->
+
+            <section class="hero">
+
+
+                <div>
+
+
+                    <h2>
+                        Welcome back, @fullName 👋
+                    </h2>
+
+
+                    <p>
+
+                        Manage your profile, adoption requests,
+                        natural-language pet preferences,
+                        pet care shopping and view your ML.NET
+                        AI pet recommendation.
+
+                    </p>
+
+
+                </div>
+
+
+            </section>
+
+
+            <!-- =================================================
+                 STATISTICS
+            ================================================== -->
+
+            <section class="stats">
+
+
+                <div class="stat-card">
+
+                    <div class="stat-icon">
+                        📋
+                    </div>
+
+                    <div class="stat-number">
+                        @totalRequests
+                    </div>
+
+                    <div class="stat-label">
+                        Adoption Requests
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-icon">
+                        ⏳
+                    </div>
+
+                    <div class="stat-number">
+                        @pendingReview
+                    </div>
+
+                    <div class="stat-label">
+                        Pending Review
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-icon">
+                        🏠
+                    </div>
+
+                    <div class="stat-number">
+                        @successfulAdoptions
+                    </div>
+
+                    <div class="stat-label">
+                        Successful Adoption
+                    </div>
+
+                </div>
+
+
+            </section>
+
+
+            <!-- =================================================
+                 SHOP
+            ================================================== -->
+
+            <section class="shop-quick-card">
+
+
+                <div>
+
+
+                    <h2>
+                        Discount Pet Care Shop
+                    </h2>
+
+
+                    <p>
+
+                        Buy discounted pet care essentials like
+                        food, collar, litter, shampoo,
+                        bird cage and vet checkup coupon.
+                        Adoption remains free.
+
+                    </p>
+
+
+                </div>
+
+
+                <a href="/PetCareShop"
+                   class="shop-quick-btn">
+
+                    🛒 Go to Pet Care Shop
+
+                </a>
+
+
+            </section>
+
+
+            <!-- =================================================
+                 MANAGEMENT
+            ================================================== -->
+
+            <h2 class="section-title">
+                Management
+            </h2>
+
+
+            <section class="management-grid">
+
+
+                <a href="#requests"
+                   class="management-card">
+
+
+                    <div class="big-icon">
+                        📋
+                    </div>
+
+
+                    <h3>
+                        My Adoption Requests
+                    </h3>
+
+
+                    <p>
+                        View your submitted adoption requests
+                        and their current status.
+                    </p>
+
+
+                </a>
+
+
+                <a href="/Adopter/Preferences"
+                   class="management-card">
+
+
+                    <div class="big-icon">
+                        🤖
+                    </div>
+
+
+                    <h3>
+                        My Pet Preferences
+                    </h3>
+
+
+                    <p>
+
+                        Write your pet preference naturally
+                        so ML.NET can recommend better matches.
+
+                    </p>
+
+
+                </a>
+
+
+                <a href="/PetCareShop"
+                   class="management-card shop-card">
+
+
+                    <div class="big-icon">
+                        🛒
+                    </div>
+
+
+                    <h3>
+                        Pet Care Shop
+                    </h3>
+
+
+                    <p>
+
+                        Buy discounted food, collar, litter,
+                        shampoo and vet-care coupons.
+
+                    </p>
+
+
+                </a>
+
+
+                <a href="#profile"
+                   class="management-card">
+
+
+                    <div class="big-icon">
+                        👤
+                    </div>
+
+
+                    <h3>
+                        My Profile
+                    </h3>
+
+
+                    <p>
+                        View your adopter profile information.
+                    </p>
+
+
+                </a>
+
+
+                <a href="/Pets"
+                   class="management-card">
+
+
+                    <div class="big-icon">
+                        🐾
+                    </div>
+
+
+                    <h3>
+                        Browse Pets
+                    </h3>
+
+
+                    <p>
+
+                        Explore available pets
+                        and view adoption details.
+
+                    </p>
+
+
+                </a>
+
+
+                <a href="/Adopter/LostFound"
+                   class="management-card">
+
+
+                    <div class="big-icon">
+                        📍
+                    </div>
+
+
+                    <h3>
+                        Lost & Found
+                    </h3>
+
+
+                    <p>
+
+                        Report lost pets or help reunite
+                        found pets with families.
+
+                    </p>
+
+
+                </a>
+
+
+            </section>
+
+
+            <!-- =================================================
+                 AI RECOMMENDATION
+            ================================================== -->
+
+            <div class="section-head">
+
+
+                <h2>
+                    🤖 Recommended for You
+                </h2>
+
+
+                <div>
+
+
+                    <span class="pill">
+                        ML.NET AI GENERATED
+                    </span>
+
+
+                    @if (isNewRecommendation)
+                    {
+                        <span class="new-pill">
+                            NEW
+                        </span>
+                    }
+
+
+                </div>
+
+
+            </div>
+
+
+            <section class="recommend-card">
+
+
+                <div class="recommend-top">
+
+                    🏆 AI BEST PET MATCH
+
+                </div>
+
+
+                <div class="recommend-body">
+
+
+                    @if (hasAiRecommendation)
+                    {
+
+                        <!-- =====================================
+                             RECOMMENDATION FOUND
+                        ====================================== -->
+
+
+                        <div class="recommend-info">
+
+
+                            <h3>
+                                @recommendationPetName
+                            </h3>
+
+
+                            <div class="recommend-meta">
+
+
+                                @recommendationPetCategory
+
+
+                                •
+
+
+                                @(string.IsNullOrWhiteSpace(
+                                    recommendationPetBreed)
+                                    ? "Breed unknown"
+                                    : recommendationPetBreed)
+
+
+                                •
+
+
+                                @(string.IsNullOrWhiteSpace(
+                                    recommendationPetAge)
+                                    ? "Age unknown"
+                                    : recommendationPetAge + " Years")
+
+
+                                •
+
+
+                                @(string.IsNullOrWhiteSpace(
+                                    recommendationPetGender)
+                                    ? "Gender unknown"
+                                    : recommendationPetGender)
+
+
+                            </div>
+
+
+                            <p>
+
+                                ML.NET AI checked your saved
+                                natural-language preference
+                                and compared it with available pets.
+                                This pet is currently the best match.
+
+                            </p>
+
+
+                            @if (recommendationReasons.Count > 0)
+                            {
+
+                                <ul class="reason-list">
+
+
+                                    @foreach (
+                                        var reason
+                                        in recommendationReasons)
+                                    {
+
+                                        <li>
+                                            @reason
+                                        </li>
+
+                                    }
+
+
+                                </ul>
+
+                            }
+
+
+                            @if (recommendationPetId > 0)
+                            {
+
+                                <div class="recommend-actions">
+
+
+                                    <a href="/Adoption/Apply?petId=@recommendationPetId"
+                                       class="recommend-btn adopt">
+
+                                        🏠 Adopt @recommendationPetName
+
+                                    </a>
+
+
+                                    <a href="/Pets/Details/@recommendationPetId"
+                                       class="recommend-btn details">
+
+                                        👁️ View Details
+
+                                    </a>
+
+
+                                </div>
+
+                            }
+
+
+                        </div>
+
+
+                        <div class="score">
+
+
+                            <strong>
+                                @recommendationMatchScore%
+                            </strong>
+
+
+                            <span>
+                                MATCH SCORE
+                            </span>
+
+
+                        </div>
+
+                    }
+                    else
+                    {
+
+                        <!-- =====================================
+                             NO RECOMMENDATION
+                        ====================================== -->
+
+
+                        <div class="recommend-info">
+
+
+                            <h3>
+                                No AI recommendation found
+                            </h3>
+
+
+                            <p>
+                                @noRecommendationMessage
+                            </p>
+
+
+                            @if (
+                                hasSavedPreference
+                                &&
+                                !string.IsNullOrWhiteSpace(
+                                    savedPreferenceText)
+                            )
+                            {
+
+                                <div class="preference-note">
+
+
+                                    <strong>
+                                        Saved preference:
+                                    </strong>
+
+
+                                    @savedPreferenceText
+
+
+                                </div>
+
+                            }
+
+
+                            @if (
+                                !string.IsNullOrWhiteSpace(
+                                    aiRecommendationError)
+                            )
+                            {
+
+                                <div class="ai-error-note">
+
+
+                                    <strong>
+                                        AI error:
+                                    </strong>
+
+
+                                    @aiRecommendationError
+
+
+                                </div>
+
+                            }
+
+
+                            <div class="hero-actions">
+
+
+                                <a href="/Adopter/Preferences"
+                                   class="hero-btn">
+
+                                    Update Preferences
+
+                                </a>
+
+
+                                <a href="/Pets"
+                                   class="hero-btn secondary">
+
+                                    Browse Available Pets
+
+                                </a>
+
+
+                            </div>
+
+
+                        </div>
+
+                    }
+
+
+                </div>
+
+
+            </section>
+
+
+            <!-- =================================================
+                 ADOPTION REQUESTS
+            ================================================== -->
+
+            <section id="requests"
+                     class="dashboard-section">
+
+
+                <h2>
+                    My Adoption Requests
+                </h2>
+
+
+                <p>
+
+                    Here you can view your adoption request
+                    summary and status.
+
+                </p>
+
+
+                @if (myRequests.Count == 0)
+                {
+
+                    <div class="empty">
+
+                        No adoption requests found.
+
+                    </div>
+
+                }
+                else
+                {
+
+                    <div class="table-card">
+
+
+                        <table>
+
+
+                            <thead>
+
+
+                                <tr>
+
+                                    <th>
+                                        Request ID
+                                    </th>
+
+                                    <th>
+                                        Pet
+                                    </th>
+
+                                    <th>
+                                        Request Date
+                                    </th>
+
+                                    <th>
+                                        Status
+                                    </th>
+
+                                    <th>
+                                        Note
+                                    </th>
+
+                                </tr>
+
+
+                            </thead>
+
+
+                            <tbody>
+
+
+                                @foreach (
+                                    var request
+                                    in myRequests)
+                                {
+
+                                    int requestId =
+                                        ToInt(
+                                            GetValue(
+                                                request,
+                                                "RequestID",
+                                                "AdoptionRequestID",
+                                                "AdoptionRequestId",
+                                                "ID",
+                                                "Id"
+                                            )
+                                        );
+
+
+                                    string petName =
+                                        GetPetName(
+                                            request
+                                        );
+
+
+                                    DateTime requestDate =
+                                        ToDate(
+                                            GetValue(
+                                                request,
+                                                "RequestDate",
+                                                "CreatedAt",
+                                                "SubmittedAt",
+                                                "Date"
+                                            )
+                                        );
+
+
+                                    string status =
+                                        Text(
+                                            GetValue(
+                                                request,
+                                                "Status",
+                                                "RequestStatus",
+                                                "ApprovalStatus"
+                                            )
+                                        );
+
+
+                                    if (
+                                        string.IsNullOrWhiteSpace(
+                                            status)
+                                    )
+                                    {
+                                        status =
+                                            "Pending";
+                                    }
+
+
+                                    string statusClass =
+                                        GetStatusClass(
+                                            status
+                                        );
+
+
+                                    string note =
+                                        GetStatusNote(
+                                            status
+                                        );
+
+
+                                    <tr>
+
+
+                                        <td>
+                                            #@requestId
+                                        </td>
+
+
+                                        <td>
+                                            @petName
+                                        </td>
+
+
+                                        <td>
+                                            @requestDate.ToString("dd MMM yyyy")
+                                        </td>
+
+
+                                        <td>
+
+                                            <span class="status @statusClass">
+
+                                                @status
+
+                                            </span>
+
+                                        </td>
+
+
+                                        <td>
+                                            @note
+                                        </td>
+
+
+                                    </tr>
+
+                                }
+
+
+                            </tbody>
+
+
+                        </table>
+
+
+                    </div>
+
+                }
+
+
+            </section>
+
+
+            <!-- =================================================
+                 PROFILE
+            ================================================== -->
+
+            <section id="profile"
+                     class="dashboard-section">
+
+
+                <h2>
+                    My Profile
+                </h2>
+
+
+                <p>
+                    Your adopter account information.
+                </p>
+
+
+                <div class="profile-grid">
+
+
+                    <div class="profile-box">
+
+                        <label>
+                            Full Name
+                        </label>
+
+                        <strong>
+                            @fullName
+                        </strong>
+
+                    </div>
+
+
+                    <div class="profile-box">
+
+                        <label>
+                            Email
+                        </label>
+
+                        <strong>
+
+                            @(string.IsNullOrWhiteSpace(email)
+                                ? "Not set"
+                                : email)
+
+                        </strong>
+
+                    </div>
+
+
+                    <div class="profile-box">
+
+                        <label>
+                            Phone
+                        </label>
+
+                        <strong>
+
+                            @(string.IsNullOrWhiteSpace(phone)
+                                ? "Not set"
+                                : phone)
+
+                        </strong>
+
+                    </div>
+
+
+                    <div class="profile-box">
+
+                        <label>
+                            Address
+                        </label>
+
+                        <strong>
+
+                            @(string.IsNullOrWhiteSpace(address)
+                                ? "Not set"
+                                : address)
+
+                        </strong>
+
+                    </div>
+
+
+                </div>
+
+
+            </section>
+
+
+        </main>
+
+
+    </div>
+
+
+</body>
+
+
+</html>

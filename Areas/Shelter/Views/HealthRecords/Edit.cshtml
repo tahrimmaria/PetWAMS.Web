@@ -1,0 +1,185 @@
+@model PetWAMS.Web.Models.HealthRecord
+@using PetWAMS.Web.Models
+
+@{
+    Layout = null;
+    var pets = ViewBag.Pets as List<Pet>;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Edit Health Record — PetHope</title>
+
+    <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                font-family: Arial, sans-serif;
+                background: #f8f5fb;
+                color: #24142e;
+            }
+
+            .topbar {
+                background: #241A3D;
+                color: white;
+                padding: 22px 45px;
+                display: flex;
+                justify-content: space-between;
+            }
+
+            .container {
+                max-width: 800px;
+                margin: 40px auto;
+                padding: 0 25px;
+            }
+
+            .back {
+                color: #7B2FF7;
+                text-decoration: none;
+                font-weight: bold;
+            }
+
+            h1 {
+                margin: 25px 0;
+            }
+
+            .card {
+                background: white;
+                padding: 30px;
+                border-radius: 18px;
+                box-shadow: 0 8px 30px rgba(0,0,0,.06);
+            }
+
+            .field {
+                margin-bottom: 20px;
+            }
+
+            label {
+                display: block;
+                font-weight: bold;
+                margin-bottom: 8px;
+            }
+
+            input,
+            select,
+            textarea {
+                width: 100%;
+                padding: 12px;
+                border: 1px solid #ddd;
+                border-radius: 10px;
+                font-size: 14px;
+            }
+
+            textarea {
+                min-height: 100px;
+                resize: vertical;
+            }
+
+            .btn {
+                border: 0;
+                background: #7B2FF7;
+                color: white;
+                padding: 12px 22px;
+                border-radius: 10px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+    </style>
+</head>
+
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+
+    <div class="topbar">
+        <strong>🐾 PetHope Shelter</strong>
+        <span>Edit Health Record</span>
+    </div>
+
+    <div class="container">
+
+        <a href="/Shelter/HealthRecords" class="back">
+            ← Back to Health Records
+        </a>
+
+        <h1>Edit Health Record</h1>
+
+        <div class="card">
+
+            <form method="post" action="/Shelter/HealthRecords/Edit">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       name="HealthID"
+                       value="@Model.HealthID" />
+
+                <div class="field">
+                    <label>Pet</label>
+
+                    <select name="PetID" required>
+
+                        @if (pets != null)
+                        {
+                            @foreach (var pet in pets)
+                            {
+                                if (pet.PetID == Model.PetID)
+                                {
+                                    <option value="@pet.PetID" selected>
+                                        @pet.PetName
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@pet.PetID">
+                                        @pet.PetName
+                                    </option>
+                                }
+                            }
+                        }
+
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Health Status</label>
+
+                    <input type="text"
+                           name="HealthStatus"
+                           value="@Model.HealthStatus"
+                           required />
+                </div>
+
+                <div class="field">
+                    <label>Medical Notes</label>
+
+                    <textarea name="MedicalNotes">@Model.MedicalNotes</textarea>
+                </div>
+
+                <div class="field">
+                    <label>Checkup Date</label>
+
+                    <input type="date"
+                           name="CheckupDate"
+                           value="@Model.CheckupDate?.ToString("yyyy-MM-dd")"
+                           required />
+                </div>
+
+                <button type="submit" class="btn">
+                    Update Health Record
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

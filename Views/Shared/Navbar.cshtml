@@ -1,0 +1,276 @@
+@using Microsoft.AspNetCore.Http
+
+@{
+    string currentPath = Context.Request.Path.Value?.ToLowerInvariant() ?? "";
+
+    bool isLoggedIn = Context.Session.GetInt32("UserID") != null;
+    string userType = Context.Session.GetString("UserType") ?? "";
+
+    string dashboardUrl = "/Account/SignIn";
+
+    if (currentPath.StartsWith("/admin"))
+    {
+        dashboardUrl = "/Admin/Dashboard";
+    }
+    else if (currentPath.StartsWith("/shelter"))
+    {
+        dashboardUrl = "/Shelter/Dashboard";
+    }
+    else if (currentPath.StartsWith("/adopter") || currentPath.StartsWith("/petcareshop") || currentPath.StartsWith("/adoption"))
+    {
+        dashboardUrl = "/Adopter/Dashboard";
+    }
+    else if (userType == "Admin")
+    {
+        dashboardUrl = "/Admin/Dashboard";
+    }
+    else if (userType == "Staff" || userType == "Shelter")
+    {
+        dashboardUrl = "/Shelter/Dashboard";
+    }
+    else if (userType == "Adopter")
+    {
+        dashboardUrl = "/Adopter/Dashboard";
+    }
+
+    bool isAdminDashboard =
+        currentPath == "/admin" ||
+        currentPath == "/admin/" ||
+        currentPath == "/admin/dashboard" ||
+        currentPath == "/admin/dashboard/index";
+
+    bool isShelterDashboard =
+        currentPath == "/shelter" ||
+        currentPath == "/shelter/" ||
+        currentPath == "/shelter/dashboard" ||
+        currentPath == "/shelter/dashboard/index";
+
+    bool isAdopterDashboard =
+        currentPath == "/adopter" ||
+        currentPath == "/adopter/" ||
+        currentPath == "/adopter/dashboard" ||
+        currentPath == "/adopter/dashboard/index";
+
+    bool showBackDashboard =
+        currentPath.StartsWith("/petcareshop") ||
+        currentPath.StartsWith("/adoption") ||
+        (currentPath.StartsWith("/admin/") && !isAdminDashboard) ||
+        (currentPath.StartsWith("/shelter/") && !isShelterDashboard) ||
+        (currentPath.StartsWith("/adopter/") && !isAdopterDashboard);
+
+    bool showBackHome =
+        currentPath.Contains("/account/signin") ||
+        currentPath.Contains("/account/signup") ||
+        currentPath.StartsWith("/pets");
+}
+
+<style>
+    /* ===============================
+       PetHope Unified Top Navbar
+       Same size, same spacing, body-color match
+       =============================== */
+
+    body .topbar,
+    body .site-navbar,
+    body .top,
+    body > nav:not(.pethope-nav-links),
+    body nav.navbar,
+    body header.navbar,
+    body .navbar:not(.pethope-navbar) {
+        display: none !important;
+    }
+
+    .pethope-navbar {
+        width: 100%;
+        height: 92px;
+        background: transparent !important;
+        border: 0 !important;
+        outline: 0 !important;
+        box-shadow: none !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'DM Sans', Arial, sans-serif;
+        position: relative;
+        z-index: 50;
+    }
+
+    .pethope-navbar-inner {
+        width: 100%;
+        padding-left: 120px;
+        padding-right: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        background: transparent !important;
+        border: 0 !important;
+        outline: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .pethope-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none !important;
+        color: #7B2FF7 !important;
+        font-family: 'Fraunces', Georgia, serif;
+        font-size: 28px;
+        font-weight: 800;
+        line-height: 1;
+        white-space: nowrap;
+    }
+
+    .pethope-brand:hover {
+        color: #7B2FF7 !important;
+        text-decoration: none !important;
+    }
+
+    .pethope-logo-mark {
+        width: 42px;
+        height: 42px;
+        min-width: 42px;
+        min-height: 42px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #7B2FF7, #B383F5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        font-size: 18px;
+        box-shadow: 0 8px 18px rgba(123,47,247,.18);
+    }
+
+    .pethope-nav-links {
+        display: flex;
+        align-items: center;
+        gap: 34px;
+        background: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .pethope-nav-links a {
+        color: #12081f;
+        font-size: 15px;
+        font-weight: 900;
+        text-decoration: none !important;
+        letter-spacing: .01em;
+        white-space: nowrap;
+    }
+
+    .pethope-nav-links a:hover {
+        color: #7B2FF7;
+        text-decoration: none !important;
+    }
+
+    .pethope-login-btn {
+        background: #7B2FF7 !important;
+        color: #ffffff !important;
+        padding: 14px 28px;
+        border-radius: 999px;
+        box-shadow: 0 10px 22px rgba(123,47,247,.22);
+    }
+
+    .pethope-login-btn:hover {
+        background: #5A1FB8 !important;
+        color: #ffffff !important;
+    }
+
+    .pethope-back-link {
+        color: #5c5268 !important;
+        font-size: 15px;
+        font-weight: 900;
+        text-decoration: none !important;
+        white-space: nowrap;
+        background: transparent !important;
+        border: 0 !important;
+        outline: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .pethope-back-link:hover {
+        color: #7B2FF7 !important;
+        text-decoration: none !important;
+    }
+
+    @@media (max-width: 1100px) {
+        .pethope-navbar-inner {
+            padding-left: 48px;
+            padding-right: 48px;
+        }
+    }
+
+    @@media (max-width: 720px) {
+        .pethope-navbar {
+            height: auto;
+            padding-top: 24px;
+            padding-bottom: 18px;
+        }
+
+        .pethope-navbar-inner {
+            padding-left: 22px;
+            padding-right: 22px;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .pethope-nav-links {
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .pethope-brand {
+            font-size: 25px;
+        }
+
+        .pethope-logo-mark {
+            width: 38px;
+            height: 38px;
+            min-width: 38px;
+            min-height: 38px;
+            font-size: 17px;
+        }
+    }
+</style>
+
+<header class="pethope-navbar">
+    <div class="pethope-navbar-inner">
+
+        <a href="/" class="pethope-brand">
+            <span class="pethope-logo-mark">🐾</span>
+            <span>PetHope</span>
+        </a>
+
+        @if (showBackDashboard)
+        {
+            <a href="@dashboardUrl" class="pethope-back-link">
+                ← Back to Dashboard
+            </a>
+        }
+        else if (showBackHome)
+        {
+            <a href="/" class="pethope-back-link">
+                ← Back to home
+            </a>
+        }
+        else
+        {
+            <nav class="pethope-nav-links">
+                <a href="/">HOME</a>
+                <a href="/Pets">BROWSE PETS</a>
+
+                @if (isLoggedIn)
+                {
+                    <a href="@dashboardUrl" class="pethope-login-btn">Dashboard</a>
+                }
+                else
+                {
+                    <a href="/Account/SignIn" class="pethope-login-btn">Login</a>
+                }
+            </nav>
+        }
+
+    </div>
+</header>

@@ -1,0 +1,588 @@
+@using System.Linq
+@model List<PetWAMS.Web.Models.Pet>
+
+@{
+    Layout = null;
+
+    var petImages = ViewBag.PetImages as List<PetWAMS.Web.Models.PetImage> ?? new List<PetWAMS.Web.Models.PetImage>();
+    string fullName = ViewBag.FullName as string ?? "Shelter Staff";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Pets — PetHope Shelter</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+            :root {
+                --purple: #7B2FF7;
+                --purple-dark: #5A1FB8;
+                --purple-light: #F2E9FE;
+                --bg: #f8f5fb;
+                --text: #24142e;
+                --muted: #756a7c;
+                --line: #eee7f4;
+                --green-bg: #E7F8EC;
+                --green: #258447;
+                --red-bg: #FDE7EA;
+                --red: #C23E52;
+                --yellow-bg: #FFF4D9;
+                --yellow: #A46B00;
+                --blue-bg: #EAF2FF;
+                --blue: #235DAD;
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                background: var(--bg);
+                color: var(--text);
+                font-family: 'DM Sans', Arial, sans-serif;
+            }
+
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
+
+            .page {
+                max-width: 1280px;
+                margin: 0 auto;
+                padding: 38px 24px 80px;
+            }
+
+            .topbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 18px;
+                margin-bottom: 28px;
+            }
+
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-family: 'Fraunces', Georgia, serif;
+                font-size: 28px;
+                font-weight: 800;
+                color: var(--purple);
+            }
+
+            .brand-mark {
+                width: 42px;
+                height: 42px;
+                border-radius: 13px;
+                background: linear-gradient(135deg, var(--purple), #B383F5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #ffffff;
+                font-size: 20px;
+            }
+
+            .top-actions {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+
+            .btn {
+                border: none;
+                background: var(--purple-light);
+                color: var(--purple);
+                padding: 12px 20px;
+                border-radius: 999px;
+                font-family: inherit;
+                font-weight: 900;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+                .btn:hover {
+                    background: #eadbff;
+                }
+
+                .btn.primary {
+                    background: var(--purple);
+                    color: #ffffff;
+                }
+
+                    .btn.primary:hover {
+                        background: var(--purple-dark);
+                    }
+
+            .hero {
+                background: linear-gradient(135deg, #321957, var(--purple));
+                color: #ffffff;
+                border-radius: 26px;
+                padding: 38px;
+                margin-bottom: 26px;
+                display: flex;
+                justify-content: space-between;
+                gap: 24px;
+                align-items: center;
+                box-shadow: 0 16px 42px rgba(90,31,184,.16);
+            }
+
+                .hero h1 {
+                    font-family: 'Fraunces', Georgia, serif;
+                    font-size: 42px;
+                    margin: 0 0 10px;
+                    color: #ffffff;
+                }
+
+                .hero p {
+                    margin: 0;
+                    color: rgba(255,255,255,.9);
+                    font-weight: 600;
+                    line-height: 1.6;
+                }
+
+            .hero-stat {
+                background: rgba(255,255,255,.15);
+                border: 1px solid rgba(255,255,255,.20);
+                border-radius: 20px;
+                padding: 18px 22px;
+                min-width: 170px;
+                text-align: center;
+            }
+
+                .hero-stat strong {
+                    display: block;
+                    font-size: 34px;
+                    font-weight: 900;
+                    color: #ffffff;
+                }
+
+                .hero-stat span {
+                    color: rgba(255,255,255,.82);
+                    font-weight: 800;
+                    font-size: 13px;
+                }
+
+            .success,
+            .error {
+                padding: 14px 18px;
+                border-radius: 14px;
+                font-weight: 800;
+                margin-bottom: 16px;
+            }
+
+            .success {
+                background: var(--green-bg);
+                color: var(--green);
+            }
+
+            .error {
+                background: var(--red-bg);
+                color: var(--red);
+            }
+
+            .pet-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 24px;
+            }
+
+            .pet-card {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 24px;
+                overflow: hidden;
+                box-shadow: 0 8px 25px rgba(36,20,46,.05);
+                transition: .2s ease;
+            }
+
+                .pet-card:hover {
+                    transform: translateY(-4px);
+                    box-shadow: 0 14px 35px rgba(36,20,46,.08);
+                }
+
+            .pet-image {
+                height: 230px;
+                background: #ffffff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--purple);
+                font-size: 52px;
+                font-weight: 900;
+                overflow: hidden;
+                border-bottom: 1px solid var(--line);
+            }
+
+                .pet-image img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: contain;
+                    display: block;
+                    background: #ffffff;
+                }
+
+            .pet-body {
+                padding: 20px;
+            }
+
+            .pet-top {
+                display: flex;
+                justify-content: space-between;
+                gap: 12px;
+                align-items: flex-start;
+                margin-bottom: 12px;
+            }
+
+            .pet-name {
+                font-size: 23px;
+                font-weight: 900;
+                margin: 0 0 5px;
+                color: var(--text);
+            }
+
+            .pet-meta {
+                color: var(--muted);
+                font-weight: 700;
+                line-height: 1.5;
+                font-size: 14px;
+            }
+
+            .badge {
+                display: inline-flex;
+                padding: 7px 11px;
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 900;
+                background: var(--blue-bg);
+                color: var(--blue);
+                white-space: nowrap;
+            }
+
+                .badge.available {
+                    background: var(--green-bg);
+                    color: var(--green);
+                }
+
+                .badge.adopted {
+                    background: var(--red-bg);
+                    color: var(--red);
+                }
+
+                .badge.pending {
+                    background: var(--yellow-bg);
+                    color: var(--yellow);
+                }
+
+            .info-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                margin: 16px 0;
+            }
+
+            .info-box {
+                background: #faf8fd;
+                border: 1px solid #f0e9f5;
+                border-radius: 14px;
+                padding: 11px;
+            }
+
+                .info-box span {
+                    display: block;
+                    color: var(--muted);
+                    font-size: 12px;
+                    font-weight: 800;
+                    margin-bottom: 4px;
+                }
+
+                .info-box strong {
+                    font-size: 14px;
+                    font-weight: 900;
+                    color: var(--text);
+                }
+
+            .description {
+                color: var(--muted);
+                font-weight: 600;
+                line-height: 1.5;
+                min-height: 44px;
+                margin-bottom: 16px;
+            }
+
+            .image-count {
+                background: var(--purple-light);
+                color: var(--purple);
+                padding: 9px 12px;
+                border-radius: 999px;
+                font-size: 13px;
+                font-weight: 900;
+                display: inline-flex;
+                margin-bottom: 16px;
+            }
+
+            .card-actions {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+
+            .small-btn {
+                flex: 1;
+                text-align: center;
+                border: none;
+                border-radius: 999px;
+                padding: 11px 13px;
+                font-family: inherit;
+                font-weight: 900;
+                cursor: pointer;
+                background: var(--purple-light);
+                color: var(--purple);
+            }
+
+                .small-btn.primary {
+                    background: var(--purple);
+                    color: #ffffff;
+                }
+
+                .small-btn.danger {
+                    background: var(--red-bg);
+                    color: var(--red);
+                }
+
+            .empty {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 24px;
+                padding: 40px;
+                text-align: center;
+                color: var(--muted);
+                font-weight: 800;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+            }
+
+                .empty strong {
+                    display: block;
+                    color: var(--text);
+                    font-size: 24px;
+                    margin-bottom: 8px;
+                }
+
+            @@media (max-width: 1050px) {
+                .pet-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+
+                .hero {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+            }
+
+            @@media (max-width: 720px) {
+                .topbar {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+
+                .top-actions {
+                    width: 100%;
+                }
+
+                .btn {
+                    flex: 1;
+                }
+
+                .hero {
+                    padding: 28px 24px;
+                }
+
+                    .hero h1 {
+                        font-size: 32px;
+                    }
+
+                .pet-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+    </style>
+</head>
+
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+
+    <div class="page">
+
+        <div class="topbar">
+            <a href="/Shelter/Dashboard" class="brand">
+                <span class="brand-mark">🐾</span>
+                <span>PetHope</span>
+            </a>
+
+            <div class="top-actions">
+                <a href="/Shelter/Dashboard" class="btn">Back to Dashboard</a>
+                <a href="/Shelter/Pets/Create" class="btn primary">Add New Pet</a>
+            </div>
+        </div>
+
+        <section class="hero">
+            <div>
+                <h1>Manage Pets</h1>
+                <p>
+                    Welcome, @fullName. Manage pet details, status and multiple pet images from this page.
+                </p>
+            </div>
+
+            <div class="hero-stat">
+                <strong>@(Model == null ? 0 : Model.Count)</strong>
+                <span>Total Pets</span>
+            </div>
+        </section>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="success">@TempData["Success"]</div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="error">@TempData["Error"]</div>
+        }
+
+        @if (Model == null || Model.Count == 0)
+        {
+            <div class="empty">
+                <strong>No pets found</strong>
+                Add your first pet with multiple images.
+                <br /><br />
+                <a href="/Shelter/Pets/Create" class="btn primary">Add New Pet</a>
+            </div>
+        }
+        else
+        {
+            <div class="pet-grid">
+
+                @foreach (var pet in Model)
+                {
+                    var imagesForPet = petImages
+                        .Where(x => x.PetID == pet.PetID)
+                        .ToList();
+
+                    var primaryImage = imagesForPet
+                        .FirstOrDefault(x => x.IsPrimary)
+                        ?? imagesForPet.FirstOrDefault();
+
+                    string badgeClass = "badge";
+
+                    if (pet.Status == "Available")
+                    {
+                        badgeClass = "badge available";
+                    }
+                    else if (pet.Status == "Adopted")
+                    {
+                        badgeClass = "badge adopted";
+                    }
+                    else if (pet.Status == "Pending")
+                    {
+                        badgeClass = "badge pending";
+                    }
+
+                    <div class="pet-card">
+
+                        <div class="pet-image">
+                            @if (primaryImage != null && !string.IsNullOrWhiteSpace(primaryImage.ImagePath))
+                            {
+                                <img src="@primaryImage.ImagePath" alt="@pet.PetName" />
+                            }
+                            else
+                            {
+                                <span>🐾</span>
+                            }
+                        </div>
+
+                        <div class="pet-body">
+
+                            <div class="pet-top">
+                                <div>
+                                    <h3 class="pet-name">@pet.PetName</h3>
+
+                                    <div class="pet-meta">
+                                        @(pet.Category == null ? "No Category" : pet.Category.CategoryName)
+                                        •
+                                        @pet.Breed
+                                    </div>
+                                </div>
+
+                                <span class="@badgeClass">@pet.Status</span>
+                            </div>
+
+                            <div class="info-grid">
+                                <div class="info-box">
+                                    <span>Age</span>
+                                    <strong>@pet.Age year(s)</strong>
+                                </div>
+
+                                <div class="info-box">
+                                    <span>Gender</span>
+                                    <strong>@pet.Gender</strong>
+                                </div>
+
+                                <div class="info-box">
+                                    <span>Color</span>
+                                    <strong>@pet.Color</strong>
+                                </div>
+
+                                <div class="info-box">
+                                    <span>Shelter</span>
+                                    <strong>@(pet.Shelter == null ? "Assigned" : pet.Shelter.ShelterName)</strong>
+                                </div>
+                            </div>
+
+                            <div class="description">
+                                @(string.IsNullOrWhiteSpace(pet.Description) ? "No description added yet." : pet.Description)
+                            </div>
+
+                            <div class="image-count">
+                                📷 @imagesForPet.Count image(s)
+                            </div>
+
+                            <div class="card-actions">
+                                <a href="/Shelter/Pets/Edit/@pet.PetID" class="small-btn primary">Edit / Images</a>
+
+                                <a href="/Pets/Details/@pet.PetID" class="small-btn">View</a>
+
+                                <form method="post"
+                                      action="/Shelter/Pets/Delete/@pet.PetID"
+                                      style="flex:1;"
+                                      onsubmit="return confirm('Delete @pet.PetName?');">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <button type="submit" class="small-btn danger" style="width:100%;">
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
+
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+        }
+
+    </div>
+
+</body>
+</html>

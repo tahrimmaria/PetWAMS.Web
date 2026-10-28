@@ -1,0 +1,839 @@
+﻿@model List<PetWAMS.Web.ViewModels.AdminAdopterVerificationViewModel>
+
+@{
+    Layout = null;
+    ViewData["Title"] = "Adopter Verifications";
+
+    string selectedStatus =
+        ViewBag.SelectedStatus?.ToString()
+        ?? string.Empty;
+
+    int totalCount =
+        ViewBag.TotalCount ?? 0;
+
+    int pendingCount =
+        ViewBag.PendingCount ?? 0;
+
+    int verifiedCount =
+        ViewBag.VerifiedCount ?? 0;
+
+    int rejectedCount =
+        ViewBag.RejectedCount ?? 0;
+
+    string successMessage =
+        ViewBag.SuccessMessage?.ToString()
+        ?? string.Empty;
+
+    string errorMessage =
+        ViewBag.ErrorMessage?.ToString()
+        ?? string.Empty;
+}
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>
+        Adopter Verifications - PetHope
+    </title>
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com" />
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin />
+
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap"
+          rel="stylesheet" />
+
+    <style>
+
+            * {
+                box-sizing: border-box;
+            }
+
+            html,
+            body {
+                margin: 0;
+                min-height: 100%;
+            }
+
+            body {
+                background: #f8f6fc;
+                color: #2a2033;
+                font-family: "DM Sans", Arial, sans-serif;
+            }
+
+            .topbar {
+                min-height: 74px;
+                background: #f8f6fc;
+                padding: 0 6%;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 20px;
+                box-shadow: none;
+            }
+
+            .brand {
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+                color: #2c1c38;
+                text-decoration: none;
+                font-family: "Fraunces", Georgia, serif;
+                font-size: 25px;
+                font-weight: 700;
+            }
+
+            .brand-mark {
+                width: 42px;
+                height: 42px;
+                border-radius: 13px;
+                background: linear-gradient(135deg, #7c3aed, #a855f7);
+                color: #ffffff;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-family: "DM Sans", Arial, sans-serif;
+                box-shadow: 0 8px 20px rgba(124, 58, 237, 0.20);
+            }
+
+            .dashboard-link {
+                color: #665570;
+                text-decoration: none;
+                font-size: 14px;
+                font-weight: 800;
+                transition: 0.2s ease;
+            }
+
+            .dashboard-link:hover {
+                color: #7c3aed;
+            }
+
+            .page {
+                padding: 44px 20px 70px;
+            }
+
+            .container {
+                width: 100%;
+                max-width: 1240px;
+                margin: 0 auto;
+            }
+
+            .page-header {
+                display: flex;
+                align-items: flex-end;
+                justify-content: space-between;
+                gap: 20px;
+                margin-bottom: 26px;
+            }
+
+            .eyebrow {
+                display: inline-flex;
+                padding: 7px 13px;
+                margin-bottom: 12px;
+                background: #eee6ff;
+                border-radius: 999px;
+                color: #7437cf;
+                font-size: 12px;
+                font-weight: 800;
+            }
+
+            .page-title {
+                margin: 0;
+                color: #2e1f39;
+                font-family: "Fraunces", Georgia, serif;
+                font-size: 39px;
+                font-weight: 600;
+                line-height: 1.2;
+            }
+
+            .page-description {
+                max-width: 680px;
+                margin: 10px 0 0;
+                color: #7b6e84;
+                font-size: 14px;
+                line-height: 1.65;
+            }
+
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: 17px;
+                margin-bottom: 25px;
+            }
+
+            .stat-card {
+                background: #ffffff;
+                border: 1px solid #ece4f3;
+                border-radius: 18px;
+                padding: 21px 22px;
+                box-shadow: 0 9px 30px rgba(67, 39, 91, 0.06);
+            }
+
+            .stat-value {
+                margin: 0;
+                color: #342340;
+                font-family: "Fraunces", Georgia, serif;
+                font-size: 30px;
+                font-weight: 700;
+            }
+
+            .stat-label {
+                margin-top: 5px;
+                color: #8a7d92;
+                font-size: 12px;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+
+            .message {
+                margin-bottom: 22px;
+                padding: 15px 18px;
+                border-radius: 14px;
+                font-size: 14px;
+                font-weight: 700;
+                line-height: 1.55;
+            }
+
+            .message-success {
+                background: #ecfdf3;
+                border: 1px solid #bce9cb;
+                color: #267348;
+            }
+
+            .message-error {
+                background: #fff0f3;
+                border: 1px solid #eec5ce;
+                color: #a03f55;
+            }
+
+            .filter-card {
+                background: #ffffff;
+                border: 1px solid #ece4f3;
+                border-radius: 18px;
+                padding: 16px;
+                margin-bottom: 21px;
+                box-shadow: 0 9px 30px rgba(67, 39, 91, 0.05);
+            }
+
+            .filters {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+
+            .filter-link {
+                min-height: 39px;
+                padding: 0 16px;
+                border: 1px solid #ded3e8;
+                border-radius: 11px;
+                color: #695875;
+                background: #ffffff;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 13px;
+                font-weight: 800;
+                transition: 0.2s ease;
+            }
+
+            .filter-link:hover {
+                color: #7134ca;
+                border-color: #b99bdf;
+                background: #fbf8ff;
+            }
+
+            .filter-link.active {
+                color: #ffffff;
+                border-color: #7c3aed;
+                background: linear-gradient(135deg, #7c3aed, #9333ea);
+                box-shadow: 0 7px 18px rgba(124, 58, 237, 0.18);
+            }
+
+            .table-card {
+                background: #ffffff;
+                border: 1px solid #ebe2f2;
+                border-radius: 20px;
+                overflow: hidden;
+                box-shadow: 0 12px 38px rgba(66, 38, 91, 0.07);
+            }
+
+            .table-wrapper {
+                width: 100%;
+                overflow-x: auto;
+            }
+
+            table {
+                width: 100%;
+                min-width: 980px;
+                border-collapse: collapse;
+            }
+
+            thead {
+                background: #f8f3fd;
+            }
+
+            th {
+                padding: 16px 18px;
+                color: #665570;
+                text-align: left;
+                font-size: 11px;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                white-space: nowrap;
+            }
+
+            td {
+                padding: 18px;
+                border-top: 1px solid #eee7f3;
+                color: #55475e;
+                font-size: 13px;
+                vertical-align: middle;
+            }
+
+            tbody tr {
+                transition: background 0.2s ease;
+            }
+
+            tbody tr:hover {
+                background: #fcfaff;
+            }
+
+            .adopter-name {
+                display: block;
+                color: #35263f;
+                font-size: 14px;
+                font-weight: 800;
+            }
+
+            .adopter-email {
+                display: block;
+                margin-top: 4px;
+                color: #94889c;
+                font-size: 12px;
+            }
+
+            .nid-name {
+                display: block;
+                color: #493a53;
+                font-weight: 700;
+            }
+
+            .masked-nid {
+                display: block;
+                margin-top: 4px;
+                color: #93869b;
+                font-size: 12px;
+                letter-spacing: 0.04em;
+            }
+
+            .policy-accepted {
+                color: #247346;
+                font-weight: 800;
+            }
+
+            .policy-missing {
+                color: #aa4058;
+                font-weight: 800;
+            }
+
+            .status-badge {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 88px;
+                padding: 8px 12px;
+                border-radius: 999px;
+                font-size: 11px;
+                font-weight: 800;
+            }
+
+            .status-pending {
+                background: #fff6d9;
+                border: 1px solid #ecd48b;
+                color: #846112;
+            }
+
+            .status-verified {
+                background: #e9f9ef;
+                border: 1px solid #b9e5c8;
+                color: #257548;
+            }
+
+            .status-rejected {
+                background: #fff0f3;
+                border: 1px solid #edc4cd;
+                color: #a13e55;
+            }
+
+            .details-button {
+                min-height: 39px;
+                padding: 0 15px;
+                border-radius: 10px;
+                background: #f2eaff;
+                border: 1px solid #ddcbfa;
+                color: #7134c9;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: 800;
+                white-space: nowrap;
+                transition: 0.2s ease;
+            }
+
+            .details-button:hover {
+                color: #ffffff;
+                border-color: #7c3aed;
+                background: #7c3aed;
+            }
+
+            .empty-state {
+                padding: 65px 20px;
+                text-align: center;
+            }
+
+            .empty-icon {
+                width: 65px;
+                height: 65px;
+                margin: 0 auto 16px;
+                border-radius: 20px;
+                background: #f1e9ff;
+                color: #7138c3;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 28px;
+            }
+
+            .empty-title {
+                margin: 0;
+                color: #3b2b45;
+                font-family: "Fraunces", Georgia, serif;
+                font-size: 24px;
+                font-weight: 600;
+            }
+
+            .empty-text {
+                margin: 9px 0 0;
+                color: #8a7d92;
+                font-size: 13px;
+            }
+
+            @@media (max-width: 900px) {
+
+                .stats-grid {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+            }
+
+            @@media (max-width: 620px) {
+
+                .topbar {
+                    padding: 0 18px;
+                }
+
+                .dashboard-link {
+                    font-size: 12px;
+                }
+
+                .page {
+                    padding: 30px 13px 50px;
+                }
+
+                .page-header {
+                    align-items: flex-start;
+                    flex-direction: column;
+                }
+
+                .page-title {
+                    font-size: 31px;
+                }
+
+                .stats-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+    </style>
+
+</head>
+
+<body>
+
+    <header class="topbar">
+
+        <a asp-area="Admin"
+           asp-controller="Dashboard"
+           asp-action="Index"
+           class="brand">
+
+            <span class="brand-mark">
+                🐾
+            </span>
+
+            <span>
+                PetHope
+            </span>
+
+        </a>
+
+        <a asp-area="Admin"
+           asp-controller="Dashboard"
+           asp-action="Index"
+           class="dashboard-link">
+
+            ← Back to Dashboard
+
+        </a>
+
+    </header>
+
+
+    <main class="page">
+
+        <div class="container">
+
+            <section class="page-header">
+
+                <div>
+
+                    <span class="eyebrow">
+                        Admin Safety Review
+                    </span>
+
+                    <h1 class="page-title">
+                        Adopter Verifications
+                    </h1>
+
+                    <p class="page-description">
+
+                        Review adopter identity documents before
+                        allowing them to submit pet adoption requests.
+
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <section class="stats-grid">
+
+                <article class="stat-card">
+
+                    <p class="stat-value">
+                        @totalCount
+                    </p>
+
+                    <div class="stat-label">
+                        Total Submissions
+                    </div>
+
+                </article>
+
+                <article class="stat-card">
+
+                    <p class="stat-value">
+                        @pendingCount
+                    </p>
+
+                    <div class="stat-label">
+                        Pending Review
+                    </div>
+
+                </article>
+
+                <article class="stat-card">
+
+                    <p class="stat-value">
+                        @verifiedCount
+                    </p>
+
+                    <div class="stat-label">
+                        Verified
+                    </div>
+
+                </article>
+
+                <article class="stat-card">
+
+                    <p class="stat-value">
+                        @rejectedCount
+                    </p>
+
+                    <div class="stat-label">
+                        Rejected
+                    </div>
+
+                </article>
+
+            </section>
+
+
+            @if (!string.IsNullOrWhiteSpace(successMessage))
+            {
+                <div class="message message-success">
+                    @successMessage
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <div class="message message-error">
+                    @errorMessage
+                </div>
+            }
+
+
+            <section class="filter-card">
+
+                <div class="filters">
+
+                    <a asp-area="Admin"
+                       asp-controller="AdopterVerifications"
+                       asp-action="Index"
+                       class="filter-link @(string.IsNullOrWhiteSpace(selectedStatus) ? "active" : "")">
+
+                        All (@totalCount)
+
+                    </a>
+
+                    <a asp-area="Admin"
+                       asp-controller="AdopterVerifications"
+                       asp-action="Index"
+                       asp-route-status="Pending"
+                       class="filter-link @(selectedStatus == "Pending" ? "active" : "")">
+
+                        Pending (@pendingCount)
+
+                    </a>
+
+                    <a asp-area="Admin"
+                       asp-controller="AdopterVerifications"
+                       asp-action="Index"
+                       asp-route-status="Verified"
+                       class="filter-link @(selectedStatus == "Verified" ? "active" : "")">
+
+                        Verified (@verifiedCount)
+
+                    </a>
+
+                    <a asp-area="Admin"
+                       asp-controller="AdopterVerifications"
+                       asp-action="Index"
+                       asp-route-status="Rejected"
+                       class="filter-link @(selectedStatus == "Rejected" ? "active" : "")">
+
+                        Rejected (@rejectedCount)
+
+                    </a>
+
+                </div>
+
+            </section>
+
+
+            <section class="table-card">
+
+                @if (Model == null || Model.Count == 0)
+                {
+                    <div class="empty-state">
+
+                        <div class="empty-icon">
+                            🪪
+                        </div>
+
+                        <h2 class="empty-title">
+                            No verification submissions found
+                        </h2>
+
+                        <p class="empty-text">
+
+                            New adopter verification requests
+                            will appear here.
+
+                        </p>
+
+                    </div>
+                }
+                else
+                {
+                    <div class="table-wrapper">
+
+                        <table>
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>
+                                        Adopter
+                                    </th>
+
+                                    <th>
+                                        NID Information
+                                    </th>
+
+                                    <th>
+                                        Date of Birth
+                                    </th>
+
+                                    <th>
+                                        Submitted
+                                    </th>
+
+                                    <th>
+                                        Policy
+                                    </th>
+
+                                    <th>
+                                        Status
+                                    </th>
+
+                                    <th>
+                                        Action
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                @foreach (var item in Model)
+                                {
+                                    string statusClass =
+                                        item.VerificationStatus.Equals(
+                                            "Verified",
+                                            StringComparison.OrdinalIgnoreCase)
+                                            ? "status-verified"
+                                            : item.VerificationStatus.Equals(
+                                                "Rejected",
+                                                StringComparison.OrdinalIgnoreCase)
+                                                ? "status-rejected"
+                                                : "status-pending";
+
+                                    <tr>
+
+                                        <td>
+
+                                            <span class="adopter-name">
+                                                @item.AdopterName
+                                            </span>
+
+                                            <span class="adopter-email">
+                                                @item.AdopterEmail
+                                            </span>
+
+                                        </td>
+
+                                        <td>
+
+                                            <span class="nid-name">
+                                                @item.FullNameOnNID
+                                            </span>
+
+                                            <span class="masked-nid">
+                                                @item.MaskedNID
+                                            </span>
+
+                                        </td>
+
+                                        <td>
+
+                                            @(item.DateOfBirth?.ToString(
+                                                "dd MMM yyyy")
+                                                ?? "Not available")
+
+                                        </td>
+
+                                        <td>
+
+                                            @item.SubmittedAt.ToString(
+                                                "dd MMM yyyy")
+
+                                            <br />
+
+                                            <span class="adopter-email">
+
+                                                @item.SubmittedAt.ToString(
+                                                    "hh:mm tt")
+
+                                            </span>
+
+                                        </td>
+
+                                        <td>
+
+                                            @if (item.PolicyAccepted)
+                                            {
+                                                <span class="policy-accepted">
+                                                    Accepted
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="policy-missing">
+                                                    Not accepted
+                                                </span>
+                                            }
+
+                                        </td>
+
+                                        <td>
+
+                                            <span class="status-badge @statusClass">
+                                                @item.VerificationStatus
+                                            </span>
+
+                                        </td>
+
+                                        <td>
+
+                                            <a asp-area="Admin"
+                                               asp-controller="AdopterVerifications"
+                                               asp-action="Details"
+                                               asp-route-id="@item.VerificationID"
+                                               class="details-button">
+
+                                                Review Details
+
+                                            </a>
+
+                                        </td>
+
+                                    </tr>
+                                }
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+                }
+
+            </section>
+
+        </div>
+
+    </main>
+
+</body>
+
+</html>

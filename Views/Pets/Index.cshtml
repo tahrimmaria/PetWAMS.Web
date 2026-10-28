@@ -1,0 +1,471 @@
+@using System.Linq
+@using PetWAMS.Web.Models
+@model List<PetWAMS.Web.Models.Pet>
+
+@{
+    Layout = null;
+
+    var petImages = ViewBag.PetImages as List<PetWAMS.Web.Models.PetImage> ?? new List<PetWAMS.Web.Models.PetImage>();
+    var categories = ViewBag.Categories as List<PetCategory> ?? new List<PetCategory>();
+
+    int? selectedCategoryId = null;
+
+    if (ViewBag.SelectedCategoryId != null)
+    {
+        selectedCategoryId = Convert.ToInt32(ViewBag.SelectedCategoryId);
+    }
+
+    string selectedCategoryName = ViewBag.SelectedCategoryName as string ?? "";
+
+    var categoryOrder = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+    {
+        { "Cat", 1 },
+        { "Dog", 2 },
+        { "Bird", 3 },
+        { "Fish", 4 },
+        { "Hamster", 5 },
+        { "Rabbit", 6 },
+        { "Other", 99 }
+    };
+
+    var visibleCategories = categories
+        .Where(c =>
+            !string.Equals(
+                c.CategoryName,
+                "Parrot",
+                StringComparison.OrdinalIgnoreCase
+            )
+        )
+        .OrderBy(c =>
+            categoryOrder.ContainsKey(c.CategoryName)
+                ? categoryOrder[c.CategoryName]
+                : 50
+        )
+        .ThenBy(c => c.CategoryName)
+        .ToList();
+
+    string pageTitle = string.IsNullOrWhiteSpace(selectedCategoryName)
+        ? "All Pets for Adoption"
+        : selectedCategoryName + " Pets for Adoption";
+
+    string pageDescription = string.IsNullOrWhiteSpace(selectedCategoryName)
+        ? "Browse all available pets and view their details before applying for adoption."
+        : "Browse available " + selectedCategoryName.ToLower() + " pets and view their details before applying for adoption.";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@pageTitle — PetHope</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+            :root {
+                --purple: #7B2FF7;
+                --purple-dark: #5A1FB8;
+                --purple-light: #F2E9FE;
+                --violet-dark: #241A3D;
+                --bg: #f8f5fb;
+                --text: #24142e;
+                --muted: #756a7c;
+                --card: #ffffff;
+                --line: #eee7f4;
+                --green-bg: #E7F8EC;
+                --green: #258447;
+                --yellow-bg: #FFF4D9;
+                --yellow: #A46B00;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                background: var(--bg);
+                color: var(--text);
+                font-family: 'DM Sans', Arial, sans-serif;
+                min-height: 100vh;
+            }
+
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
+
+            img {
+                max-width: 100%;
+                display: block;
+            }
+
+            .page {
+                max-width: 1280px;
+                margin: 0 auto;
+                padding: 38px 120px 90px;
+            }
+
+            .page-head {
+                margin-bottom: 22px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 18px;
+                flex-wrap: wrap;
+            }
+
+                .page-head h1 {
+                    font-family: 'Fraunces', Georgia, serif;
+                    font-size: 38px;
+                    font-weight: 800;
+                    color: var(--text);
+                }
+
+                .page-head p {
+                    margin-top: 8px;
+                    color: var(--muted);
+                    font-weight: 700;
+                    line-height: 1.6;
+                }
+
+            .result-pill {
+                background: var(--purple-light);
+                color: var(--purple);
+                padding: 11px 18px;
+                border-radius: 999px;
+                font-weight: 900;
+                white-space: nowrap;
+            }
+
+            .type-tabs {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+                margin-bottom: 32px;
+            }
+
+            .type-pill {
+                min-height: 44px;
+                padding: 0 20px;
+                border-radius: 999px;
+                background: #ffffff;
+                border: 1px solid var(--line);
+                color: var(--muted);
+                font-weight: 900;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                transition: .2s ease;
+                box-shadow: 0 8px 20px rgba(36,20,46,.04);
+            }
+
+                .type-pill:hover {
+                    color: var(--purple);
+                    border-color: #D7B8FF;
+                    transform: translateY(-1px);
+                }
+
+                .type-pill.active {
+                    background: var(--purple);
+                    color: #ffffff;
+                    border-color: var(--purple);
+                    box-shadow: 0 10px 24px rgba(123,47,247,.20);
+                }
+
+            .pet-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 24px;
+            }
+
+            .pet-card {
+                background: var(--card);
+                border: 1px solid var(--line);
+                border-radius: 22px;
+                overflow: hidden;
+                box-shadow: 0 8px 25px rgba(36,20,46,.05);
+                transition: .22s ease;
+            }
+
+                .pet-card:hover {
+                    transform: translateY(-5px);
+                    box-shadow: 0 18px 38px rgba(36,20,46,.10);
+                }
+
+            .pet-photo {
+                position: relative;
+                height: 215px;
+                background: #ffffff;
+                border-bottom: 1px solid var(--line);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 56px;
+                color: var(--purple);
+                overflow: hidden;
+            }
+
+                .pet-photo img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: contain;
+                    background: #ffffff;
+                }
+
+            .status-tag {
+                position: absolute;
+                top: 14px;
+                left: 14px;
+                background: rgba(255,255,255,.94);
+                padding: 6px 13px;
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 900;
+                color: var(--green);
+                box-shadow: 0 8px 18px rgba(36,20,46,.08);
+            }
+
+            .pet-info {
+                padding: 20px;
+            }
+
+            .pet-name {
+                font-family: 'Fraunces', Georgia, serif;
+                font-size: 24px;
+                font-weight: 800;
+                color: var(--text);
+                margin-bottom: 5px;
+            }
+
+            .breed {
+                color: var(--muted);
+                font-weight: 700;
+                margin-bottom: 14px;
+            }
+
+            .pet-meta {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+                margin-bottom: 18px;
+            }
+
+                .pet-meta span {
+                    background: #F7F2FB;
+                    color: var(--muted);
+                    padding: 7px 12px;
+                    border-radius: 999px;
+                    font-size: 12px;
+                    font-weight: 800;
+                }
+
+            .view-btn {
+                display: block;
+                width: 100%;
+                text-align: center;
+                background: var(--violet-dark);
+                color: #ffffff;
+                padding: 13px 16px;
+                border-radius: 13px;
+                font-weight: 900;
+                transition: .2s ease;
+            }
+
+                .view-btn:hover {
+                    background: var(--purple);
+                    color: #ffffff;
+                }
+
+            .empty {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 24px;
+                padding: 45px;
+                text-align: center;
+                color: var(--muted);
+                font-weight: 800;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+            }
+
+                .empty strong {
+                    display: block;
+                    color: var(--text);
+                    font-size: 24px;
+                    margin-bottom: 8px;
+                }
+
+            @@media (max-width: 1100px) {
+                .page {
+                    padding: 34px 48px 70px;
+                }
+
+                .pet-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+
+            @@media (max-width: 650px) {
+                .page {
+                    padding: 28px 22px 60px;
+                }
+
+                .page-head {
+                    align-items: flex-start;
+                }
+
+                    .page-head h1 {
+                        font-size: 30px;
+                    }
+
+                .result-pill {
+                    width: 100%;
+                    text-align: center;
+                }
+
+                .type-pill {
+                    width: 100%;
+                }
+
+                .pet-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+    </style>
+</head>
+
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+    <main class="page">
+
+        <div class="page-head">
+            <div>
+                <h1>@pageTitle</h1>
+                <p>@pageDescription</p>
+            </div>
+
+            <div class="result-pill">
+                @(Model == null ? 0 : Model.Count) Pets
+            </div>
+        </div>
+
+        <div class="type-tabs">
+            <a href="/Pets"
+               class="type-pill @(selectedCategoryId == null ? "active" : "")">
+                All Pets
+            </a>
+
+            @foreach (var category in visibleCategories)
+            {
+                bool isActive =
+                    selectedCategoryId.HasValue &&
+                    (
+                        selectedCategoryId.Value == category.CategoryID ||
+                        (
+                            string.Equals(selectedCategoryName, "Bird", StringComparison.OrdinalIgnoreCase) &&
+                            string.Equals(category.CategoryName, "Bird", StringComparison.OrdinalIgnoreCase)
+                        )
+                    );
+
+                <a href="@Url.Action("Index", "Pets", new { categoryId = category.CategoryID })"
+                   class="type-pill @(isActive ? "active" : "")">
+                    @category.CategoryName
+                </a>
+            }
+        </div>
+
+        @if (Model == null || Model.Count == 0)
+        {
+            <div class="empty">
+                <strong>No pets found</strong>
+                No available pets found for this category.
+            </div>
+        }
+        else
+        {
+            <div class="pet-grid">
+
+                @foreach (var pet in Model)
+                {
+                    var cat = (pet.Category?.CategoryName ?? "").ToLowerInvariant();
+
+                    var icon = cat.Contains("cat")
+                        ? "🐈"
+                        : ((cat.Contains("bird") || cat.Contains("parrot"))
+                            ? "🐦"
+                            : "🐕");
+
+                    var vaccinated = pet.HealthRecords != null &&
+                                      pet.HealthRecords.Any(h => h.Vaccinated);
+
+                    var years = pet.Age.HasValue
+                        ? (pet.Age == 1 ? "1 Year" : $"{pet.Age} Years")
+                        : "Age unknown";
+
+                    var imagesForPet = petImages
+                        .Where(x => x.PetID == pet.PetID)
+                        .ToList();
+
+                    var primaryImage = imagesForPet
+                        .FirstOrDefault(x => x.IsPrimary)
+                        ?? imagesForPet.FirstOrDefault();
+
+                    <div class="pet-card">
+
+                        <div class="pet-photo">
+                            <span class="status-tag">
+                                @pet.Status
+                            </span>
+
+                            @if (primaryImage != null && !string.IsNullOrWhiteSpace(primaryImage.ImagePath))
+                            {
+                                <img src="@primaryImage.ImagePath" alt="@pet.PetName" />
+                            }
+                            else
+                            {
+                                <span>@icon</span>
+                            }
+                        </div>
+
+                        <div class="pet-info">
+
+                            <h3 class="pet-name">
+                                @pet.PetName
+                            </h3>
+
+                            <div class="breed">
+                                @pet.Breed
+                            </div>
+
+                            <div class="pet-meta">
+                                <span>
+                                    @pet.Gender · @years
+                                </span>
+
+                                <span>
+                                    @(vaccinated ? "Vaccinated" : "Not Vaccinated")
+                                </span>
+                            </div>
+
+                            <a href="/Pets/Details/@pet.PetID" class="view-btn">
+                                View Details
+                            </a>
+
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+        }
+
+    </main>
+
+</body>
+</html>

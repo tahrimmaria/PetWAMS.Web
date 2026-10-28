@@ -1,0 +1,249 @@
+﻿@model List<PetWAMS.Web.Models.PetCategory>
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>Pet Categories — PetHope Admin</title>
+
+    <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                font-family: Arial, sans-serif;
+                background: #f8f5fb;
+                color: #24142e;
+            }
+
+            .topbar {
+                background: #241A3D;
+                color: white;
+                padding: 22px 45px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .container {
+                max-width: 1000px;
+                margin: 40px auto;
+                padding: 0 25px;
+            }
+
+            .back {
+                color: #7B2FF7;
+                text-decoration: none;
+                font-weight: bold;
+            }
+
+            .heading-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 15px;
+                margin: 25px 0;
+            }
+
+            h1 {
+                margin: 0;
+            }
+
+            .add-btn {
+                background: #7B2FF7;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 10px;
+                text-decoration: none;
+                font-weight: bold;
+            }
+
+            .success {
+                background: #E4F4E7;
+                color: #267541;
+                padding: 14px 18px;
+                border-radius: 10px;
+                margin-bottom: 20px;
+                font-weight: bold;
+            }
+
+            .error {
+                background: #FDEBE7;
+                color: #B63E4D;
+                padding: 14px 18px;
+                border-radius: 10px;
+                margin-bottom: 20px;
+                font-weight: bold;
+            }
+
+            .table-card {
+                background: white;
+                border-radius: 18px;
+                overflow: hidden;
+                box-shadow: 0 8px 30px rgba(0,0,0,.06);
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            th {
+                background: #F3EDFB;
+                padding: 16px;
+                text-align: left;
+            }
+
+            td {
+                padding: 16px;
+                border-top: 1px solid #eee;
+            }
+
+            .category {
+                display: inline-block;
+                background: #F2E9FE;
+                color: #7B2FF7;
+                padding: 7px 12px;
+                border-radius: 20px;
+                font-weight: bold;
+            }
+
+            .edit-btn {
+                color: #7B2FF7;
+                text-decoration: none;
+                font-weight: bold;
+                margin-right: 10px;
+            }
+
+            .delete-btn {
+                border: 0;
+                background: #FDEBE7;
+                color: #C34A5A;
+                padding: 7px 11px;
+                border-radius: 8px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+
+            .empty {
+                text-align: center;
+                padding: 30px;
+                color: #777;
+            }
+    </style>
+</head>
+
+<body>
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+    <div class="topbar">
+        <strong>🐾 PetHope Admin</strong>
+        <span>Pet Categories</span>
+    </div>
+
+    <div class="container">
+
+        <div class="heading-row">
+
+            <h1>Pet Categories</h1>
+
+            <a href="/Admin/PetCategories/Create"
+               class="add-btn">
+                + Add Category
+            </a>
+
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="success">
+                @TempData["Success"]
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="error">
+                @TempData["Error"]
+            </div>
+        }
+
+        <div class="table-card">
+
+            <table>
+
+                <tr>
+                    <th>ID</th>
+                    <th>Category Name</th>
+                    <th>Action</th>
+                </tr>
+
+                @if (Model == null || Model.Count == 0)
+                {
+                    <tr>
+                        <td colspan="3"
+                            class="empty">
+                            No categories found.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var category in Model)
+                    {
+                        <tr>
+
+                            <td>
+                                #@category.CategoryID
+                            </td>
+
+                            <td>
+                                <span class="category">
+                                    @category.CategoryName
+                                </span>
+                            </td>
+
+                            <td>
+
+                                <a href="/Admin/PetCategories/Edit/@category.CategoryID"
+                                   class="edit-btn">
+                                    Edit
+                                </a>
+
+                                <form method="post"
+                                      action="/Admin/PetCategories/Delete/@category.CategoryID"
+                                      style="display:inline;"
+                                      onsubmit="return confirm('Delete this category?');">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <button type="submit"
+                                            class="delete-btn">
+                                        Delete
+                                    </button>
+
+                                </form>
+
+                            </td>
+
+                        </tr>
+                    }
+                }
+
+            </table>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

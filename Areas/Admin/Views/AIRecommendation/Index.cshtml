@@ -1,0 +1,393 @@
+@using PetWAMS.Web.Models
+
+@{
+    Layout = null;
+
+    var adopters =
+        ViewBag.Adopters as List<User>
+        ?? new List<User>();
+}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>AI Pet Recommendation - PetHope</title>
+
+
+    <style>
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                font-family: Arial, sans-serif;
+            }
+
+            body {
+                background: #f8f5fb;
+                color: #2d2235;
+            }
+
+            .page {
+                min-height: 100vh;
+                padding: 40px 20px;
+            }
+
+            .container {
+                max-width: 850px;
+                margin: auto;
+            }
+
+
+            /* TOP BAR */
+
+            .top {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 25px;
+            }
+
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 24px;
+                font-weight: bold;
+                color: #7131e8;
+            }
+
+            .brand-icon {
+                width: 44px;
+                height: 44px;
+                border-radius: 13px;
+                background: #eee2ff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .back {
+                text-decoration: none;
+                color: #7131e8;
+                background: white;
+                border: 1px solid #e4d9ed;
+                padding: 10px 15px;
+                border-radius: 10px;
+                font-weight: bold;
+            }
+
+                .back:hover {
+                    background: #f4edff;
+                }
+
+
+            /* HERO */
+
+            .hero {
+                background: linear-gradient( 135deg, #7131e8, #9c4df1 );
+                color: white;
+                padding: 32px;
+                border-radius: 20px;
+                margin-bottom: 24px;
+            }
+
+                .hero h1 {
+                    font-size: 29px;
+                    margin-bottom: 10px;
+                }
+
+                .hero p {
+                    line-height: 1.6;
+                    opacity: .92;
+                    max-width: 700px;
+                }
+
+            .badge {
+                display: inline-block;
+                margin-top: 15px;
+                background: rgba(255,255,255,.18);
+                padding: 8px 13px;
+                border-radius: 30px;
+                font-size: 13px;
+                font-weight: bold;
+            }
+
+
+            /* CARD */
+
+            .card {
+                background: white;
+                border: 1px solid #eee5f5;
+                border-radius: 18px;
+                padding: 30px;
+                box-shadow: 0 8px 30px rgba(60,30,90,.05);
+            }
+
+                .card h2 {
+                    margin-bottom: 8px;
+                    font-size: 21px;
+                }
+
+                .card p {
+                    color: #82778a;
+                    font-size: 14px;
+                    margin-bottom: 22px;
+                    line-height: 1.5;
+                }
+
+
+            /* FORM */
+
+            label {
+                display: block;
+                font-weight: bold;
+                margin-bottom: 9px;
+                color: #44374d;
+            }
+
+            select {
+                width: 100%;
+                padding: 14px;
+                border: 1px solid #ddd1e7;
+                border-radius: 11px;
+                font-size: 15px;
+                outline: none;
+                margin-bottom: 20px;
+                background: white;
+                color: #382d40;
+            }
+
+                select:focus {
+                    border-color: #7131e8;
+                    box-shadow: 0 0 0 3px rgba(113,49,232,.08);
+                }
+
+
+            /* BUTTON */
+
+            .btn {
+                width: 100%;
+                border: 0;
+                background: linear-gradient( 135deg, #7131e8, #9345ec );
+                color: white;
+                padding: 14px;
+                border-radius: 11px;
+                font-size: 15px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+
+                .btn:hover {
+                    opacity: .93;
+                }
+
+
+            /* EMPTY */
+
+            .empty {
+                background: #fff2f3;
+                border: 1px solid #f1cbd0;
+                color: #b84255;
+                padding: 15px;
+                border-radius: 10px;
+            }
+
+
+            /* INFO */
+
+            .info {
+                background: #f7f1ff;
+                border: 1px solid #e3d2fb;
+                padding: 17px;
+                border-radius: 13px;
+                margin-top: 22px;
+            }
+
+                .info strong {
+                    display: block;
+                    color: #7131e8;
+                    margin-bottom: 6px;
+                }
+
+                .info span {
+                    font-size: 13px;
+                    color: #685c71;
+                    line-height: 1.5;
+                }
+
+
+            @@media(max-width: 650px) {
+
+                .top {
+                    gap: 15px;
+                }
+
+                .hero h1 {
+                    font-size: 24px;
+                }
+
+                .card {
+                    padding: 22px;
+                }
+            }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+
+    <div class="page">
+
+        <div class="container">
+
+
+            <!-- TOP -->
+
+            <div class="top">
+
+                <div class="brand">
+
+                    <div class="brand-icon">
+                        🐾
+                    </div>
+
+                    PetHope
+
+                </div>
+
+
+                <a href="/Admin/Dashboard"
+                   class="back">
+
+                    ← Dashboard
+
+                </a>
+
+            </div>
+
+
+
+            <!-- HERO -->
+
+            <div class="hero">
+
+                <h1>
+                    🤖 AI Pet Recommendation
+                </h1>
+
+                <p>
+                    Select an adopter and let the AI recommendation
+                    engine compare all currently available pets
+                    to identify the single best match.
+                </p>
+
+                <div class="badge">
+                    AI Best Match Engine
+                </div>
+
+            </div>
+
+
+
+            <!-- SELECT ADOPTER -->
+
+            <div class="card">
+
+                <h2>
+                    Select Adopter
+                </h2>
+
+                <p>
+                    Select the adopter whose saved preferences
+                    you want the AI system to analyse.
+                </p>
+
+
+                @if (adopters.Count == 0)
+                {
+                    <div class="empty">
+
+                        No adopters are currently registered.
+
+                    </div>
+                }
+                else
+                {
+                    <form method="get"
+                          action="/Admin/AIRecommendation/Recommend">
+
+                        <label>
+                            Choose Adopter
+                        </label>
+
+
+                        <select name="userId"
+                                required>
+
+                            <option value="">
+                                -- Select an adopter --
+                            </option>
+
+
+                            @foreach (var adopter in adopters)
+                            {
+                                <option value="@adopter.UserID">
+
+                                    @adopter.FullName
+                                    - @adopter.Email
+
+                                </option>
+                            }
+
+                        </select>
+
+
+                        <button type="submit"
+                                class="btn">
+
+                            🤖 Find Best Pet
+
+                        </button>
+
+                    </form>
+                }
+
+
+                <div class="info">
+
+                    <strong>
+                        How does it work?
+                    </strong>
+
+                    <span>
+                        The system will analyse the selected adopter's
+                        saved preferences and compare them against all
+                        currently available pets. It will then choose
+                        the pet with the highest compatibility score.
+                    </span>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

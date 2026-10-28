@@ -1,0 +1,698 @@
+﻿@model List<PetWAMS.Web.Models.PetShopOrder>
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Orders — PetHope</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+            :root {
+                --purple: #7B2FF7;
+                --purple-dark: #5A1FB8;
+                --purple-light: #F2E9FE;
+                --bg: #f8f5fb;
+                --text: #24142e;
+                --muted: #756a7c;
+                --line: #eee7f4;
+                --green-bg: #E7F8EC;
+                --green: #258447;
+                --red-bg: #FDE7EA;
+                --red: #C23E52;
+                --yellow-bg: #FFF4D9;
+                --yellow: #A46B00;
+                --blue-bg: #EAF2FF;
+                --blue: #235DAD;
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                background: var(--bg);
+                color: var(--text);
+                font-family: 'DM Sans', Arial, sans-serif;
+                min-height: 100vh;
+            }
+
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
+
+            .container {
+                width: 100%;
+                max-width: 1180px;
+                margin: 0 auto;
+                padding: 8px 24px 70px;
+            }
+
+            .orders-actions-bar {
+                display: flex;
+                justify-content: flex-end;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+                margin-bottom: 26px;
+            }
+
+            .nav-btn {
+                background: var(--purple);
+                color: #ffffff;
+                padding: 13px 22px;
+                border-radius: 999px;
+                font-weight: 900;
+                min-height: 46px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 10px 24px rgba(123,47,247,.20);
+                transition: .2s ease;
+            }
+
+                .nav-btn:hover {
+                    background: var(--purple-dark);
+                    color: #ffffff;
+                    transform: translateY(-1px);
+                }
+
+            .page-title {
+                font-family: 'Fraunces', Georgia, serif;
+                font-size: 38px;
+                margin: 0 0 10px;
+                color: var(--text);
+            }
+
+            .subtitle {
+                color: var(--muted);
+                font-weight: 700;
+                line-height: 1.6;
+                margin-bottom: 26px;
+            }
+
+            .success,
+            .error {
+                padding: 14px 18px;
+                border-radius: 14px;
+                font-weight: 800;
+                margin-bottom: 14px;
+            }
+
+            .success {
+                background: var(--green-bg);
+                color: var(--green);
+            }
+
+            .error {
+                background: var(--red-bg);
+                color: var(--red);
+            }
+
+            .policy-banner {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 18px;
+                padding: 18px;
+                margin-bottom: 24px;
+                color: var(--muted);
+                font-weight: 700;
+                line-height: 1.7;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+            }
+
+                .policy-banner strong {
+                    color: var(--text);
+                }
+
+            .order-card {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 22px;
+                padding: 24px;
+                margin-bottom: 22px;
+                box-shadow: 0 8px 25px rgba(36,20,46,.05);
+            }
+
+            .order-head {
+                display: flex;
+                justify-content: space-between;
+                gap: 18px;
+                flex-wrap: wrap;
+                border-bottom: 1px solid #eeeeee;
+                padding-bottom: 16px;
+                margin-bottom: 16px;
+            }
+
+            .order-no {
+                font-size: 22px;
+                font-weight: 900;
+                margin-bottom: 4px;
+                color: var(--text);
+            }
+
+            .muted {
+                color: var(--muted);
+                font-weight: 600;
+                line-height: 1.6;
+                font-size: 14px;
+            }
+
+                .muted strong {
+                    color: var(--text);
+                }
+
+            .badge {
+                display: inline-block;
+                padding: 7px 12px;
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 900;
+                margin-left: 6px;
+                margin-bottom: 6px;
+                background: var(--purple-light);
+                color: var(--purple);
+            }
+
+                .badge.green {
+                    background: var(--green-bg);
+                    color: var(--green);
+                }
+
+                .badge.red {
+                    background: var(--red-bg);
+                    color: var(--red);
+                }
+
+                .badge.yellow {
+                    background: var(--yellow-bg);
+                    color: var(--yellow);
+                }
+
+                .badge.blue {
+                    background: var(--blue-bg);
+                    color: var(--blue);
+                }
+
+            .payment-box {
+                margin-top: 16px;
+                background: #faf8fd;
+                border: 1px solid #f0e9f5;
+                border-radius: 16px;
+                padding: 16px;
+            }
+
+            .payment-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .payment-item {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 12px;
+                padding: 12px;
+            }
+
+                .payment-item label {
+                    display: block;
+                    color: var(--muted);
+                    font-size: 12px;
+                    font-weight: 800;
+                    margin-bottom: 5px;
+                }
+
+                .payment-item strong {
+                    font-size: 14px;
+                    word-break: break-word;
+                    color: var(--text);
+                }
+
+            .items {
+                margin-top: 16px;
+                background: #faf8fd;
+                border-radius: 16px;
+                padding: 16px;
+            }
+
+            .item-line {
+                display: flex;
+                justify-content: space-between;
+                gap: 16px;
+                padding: 9px 0;
+                border-bottom: 1px solid #eeeeee;
+            }
+
+                .item-line:last-child {
+                    border-bottom: none;
+                }
+
+            .total-line {
+                font-size: 18px;
+                font-weight: 900;
+                padding-top: 12px;
+                color: var(--text);
+            }
+
+            .policy-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 18px;
+                margin-top: 18px;
+            }
+
+            .policy-box {
+                background: #faf8fd;
+                border-radius: 16px;
+                padding: 18px;
+                border: 1px solid #f0e9f5;
+            }
+
+                .policy-box h3 {
+                    font-size: 17px;
+                    font-weight: 900;
+                    margin-top: 0;
+                    margin-bottom: 12px;
+                    color: var(--text);
+                }
+
+            textarea,
+            select {
+                width: 100%;
+                border: 1px solid var(--line);
+                border-radius: 12px;
+                padding: 12px 14px;
+                font-family: inherit;
+                margin-bottom: 10px;
+                outline: none;
+                background: #ffffff;
+                color: var(--text);
+                font-weight: 600;
+            }
+
+            textarea {
+                min-height: 92px;
+                resize: vertical;
+            }
+
+                textarea:focus,
+                select:focus {
+                    border-color: var(--purple);
+                    box-shadow: 0 0 0 4px rgba(123,47,247,.08);
+                }
+
+            .action-btn {
+                border: none;
+                background: var(--purple);
+                color: #ffffff;
+                padding: 12px 18px;
+                border-radius: 999px;
+                font-weight: 900;
+                cursor: pointer;
+                font-family: inherit;
+                transition: .2s ease;
+            }
+
+                .action-btn:hover {
+                    background: var(--purple-dark);
+                    transform: translateY(-1px);
+                }
+
+            .danger-btn {
+                background: var(--red);
+            }
+
+                .danger-btn:hover {
+                    background: #a92f43;
+                }
+
+            .empty {
+                background: #ffffff;
+                border: 1px solid var(--line);
+                border-radius: 20px;
+                padding: 34px;
+                color: var(--muted);
+                font-weight: 800;
+                box-shadow: 0 8px 25px rgba(36,20,46,.04);
+            }
+
+                .empty a {
+                    color: var(--purple);
+                    font-weight: 900;
+                }
+
+            @@media (max-width: 850px) {
+                .container {
+                    padding: 8px 22px 60px;
+                }
+
+                .orders-actions-bar {
+                    justify-content: flex-start;
+                }
+
+                .nav-btn {
+                    width: 100%;
+                }
+
+                .policy-grid,
+                .payment-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .page-title {
+                    font-size: 31px;
+                }
+
+                .item-line {
+                    flex-direction: column;
+                    gap: 4px;
+                }
+            }
+    </style>
+</head>
+
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+    <div class="container">
+
+        <div class="orders-actions-bar">
+            <a href="/PetCareShop" class="nav-btn">Back to Shop</a>
+        </div>
+
+        <h1 class="page-title">My Orders</h1>
+
+        <p class="subtitle">
+            This page shows SSLCommerz payment status, order confirmation, delivery status, cancellation rule and complaint handling.
+        </p>
+
+        <div class="policy-banner">
+            <strong>Payment Policy:</strong>
+            Order is confirmed only after successful SSLCommerz validation.
+            Stock is reduced after valid payment. Failed or cancelled payment orders cannot request cancellation or complaint.
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="success">@TempData["Success"]</div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="error">@TempData["Error"]</div>
+        }
+
+        @if (Model == null || Model.Count == 0)
+        {
+            <div class="empty">
+                No orders found.
+                <a href="/PetCareShop">Go to Pet Care Shop</a>
+            </div>
+        }
+        else
+        {
+            @foreach (var order in Model)
+            {
+                bool isPaid = order.PaymentStatus == "Paid";
+                bool isCancelledOrder = order.OrderStatus == "Cancelled" || order.OrderStatus == "Payment Cancelled";
+                bool isFailedOrder = order.PaymentStatus == "Failed" || order.PaymentStatus == "Validation Failed" || order.PaymentStatus == "Session Failed" || order.PaymentStatus == "Session Error";
+                bool isPendingPayment = order.PaymentStatus == "Pending";
+
+                string orderBadgeClass = "blue";
+
+                if (isPaid)
+                {
+                    orderBadgeClass = "green";
+                }
+
+                if (isCancelledOrder)
+                {
+                    orderBadgeClass = "red";
+                }
+
+                if (order.CancellationRequested)
+                {
+                    orderBadgeClass = "yellow";
+                }
+
+                if (isFailedOrder)
+                {
+                    orderBadgeClass = "red";
+                }
+
+                <div class="order-card">
+
+                    <div class="order-head">
+                        <div>
+                            <div class="order-no">@order.OrderNumber</div>
+
+                            <div class="muted">
+                                Ordered on: @order.OrderDate.ToString("dd MMM yyyy hh:mm tt")
+                            </div>
+                        </div>
+
+                        <div>
+                            <span class="badge @orderBadgeClass">@order.OrderStatus</span>
+
+                            @if (isPaid)
+                            {
+                                <span class="badge green">@order.PaymentStatus</span>
+                            }
+                            else if (isPendingPayment)
+                            {
+                                <span class="badge yellow">@order.PaymentStatus</span>
+                            }
+                            else
+                            {
+                                <span class="badge red">@order.PaymentStatus</span>
+                            }
+
+                            <span class="badge">@order.DeliveryStatus</span>
+
+                            @if (order.CancellationRequested)
+                            {
+                                <span class="badge yellow">@order.CancellationStatus</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="muted">
+                        Customer: <strong>@order.CustomerName</strong><br />
+                        Phone: @order.Phone<br />
+                        Address: @order.DeliveryAddress
+                    </div>
+
+                    <div class="payment-box">
+                        <div class="payment-grid">
+
+                            <div class="payment-item">
+                                <label>Payment Method</label>
+                                <strong>@(string.IsNullOrWhiteSpace(order.PaymentMethod) ? "SSLCommerz Sandbox" : order.PaymentMethod)</strong>
+                            </div>
+
+                            <div class="payment-item">
+                                <label>Transaction ID</label>
+                                <strong>@(string.IsNullOrWhiteSpace(order.TransactionID) ? "Not Available" : order.TransactionID)</strong>
+                            </div>
+
+                            <div class="payment-item">
+                                <label>Validation ID</label>
+                                <strong>@(string.IsNullOrWhiteSpace(order.ValidationID) ? "Not Available" : order.ValidationID)</strong>
+                            </div>
+
+                            <div class="payment-item">
+                                <label>Bank Transaction ID</label>
+                                <strong>@(string.IsNullOrWhiteSpace(order.BankTransactionID) ? "Not Available" : order.BankTransactionID)</strong>
+                            </div>
+
+                            <div class="payment-item">
+                                <label>Card / Mobile Banking Type</label>
+                                <strong>@(string.IsNullOrWhiteSpace(order.CardType) ? "Not Available" : order.CardType)</strong>
+                            </div>
+
+                            <div class="payment-item">
+                                <label>Gateway Status</label>
+                                <strong>@(string.IsNullOrWhiteSpace(order.GatewayStatus) ? "Not Available" : order.GatewayStatus)</strong>
+                            </div>
+                            @if (order.PaymentStatus == "Refund Pending")
+                            {
+                                <div class="payment-item">
+                                    <label>Refund Status</label>
+                                    <strong style="color:#A46B00;">
+                                        Processing
+                                    </strong>
+                                </div>
+
+                                <div class="payment-item">
+                                    <label>Refund Amount</label>
+                                    <strong>
+                                        ৳@order.TotalAmount.ToString("0.00")
+                                    </strong>
+                                </div>
+                            }
+
+                            @if (order.PaymentStatus == "Refunded")
+                            {
+                                <div class="payment-item">
+                                    <label>Refund Status</label>
+                                    <strong style="color:#258447;">
+                                        Completed
+                                    </strong>
+                                </div>
+
+                                <div class="payment-item">
+                                    <label>Refund Amount</label>
+                                    <strong>
+                                        ৳@order.RefundAmount.ToString("0.00")
+                                    </strong>
+                                </div>
+
+                                @if (order.RefundCompletedAt != null)
+                                {
+                                    <div class="payment-item">
+                                        <label>Refund Completed At</label>
+                                        <strong>
+                                            @order.RefundCompletedAt.Value.ToString("dd MMM yyyy hh:mm tt")
+                                        </strong>
+                                    </div>
+                                }
+
+                                @if (!string.IsNullOrWhiteSpace(order.RefundNote))
+                                {
+                                    <div class="payment-item">
+                                        <label>Refund Note</label>
+                                        <strong>
+                                            @order.RefundNote
+                                        </strong>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    <div class="items">
+                        @if (order.OrderItems != null && order.OrderItems.Count > 0)
+                        {
+                            @foreach (var item in order.OrderItems)
+                            {
+                                <div class="item-line">
+                                    <div>
+                                        <strong>@item.ProductName</strong>
+                                        <div class="muted">
+                                            ৳@item.UnitPrice.ToString("0.00") × @item.Quantity
+                                        </div>
+                                    </div>
+
+                                    <strong>৳@item.LineTotal.ToString("0.00")</strong>
+                                </div>
+                            }
+                        }
+
+                        <div class="item-line total-line">
+                            <span>Total</span>
+                            <span>৳@order.TotalAmount.ToString("0.00")</span>
+                        </div>
+                    </div>
+
+                    <div class="policy-grid">
+
+                        <div class="policy-box">
+                            <h3>Cancellation Policy</h3>
+
+                            @if (!isPaid)
+                            {
+                                <p class="muted">
+                                    Cancellation request is only available after successful payment confirmation.
+                                </p>
+                            }
+                            else if (order.OrderStatus == "Cancelled")
+                            {
+                                <p class="muted">
+                                    This order is already cancelled.<br />
+                                    Reason: @order.CancellationReason
+                                </p>
+                            }
+                            else if (order.DeliveryStatus == "Delivered")
+                            {
+                                <p class="muted">
+                                    Delivered order cannot be cancelled.
+                                </p>
+                            }
+                            else if (order.CancellationRequested)
+                            {
+                                <p class="muted">
+                                    Cancellation Status:
+                                    <strong>@order.CancellationStatus</strong><br />
+                                    Reason: @order.CancellationReason
+                                </p>
+                            }
+                            else
+                            {
+                                <form action="/PetCareShop/RequestCancellation" method="post">
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden" name="orderId" value="@order.OrderID" />
+
+                                    <textarea name="cancellationReason" placeholder="Write cancellation reason"></textarea>
+
+                                    <button type="submit" class="action-btn danger-btn">
+                                        Request Cancellation
+                                    </button>
+                                </form>
+                            }
+                        </div>
+
+                        <div class="policy-box">
+                            <h3>Complaint Handling</h3>
+
+                            @if (!isPaid)
+                            {
+                                <p class="muted">
+                                    Complaint submission is only available for paid orders.
+                                </p>
+                            }
+                            else
+                            {
+                                <form action="/PetCareShop/SubmitComplaint" method="post">
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden" name="orderId" value="@order.OrderID" />
+
+                                    <select name="complaintType" required>
+                                        <option value="">Select Complaint Type</option>
+                                        <option value="Late Delivery">Late Delivery</option>
+                                        <option value="Wrong Product">Wrong Product</option>
+                                        <option value="Damaged Product">Damaged Product</option>
+                                        <option value="Payment Issue">Payment Issue</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+
+                                    <textarea name="complaintMessage" placeholder="Write your complaint" required></textarea>
+
+                                    <button type="submit" class="action-btn">
+                                        Submit Complaint
+                                    </button>
+                                </form>
+                            }
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+        }
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,331 @@
+@model PetWAMS.Web.Models.Pet
+@using PetWAMS.Web.Models
+
+@{
+    Layout = null;
+
+    var shelters = ViewBag.Shelters as List<PetWAMS.Web.Models.Shelter>;
+    var categories = ViewBag.Categories as List<PetCategory>;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Edit Pet — PetHope Admin</title>
+
+    <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                font-family: Arial, sans-serif;
+                background: #f8f5fb;
+                color: #24142e;
+            }
+
+            .topbar {
+                background: #241A3D;
+                color: white;
+                padding: 22px 45px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .container {
+                max-width: 850px;
+                margin: 40px auto;
+                padding: 0 25px;
+            }
+
+            .back {
+                color: #7B2FF7;
+                text-decoration: none;
+                font-weight: bold;
+            }
+
+            h1 {
+                margin: 25px 0 8px;
+            }
+
+            .subtitle {
+                color: #756a7c;
+                margin-bottom: 25px;
+            }
+
+            .card {
+                background: white;
+                padding: 30px;
+                border-radius: 18px;
+                box-shadow: 0 8px 30px rgba(0,0,0,.06);
+            }
+
+            .grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+            }
+
+            .field {
+                margin-bottom: 20px;
+            }
+
+            .full {
+                grid-column: 1 / -1;
+            }
+
+            label {
+                display: block;
+                font-weight: bold;
+                margin-bottom: 8px;
+            }
+
+            input,
+            select,
+            textarea {
+                width: 100%;
+                padding: 12px;
+                border: 1px solid #ddd;
+                border-radius: 10px;
+                font-size: 14px;
+                font-family: Arial, sans-serif;
+            }
+
+            textarea {
+                min-height: 110px;
+                resize: vertical;
+            }
+
+            .btn {
+                border: none;
+                background: #7B2FF7;
+                color: white;
+                padding: 13px 22px;
+                border-radius: 10px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+    </style>
+</head>
+
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+
+    <div class="topbar">
+        <strong>🐾 PetHope Admin</strong>
+        <span>Edit Pet</span>
+    </div>
+
+    <div class="container">
+
+        <a href="/Admin/Pets" class="back">
+            ← Back to Manage Pets
+        </a>
+
+        <h1>Edit Pet</h1>
+
+        <div class="subtitle">
+            Update pet information.
+        </div>
+
+        <div class="card">
+
+            <form method="post"
+                  action="/Admin/Pets/Edit">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       name="PetID"
+                       value="@Model.PetID" />
+
+                <div class="grid">
+
+                    <div class="field">
+                        <label>Pet Name</label>
+
+                        <input type="text"
+                               name="PetName"
+                               value="@Model.PetName"
+                               required />
+                    </div>
+
+                    <div class="field">
+                        <label>Breed</label>
+
+                        <input type="text"
+                               name="Breed"
+                               value="@Model.Breed"
+                               required />
+                    </div>
+
+                    <div class="field">
+                        <label>Age</label>
+
+                        <input type="number"
+                               name="Age"
+                               value="@Model.Age"
+                               min="0"
+                               required />
+                    </div>
+
+                    <div class="field">
+                        <label>Gender</label>
+
+                        <select name="Gender" required>
+                            <option value="@Model.Gender">
+                                @Model.Gender
+                            </option>
+
+                            @if (Model.Gender != "Male")
+                            {
+                                <option value="Male">Male</option>
+                            }
+
+                            @if (Model.Gender != "Female")
+                            {
+                                <option value="Female">Female</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>Color</label>
+
+                        <input type="text"
+                               name="Color"
+                               value="@Model.Color"
+                               required />
+                    </div>
+
+                    <div class="field">
+                        <label>Status</label>
+
+                        <select name="Status" required>
+                            <option value="@Model.Status">
+                                @Model.Status
+                            </option>
+
+                            @if (Model.Status != "Available")
+                            {
+                                <option value="Available">Available</option>
+                            }
+
+                            @if (Model.Status != "Adopted")
+                            {
+                                <option value="Adopted">Adopted</option>
+                            }
+
+                            @if (Model.Status != "Under Treatment")
+                            {
+                                <option value="Under Treatment">
+                                    Under Treatment
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>Shelter</label>
+
+                        <select name="ShelterID" required>
+
+                            @if (shelters != null)
+                            {
+                                @foreach (var shelter in shelters)
+                                {
+                                    if (shelter.ShelterID == Model.ShelterID)
+                                    {
+                                        <option value="@shelter.ShelterID" selected>
+                                            @shelter.ShelterName
+                                        </option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@shelter.ShelterID">
+                                            @shelter.ShelterName
+                                        </option>
+                                    }
+                                }
+                            }
+
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>Category</label>
+
+                        <select name="CategoryID" required>
+
+                            @if (categories != null)
+                            {
+                                @foreach (var category in categories)
+                                {
+                                    if (category.CategoryID == Model.CategoryID)
+                                    {
+                                        <option value="@category.CategoryID" selected>
+                                            @category.CategoryName
+                                        </option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@category.CategoryID">
+                                            @category.CategoryName
+                                        </option>
+                                    }
+                                }
+                            }
+
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>Microchip Number</label>
+
+                        <input type="text"
+                               name="MicrochipNumber"
+                               value="@Model.MicrochipNumber" />
+                    </div>
+
+                    <div class="field">
+                        <label>Arrival Date</label>
+
+                        <input type="date"
+                               name="ArrivalDate"
+                               value="@Model.ArrivalDate?.ToString("yyyy-MM-dd")"
+                               required />
+                    </div>
+
+                    <div class="field full">
+                        <label>AI Recommendation</label>
+
+                        <textarea name="AIRecommendation">@Model.AIRecommendation</textarea>
+                    </div>
+
+                    <div class="field full">
+                        <label>Description</label>
+
+                        <textarea name="Description">@Model.Description</textarea>
+                    </div>
+
+                </div>
+
+                <button type="submit" class="btn">
+                    Update Pet
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

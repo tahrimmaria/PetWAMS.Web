@@ -1,0 +1,235 @@
+﻿@model IEnumerable<PetWAMS.Web.Models.FollowUp>
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Adoption Follow-Ups — PetHope</title>
+
+    <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                font-family: Arial, sans-serif;
+                background: #f8f5fb;
+                color: #24142e;
+            }
+
+            .topbar {
+                background: #241A3D;
+                color: white;
+                padding: 22px 45px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .container {
+                max-width: 1250px;
+                margin: 40px auto;
+                padding: 0 25px;
+            }
+
+            .back {
+                color: #7B2FF7;
+                text-decoration: none;
+                font-weight: bold;
+            }
+
+            h1 {
+                margin: 25px 0 8px;
+            }
+
+            .subtitle {
+                color: #756a7c;
+                margin-bottom: 20px;
+            }
+
+            .add-btn {
+                display: inline-block;
+                background: #7B2FF7;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 10px;
+                text-decoration: none;
+                font-weight: bold;
+                margin-bottom: 25px;
+            }
+
+            .table-card {
+                background: white;
+                border-radius: 18px;
+                overflow: hidden;
+                box-shadow: 0 8px 30px rgba(0,0,0,.06);
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            th {
+                background: #F3EDFB;
+                text-align: left;
+                padding: 15px;
+                font-size: 13px;
+            }
+
+            td {
+                padding: 15px;
+                border-top: 1px solid #eee;
+                font-size: 14px;
+            }
+
+            .health {
+                display: inline-block;
+                background: #E4F4E7;
+                color: #2E8A4C;
+                padding: 6px 11px;
+                border-radius: 20px;
+                font-weight: bold;
+                font-size: 12px;
+            }
+
+            .edit-btn {
+                color: #7B2FF7;
+                text-decoration: none;
+                font-weight: bold;
+                margin-right: 8px;
+            }
+
+            .delete-btn {
+                border: 0;
+                background: #FDEBE7;
+                color: #C34A5A;
+                padding: 7px 11px;
+                border-radius: 8px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+
+            .empty {
+                text-align: center;
+                padding: 30px;
+                color: #7a6f80;
+            }
+    </style>
+</head>
+
+<body>
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+    <div class="topbar">
+        <strong>🐾 PetHope</strong>
+        <span>Adoption Follow-Ups</span>
+    </div>
+
+    <div class="container">
+
+        <h1>Adoption Follow-Ups</h1>
+
+        <div class="subtitle">
+            Monitor adopted pets and record their post-adoption condition.
+        </div>
+
+        <a href="/Shelter/FollowUps/Create"
+           class="add-btn">
+            + Add Follow-Up
+        </a>
+
+        <div class="table-card">
+
+            <table>
+
+                <tr>
+                    <th>Follow-Up ID</th>
+                    <th>Pet</th>
+                    <th>Adopter</th>
+                    <th>Follow-Up Date</th>
+                    <th>Health Condition</th>
+                    <th>Remarks</th>
+                    <th>Action</th>
+                </tr>
+
+                @if (Model == null || !Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="empty">
+                            No follow-up records found.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+
+                            <td>#@item.FollowUpID</td>
+
+                            <td>
+                                @item.Adoption?.Pet?.PetName
+                            </td>
+
+                            <td>
+                                @item.Adoption?.User?.FullName
+                            </td>
+
+                            <td>
+                                @item.FollowUpDate?.ToString("dd MMM yyyy")
+                            </td>
+
+                            <td>
+                                <span class="health">
+                                    @item.HealthCondition
+                                </span>
+                            </td>
+
+                            <td>
+                                @item.Remarks
+                            </td>
+
+                            <td>
+
+                                <a href="/Shelter/FollowUps/Edit/@item.FollowUpID"
+                                   class="edit-btn">
+                                    Edit
+                                </a>
+
+                                <form method="post"
+                                      action="/Shelter/FollowUps/Delete/@item.FollowUpID"
+                                      style="display:inline;"
+                                      onsubmit="return confirm('Are you sure you want to delete this follow-up?');">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <button type="submit"
+                                            class="delete-btn">
+                                        Delete
+                                    </button>
+
+                                </form>
+
+                            </td>
+
+                        </tr>
+                    }
+                }
+
+            </table>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

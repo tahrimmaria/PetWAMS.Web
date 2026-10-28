@@ -1,0 +1,355 @@
+@{
+    Layout = null;
+
+    string errorMessage = "";
+
+    if (TempData["Error"] != null)
+    {
+        errorMessage = TempData["Error"]?.ToString() ?? "";
+    }
+    else if (ViewBag.Error != null)
+    {
+        errorMessage = ViewBag.Error?.ToString() ?? "";
+    }
+
+    string successMessage = "";
+
+    if (TempData["Success"] != null)
+    {
+        successMessage = TempData["Success"]?.ToString() ?? "";
+    }
+    else if (ViewBag.Success != null)
+    {
+        successMessage = ViewBag.Success?.ToString() ?? "";
+    }
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign Up — PetHope</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+            :root {
+                --purple: #7B2FF7;
+                --purple-dark: #5A1FB8;
+                --purple-light: #F2E9FE;
+                --bg: #f8f5fb;
+                --card: #ffffff;
+                --text: #24142e;
+                --muted: #756a7c;
+                --line: #eee7f4;
+                --green-bg: #E7F8EC;
+                --green: #258447;
+                --red-bg: #FDE7EA;
+                --red: #C23E52;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                background: radial-gradient(circle at top left, rgba(123,47,247,.10), transparent 34%), radial-gradient(circle at bottom right, rgba(179,131,245,.14), transparent 34%), var(--bg);
+                color: var(--text);
+                font-family: 'DM Sans', Arial, sans-serif;
+                min-height: 100vh;
+                overflow-x: hidden;
+            }
+
+            .page {
+                min-height: calc(100vh - 92px);
+                padding: 8px 24px 24px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .auth-card {
+                width: 100%;
+                max-width: 720px;
+                background: var(--card);
+                border: 1px solid var(--line);
+                border-radius: 28px;
+                padding: 22px 28px;
+                box-shadow: 0 16px 45px rgba(36,20,46,.08);
+            }
+
+            .auth-icon {
+                width: 48px;
+                height: 48px;
+                border-radius: 16px;
+                background: var(--purple-light);
+                color: var(--purple);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 22px;
+                margin: 0 auto 9px;
+            }
+
+            h1 {
+                font-family: 'Fraunces', Georgia, serif;
+                text-align: center;
+                font-size: 33px;
+                font-weight: 800;
+                color: var(--text);
+                margin-bottom: 5px;
+            }
+
+            .subtitle {
+                text-align: center;
+                color: var(--muted);
+                font-weight: 700;
+                line-height: 1.4;
+                margin-bottom: 13px;
+                font-size: 14px;
+            }
+
+            .message {
+                border-radius: 14px;
+                padding: 10px 13px;
+                font-size: 13px;
+                font-weight: 800;
+                line-height: 1.4;
+                margin-bottom: 12px;
+            }
+
+            .error {
+                background: var(--red-bg);
+                color: var(--red);
+            }
+
+            .success {
+                background: var(--green-bg);
+                color: var(--green);
+            }
+
+            .form-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 11px 14px;
+            }
+
+            .full {
+                grid-column: 1 / -1;
+            }
+
+            label {
+                display: block;
+                font-size: 13px;
+                font-weight: 900;
+                color: var(--text);
+                margin-bottom: 5px;
+            }
+
+            input,
+            textarea {
+                width: 100%;
+                border: 1px solid #ddd3e7;
+                background: #ffffff;
+                color: var(--text);
+                border-radius: 13px;
+                padding: 10px 13px;
+                font-family: inherit;
+                font-size: 14px;
+                font-weight: 700;
+                outline: none;
+            }
+
+            textarea {
+                height: 48px;
+                min-height: 48px;
+                resize: none;
+            }
+
+                input:focus,
+                textarea:focus {
+                    border-color: var(--purple);
+                    box-shadow: 0 0 0 4px rgba(123,47,247,.08);
+                }
+
+            .btn {
+                width: 100%;
+                border: none;
+                background: var(--purple);
+                color: #ffffff;
+                border-radius: 999px;
+                padding: 13px 18px;
+                font-family: inherit;
+                font-size: 15px;
+                font-weight: 900;
+                cursor: pointer;
+                box-shadow: 0 10px 24px rgba(123,47,247,.20);
+                margin-top: 3px;
+            }
+
+                .btn:hover {
+                    background: var(--purple-dark);
+                }
+
+            .bottom-link {
+                margin-top: 10px;
+                text-align: center;
+                color: var(--muted);
+                font-size: 14px;
+                font-weight: 700;
+            }
+
+                .bottom-link a {
+                    color: var(--purple);
+                    font-weight: 900;
+                    text-decoration: none;
+                }
+
+            .role-note {
+                margin-top: 6px;
+                text-align: center;
+                color: var(--muted);
+                font-size: 12px;
+                font-weight: 700;
+                line-height: 1.4;
+            }
+
+            @@media (max-width: 700px) {
+                .page {
+                    min-height: auto;
+                    padding: 12px 22px 35px;
+                }
+
+                .auth-card {
+                    padding: 23px;
+                    border-radius: 24px;
+                }
+
+                .form-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .full {
+                    grid-column: auto;
+                }
+
+                h1 {
+                    font-size: 31px;
+                }
+            }
+    </style>
+</head>
+
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+    <main class="page">
+
+        <section class="auth-card">
+
+            <div class="auth-icon">🐾</div>
+
+            <h1>Create Account</h1>
+
+            <p class="subtitle">
+                Create your adopter account.
+            </p>
+
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <div class="message error">
+                    @errorMessage
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(successMessage))
+            {
+                <div class="message success">
+                    @successMessage
+                </div>
+            }
+
+            <form action="/Account/SignUp" method="post">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" name="userType" value="Adopter" />
+
+                <div class="form-grid">
+
+                    <div class="full">
+                        <label>Full Name</label>
+                        <input type="text"
+                               name="fullName"
+                               placeholder="Enter your full name"
+                               required />
+                    </div>
+
+                    <div>
+                        <label>Email Address</label>
+                        <input type="email"
+                               name="email"
+                               placeholder="Enter email"
+                               required />
+                    </div>
+
+                    <div>
+                        <label>Phone Number</label>
+                        <input type="text"
+                               name="phone"
+                               placeholder="Enter phone"
+                               required />
+                    </div>
+
+                    <div class="full">
+                        <label>Address</label>
+                        <textarea name="address"
+                                  placeholder="Enter your address"
+                                  required></textarea>
+                    </div>
+
+                    <div>
+                        <label>Password</label>
+                        <input type="password"
+                               name="password"
+                               placeholder="Enter password"
+                               required />
+                    </div>
+
+                    <div>
+                        <label>Confirm Password</label>
+                        <input type="password"
+                               name="confirmPassword"
+                               placeholder="Confirm password"
+                               required />
+                    </div>
+
+                    <div class="full">
+                        <button type="submit" class="btn">
+                            Create Account
+                        </button>
+                    </div>
+
+                </div>
+
+            </form>
+
+            <div class="bottom-link">
+                Already have an account?
+                <a href="/Account/SignIn">Sign In</a>
+            </div>
+
+            <div class="role-note">
+                Signup creates Adopter account only.
+            </div>
+
+        </section>
+
+    </main>
+
+</body>
+</html>

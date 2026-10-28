@@ -1,0 +1,724 @@
+﻿@model PetWAMS.Web.Models.AdopterPreference
+
+@{
+    ViewData["Title"] = "My Pet Preference";
+
+    var savedPreference =
+        ViewBag.SavedPreference as PetWAMS.Web.Models.AdopterPreference;
+
+    string preferenceText =
+        ViewBag.PreferenceText?.ToString() ?? "";
+
+    string preferenceSummary =
+        ViewBag.PreferenceSummary?.ToString() ?? "";
+
+    string successMessage =
+        ViewBag.Success?.ToString() ?? "";
+
+    string errorMessage =
+        ViewBag.Error?.ToString() ?? "";
+}
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    .preference-page {
+        min-height: calc(100vh - 80px);
+        background: #faf8ff;
+        padding: 48px 20px 70px;
+        font-family: "DM Sans", Arial, sans-serif;
+        color: #241b32;
+    }
+
+    .preference-container {
+        width: 100%;
+        max-width: 980px;
+        margin: 0 auto;
+    }
+
+    .back-row {
+        margin-bottom: 22px;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        color: #5d5268;
+        font-size: 14px;
+        font-weight: 700;
+        transition: 0.2s ease;
+    }
+
+        .back-link:hover {
+            color: #7c3aed;
+        }
+
+    .hero-card {
+        background: #ffffff;
+        border-radius: 24px;
+        padding: 42px;
+        box-shadow: 0 12px 40px rgba(79, 37, 122, 0.08);
+        margin-bottom: 24px;
+        border: 1px solid #f0e8ff;
+    }
+
+    .eyebrow {
+        display: inline-block;
+        background: #f2eaff;
+        color: #7c3aed;
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 800;
+        margin-bottom: 18px;
+    }
+
+    .page-title {
+        margin: 0;
+        font-family: "Fraunces", Georgia, serif;
+        font-size: 38px;
+        line-height: 1.18;
+        color: #24172f;
+        font-weight: 600;
+    }
+
+    .page-description {
+        margin: 14px 0 0;
+        max-width: 720px;
+        color: #756b80;
+        font-size: 16px;
+        line-height: 1.7;
+    }
+
+    .example-box {
+        margin-top: 26px;
+        background: #faf7ff;
+        border: 1px solid #e9dcff;
+        border-radius: 16px;
+        padding: 18px 20px;
+    }
+
+    .example-title {
+        display: block;
+        color: #5b466f;
+        font-size: 13px;
+        font-weight: 800;
+        margin-bottom: 7px;
+    }
+
+    .example-text {
+        margin: 0;
+        color: #776b82;
+        line-height: 1.6;
+        font-size: 14px;
+    }
+
+    .form-card {
+        background: #ffffff;
+        border-radius: 24px;
+        padding: 36px 42px;
+        box-shadow: 0 12px 40px rgba(79, 37, 122, 0.08);
+        margin-bottom: 24px;
+        border: 1px solid #f0e8ff;
+    }
+
+    .form-title {
+        margin: 0 0 7px;
+        font-family: "Fraunces", Georgia, serif;
+        font-size: 25px;
+        font-weight: 600;
+        color: #261832;
+    }
+
+    .form-subtitle {
+        margin: 0 0 22px;
+        color: #85798f;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .preference-textarea {
+        display: block;
+        width: 100%;
+        min-height: 165px;
+        resize: vertical;
+        border: 1px solid #ded3e9;
+        border-radius: 16px;
+        background: #fefcff;
+        padding: 19px 20px;
+        font-family: "DM Sans", Arial, sans-serif;
+        font-size: 16px;
+        color: #2c2235;
+        line-height: 1.65;
+        outline: none;
+        transition: border 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .preference-textarea:focus {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.12);
+        }
+
+        .preference-textarea::placeholder {
+            color: #aaa0b2;
+        }
+
+    .helper-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        margin-top: 11px;
+    }
+
+    .helper-text {
+        color: #9b90a5;
+        font-size: 12px;
+    }
+
+    .submit-row {
+        margin-top: 24px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .primary-btn,
+    .secondary-btn {
+        min-height: 48px;
+        border-radius: 12px;
+        padding: 0 22px;
+        font-family: "DM Sans", Arial, sans-serif;
+        font-size: 14px;
+        font-weight: 800;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        transition: 0.2s ease;
+    }
+
+    .primary-btn {
+        border: none;
+        background: linear-gradient(135deg, #7c3aed, #9333ea);
+        color: #ffffff;
+        box-shadow: 0 8px 22px rgba(124, 58, 237, 0.20);
+    }
+
+        .primary-btn:hover {
+            background: linear-gradient(135deg, #6d28d9, #7e22ce);
+            transform: translateY(-1px);
+            color: #ffffff;
+        }
+
+    .secondary-btn {
+        border: 1px solid #ded2e9;
+        background: #ffffff;
+        color: #5e5168;
+    }
+
+        .secondary-btn:hover {
+            border-color: #9d7cce;
+            color: #7c3aed;
+            background: #faf6ff;
+        }
+
+    .message {
+        border-radius: 14px;
+        padding: 14px 17px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+    .success-message {
+        background: #f3eaff;
+        border: 1px solid #ddc6ff;
+        color: #6d28d9;
+    }
+
+    .error-message {
+        background: #fff1f4;
+        border: 1px solid #f0c7d1;
+        color: #a93c56;
+    }
+
+    .result-card {
+        background: #ffffff;
+        border-radius: 24px;
+        box-shadow: 0 12px 40px rgba(79, 37, 122, 0.09);
+        overflow: hidden;
+        margin-bottom: 24px;
+        border: 1px solid #eadcff;
+    }
+
+    .result-header {
+        background: linear-gradient(135deg, #7c3aed, #a23cf1);
+        padding: 24px 30px;
+        color: white;
+    }
+
+    .result-label {
+        display: block;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        opacity: 0.88;
+        font-weight: 800;
+        margin-bottom: 8px;
+    }
+
+    .result-summary {
+        font-family: "Fraunces", Georgia, serif;
+        font-size: 25px;
+        line-height: 1.45;
+        margin: 0;
+        font-weight: 500;
+    }
+
+    .result-body {
+        padding: 28px 30px 30px;
+    }
+
+    .section-heading {
+        margin: 0 0 18px;
+        font-size: 17px;
+        font-weight: 800;
+        color: #32263d;
+    }
+
+    .detected-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+    }
+
+    .detected-item {
+        border: 1px solid #e6dced;
+        background: #fcf9ff;
+        border-radius: 14px;
+        padding: 17px;
+    }
+
+    .detected-label {
+        display: block;
+        color: #927f9e;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+        font-weight: 800;
+        margin-bottom: 7px;
+    }
+
+    .detected-value {
+        display: block;
+        color: #302438;
+        font-size: 15px;
+        font-weight: 800;
+        word-break: break-word;
+    }
+
+    .recommendation-row {
+        margin-top: 24px;
+        padding-top: 22px;
+        border-top: 1px solid #eee5f6;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .recommendation-text {
+        max-width: 600px;
+    }
+
+        .recommendation-text strong {
+            display: block;
+            color: #35283e;
+            margin-bottom: 5px;
+        }
+
+        .recommendation-text span {
+            color: #81748a;
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+    .original-input-card {
+        margin-top: 18px;
+        background: #f8f3ff;
+        border: 1px solid #eee2ff;
+        border-radius: 12px;
+        padding: 15px 17px;
+        font-size: 13px;
+        line-height: 1.6;
+        color: #75667f;
+    }
+
+        .original-input-card strong {
+            color: #493a54;
+        }
+
+    @@media (max-width: 800px) {
+        .hero-card,
+        .form-card {
+            padding: 28px 24px;
+        }
+
+        .page-title {
+            font-size: 31px;
+        }
+
+        .detected-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 520px) {
+        .preference-page {
+            padding: 30px 14px 50px;
+        }
+
+        .hero-card,
+        .form-card {
+            padding: 24px 18px;
+            border-radius: 18px;
+        }
+
+        .page-title {
+            font-size: 27px;
+        }
+
+        .detected-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .primary-btn,
+        .secondary-btn {
+            width: 100%;
+        }
+
+        .result-header,
+        .result-body {
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        .result-summary {
+            font-size: 21px;
+        }
+    }
+</style>
+
+
+<div class="preference-page">
+
+    <div class="preference-container">
+
+        <div class="back-row">
+
+            <a asp-area="Adopter"
+               asp-controller="Dashboard"
+               asp-action="Index"
+               class="back-link">
+
+                ← Back to Dashboard
+
+            </a>
+
+        </div>
+
+        <div class="form-card">
+
+            <h2 class="form-title">
+                My Preference
+            </h2>
+
+            <p class="form-subtitle">
+
+                You do not need to fill in separate category,
+                gender, age or breed fields.
+
+            </p>
+
+
+            @if (!string.IsNullOrWhiteSpace(successMessage))
+            {
+                <div class="message success-message">
+                    @successMessage
+                </div>
+            }
+
+
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <div class="message error-message">
+                    @errorMessage
+                </div>
+            }
+
+
+            <form asp-area="Adopter"
+                  asp-controller="Preferences"
+                  asp-action="Index"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+
+                <textarea name="preferenceText"
+                          id="preferenceText"
+                          class="preference-textarea"
+                          maxlength="500"
+                          required
+                          placeholder="Example: I need a dog. 1 year. male. labador">@preferenceText</textarea>
+
+
+                <div class="helper-row">
+
+                    <span class="helper-text">
+                        Write pet type, age, gender and breed in any simple sentence.
+                    </span>
+
+                    <span class="helper-text"
+                          id="characterCount">
+
+                        0 / 500
+
+                    </span>
+
+                </div>
+
+
+                <div class="submit-row">
+
+                    <button type="submit"
+                            class="primary-btn">
+
+                        Analyze & Save Preference
+
+                    </button>
+
+
+                    <a asp-area="Adopter"
+                       asp-controller="Dashboard"
+                       asp-action="Index"
+                       class="secondary-btn">
+
+                        Cancel
+
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+
+        @if (!string.IsNullOrWhiteSpace(preferenceSummary))
+        {
+            <div class="result-card">
+
+                <div class="result-header">
+
+                    <span class="result-label">
+                        AI Understood
+                    </span>
+
+                    <p class="result-summary">
+                        @preferenceSummary
+                    </p>
+
+                </div>
+
+
+                <div class="result-body">
+
+                    <h3 class="section-heading">
+                        Detected Preference
+                    </h3>
+
+
+                    <div class="detected-grid">
+
+                        <div class="detected-item">
+
+                            <span class="detected-label">
+                                Pet Type
+                            </span>
+
+                            <span class="detected-value">
+
+                                @if (savedPreference?.PreferredCategory != null)
+                                {
+                                    @savedPreference.PreferredCategory.CategoryName
+                                }
+                                else
+                                {
+                                    <text>Any</text>
+                                }
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="detected-item">
+
+                            <span class="detected-label">
+                                Age
+                            </span>
+
+                            <span class="detected-value">
+
+                                @if (savedPreference?.MinimumAge != null &&
+                                    savedPreference?.MaximumAge != null)
+                                {
+                                    if (savedPreference.MinimumAge ==
+                                        savedPreference.MaximumAge)
+                                    {
+                                        @($"{savedPreference.MinimumAge} Year")
+                                    }
+                                    else
+                                    {
+                                        @($"{savedPreference.MinimumAge} - {savedPreference.MaximumAge} Years")
+                                    }
+                                }
+                                else
+                                {
+                                    <text>Any</text>
+                                }
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="detected-item">
+
+                            <span class="detected-label">
+                                Gender
+                            </span>
+
+                            <span class="detected-value">
+
+                                @(string.IsNullOrWhiteSpace(
+                                    savedPreference?.PreferredGender)
+                                    ? "Any"
+                                    : savedPreference.PreferredGender)
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="detected-item">
+
+                            <span class="detected-label">
+                                Breed
+                            </span>
+
+                            <span class="detected-value">
+
+                                @(string.IsNullOrWhiteSpace(
+                                    savedPreference?.PreferredBreed)
+                                    ? "Any"
+                                    : savedPreference.PreferredBreed)
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    @if (!string.IsNullOrWhiteSpace(preferenceText))
+                    {
+                        <div class="original-input-card">
+
+                            <strong>Your original input:</strong>
+
+                            @preferenceText
+
+                        </div>
+                    }
+
+
+                    <div class="recommendation-row">
+
+                        <div class="recommendation-text">
+
+                            <strong>
+                                Your preference is ready
+                            </strong>
+
+                            <span>
+
+                                The ML.NET recommendation system can now
+                                compare this saved preference with available
+                                pets and select the best match.
+
+                            </span>
+
+                        </div>
+
+
+                        <a asp-area="Adopter"
+                           asp-controller="Dashboard"
+                           asp-action="Index"
+                           class="primary-btn">
+
+                            View AI Recommendation
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+</div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+
+        const textarea =
+            document.getElementById("preferenceText");
+
+        const characterCount =
+            document.getElementById("characterCount");
+
+
+        if (!textarea || !characterCount) {
+            return;
+        }
+
+
+        function updateCharacterCount() {
+
+            characterCount.textContent =
+                textarea.value.length + " / 500";
+        }
+
+
+        updateCharacterCount();
+
+
+        textarea.addEventListener(
+            "input",
+            updateCharacterCount
+        );
+    });
+</script>

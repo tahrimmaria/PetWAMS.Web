@@ -1,0 +1,373 @@
+﻿@model IEnumerable<PetWAMS.Web.Models.PaymentTransaction>
+
+<style>
+
+    body {
+        background: #faf8ff;
+    }
+
+
+    .payment-page {
+        padding: 35px 80px;
+        min-height: 100vh;
+        background: #faf8ff;
+        font-family: 'Poppins', sans-serif;
+    }
+
+
+    /* Header */
+
+    .top-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 60px;
+    }
+
+
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+
+    .logo-box {
+        width: 55px;
+        height: 55px;
+        background: linear-gradient(135deg,#8b5cf6,#6d28d9);
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+    }
+
+
+    .brand-name {
+        font-size: 32px;
+        font-weight: 700;
+        color: #6d28d9;
+        font-family: Georgia, serif;
+    }
+
+
+
+    .back-btn {
+        text-decoration: none;
+        color: #6d28d9;
+        background: #f0e7ff;
+        padding: 12px 25px;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: .3s;
+    }
+
+
+        .back-btn:hover {
+            background: #7c3aed;
+            color: white;
+        }
+
+
+
+
+    /* Title */
+
+    .page-title {
+        font-size: 36px;
+        color: #24104f;
+        font-family: Georgia,serif;
+        margin-bottom: 35px;
+    }
+
+
+
+
+
+    /* Card */
+
+    .table-card {
+        background: white;
+        border-radius: 25px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0,0,0,.08);
+    }
+
+
+
+
+    table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+
+
+    thead th {
+        background: linear-gradient(90deg,#6d28d9,#8b5cf6);
+        color: white;
+        padding: 18px;
+        text-align: left;
+        font-family: Georgia,serif;
+    }
+
+
+
+        thead th:first-child {
+            border-top-left-radius: 18px;
+        }
+
+
+
+        thead th:last-child {
+            border-top-right-radius: 18px;
+        }
+
+
+
+
+    tbody td {
+        padding: 20px 18px;
+        color: #3b315c;
+        border-bottom: 1px solid #eee;
+    }
+
+
+
+    tbody tr:hover {
+        background: #faf5ff;
+    }
+
+
+
+
+    .amount {
+        font-weight: 700;
+        color: #6d28d9;
+    }
+
+
+
+    .badge {
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+
+
+    .paid {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+
+
+    .method {
+        background: #f3e8ff;
+        color: #7c3aed;
+    }
+
+</style>
+
+
+
+
+<div class="payment-page">
+
+
+    <div class="top-header">
+
+
+        <div class="brand">
+
+            <div class="logo-box">
+                🐾
+            </div>
+
+
+            <div class="brand-name">
+                PetHope
+            </div>
+
+        </div>
+
+
+
+
+        <a asp-area="Admin"
+           asp-controller="Dashboard"
+           asp-action="Index"
+           class="back-btn">
+
+            ← Back to Dashboard
+
+        </a>
+
+
+    </div>
+
+
+
+
+
+    <h1 class="page-title">
+        💳 Payment Transactions
+    </h1>
+
+
+
+
+
+
+    <div class="table-card">
+
+
+        <table>
+
+
+            <thead>
+
+                <tr>
+
+                    <th>Transaction ID</th>
+
+                    <th>Customer</th>
+
+                    <th>Order ID</th>
+
+                    <th>Amount</th>
+
+                    <th>Payment Method</th>
+
+                    <th>Status</th>
+
+                    <th>Date</th>
+
+
+                </tr>
+
+            </thead>
+
+
+
+
+            <tbody>
+
+
+                @foreach (var item in Model)
+                {
+
+                    <tr>
+
+
+                        <td>
+                            @item.GatewayTransactionID
+                        </td>
+
+
+
+                        <td>
+
+                            @item.User?.FullName
+
+                        </td>
+
+
+
+
+                        <td>
+
+                            #@item.OrderID
+
+                        </td>
+
+
+
+
+                        <td class="amount">
+
+                            ৳ @item.Amount
+
+                        </td>
+
+
+
+
+                        <td>
+
+                            <span class="badge method">
+
+                                @item.PaymentMethod
+
+                            </span>
+
+
+                        </td>
+
+
+
+
+
+                        <td>
+
+
+                            @if (item.TransactionStatus == "Paid")
+                            {
+
+                                <span class="badge paid">
+
+                                    Paid
+
+                                </span>
+
+                            }
+
+                            else
+                            {
+
+                                <span>
+
+                                    @item.TransactionStatus
+
+                                </span>
+
+                            }
+
+
+                        </td>
+
+
+
+
+                        <td>
+
+                            @item.TransactionDate.ToString("dd MMM yyyy")
+
+                        </td>
+
+
+
+
+                    </tr>
+
+
+                }
+
+
+
+            </tbody>
+
+
+        </table>
+
+
+
+    </div>
+
+
+
+</div>

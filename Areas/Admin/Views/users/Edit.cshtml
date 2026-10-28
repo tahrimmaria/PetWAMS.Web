@@ -1,0 +1,308 @@
+@model PetWAMS.Web.Models.User
+
+@{
+    Layout = null;
+    var shelters = ViewBag.Shelters as List<PetWAMS.Web.Models.Shelter>;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Edit User — PetHope Admin</title>
+
+    <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                font-family: Arial, sans-serif;
+                background: #f8f5fb;
+                color: #24142e;
+            }
+
+            .topbar {
+                background: #241A3D;
+                color: white;
+                padding: 22px 45px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .container {
+                max-width: 800px;
+                margin: 40px auto;
+                padding: 0 25px;
+            }
+
+            .back {
+                color: #7B2FF7;
+                text-decoration: none;
+                font-weight: bold;
+            }
+
+            h1 {
+                margin: 25px 0 8px;
+            }
+
+            .subtitle {
+                color: #756a7c;
+                margin-bottom: 25px;
+            }
+
+            .card {
+                background: white;
+                padding: 30px;
+                border-radius: 18px;
+                box-shadow: 0 8px 30px rgba(0,0,0,.06);
+            }
+
+            .field {
+                margin-bottom: 20px;
+            }
+
+            label {
+                display: block;
+                font-weight: bold;
+                margin-bottom: 8px;
+            }
+
+            input,
+            select,
+            textarea {
+                width: 100%;
+                padding: 12px;
+                border: 1px solid #ddd;
+                border-radius: 10px;
+                font-size: 14px;
+                font-family: Arial, sans-serif;
+            }
+
+            textarea {
+                min-height: 100px;
+                resize: vertical;
+            }
+
+            .error {
+                color: #c34a5a;
+                font-size: 13px;
+                margin-top: 5px;
+            }
+
+            .note {
+                color: #756a7c;
+                font-size: 12px;
+                margin-top: 6px;
+            }
+
+            .btn {
+                border: none;
+                background: #7B2FF7;
+                color: white;
+                padding: 13px 22px;
+                border-radius: 10px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+
+            #shelterField {
+                display: none;
+            }
+    </style>
+</head>
+
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+
+    <div class="topbar">
+        <strong>🐾 PetHope Admin</strong>
+        <span>Edit User</span>
+    </div>
+
+    <div class="container">
+
+        <a href="/Admin/Users" class="back">
+            ← Back to Users
+        </a>
+
+        <h1>Edit User</h1>
+
+        <div class="subtitle">
+            Update user account and shelter assignment.
+        </div>
+
+        <div class="card">
+
+            <form method="post"
+                  action="/Admin/Users/Edit">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       name="UserID"
+                       value="@Model.UserID" />
+
+                <div class="field">
+                    <label>Full Name</label>
+
+                    <input type="text"
+                           name="FullName"
+                           value="@Model.FullName"
+                           required />
+                </div>
+
+                <div class="field">
+                    <label>Email</label>
+
+                    <input type="email"
+                           name="Email"
+                           value="@Model.Email"
+                           required />
+
+                    <div class="error">
+                        @Html.ValidationMessageFor(m => m.Email)
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Phone</label>
+
+                    <input type="text"
+                           name="Phone"
+                           value="@Model.Phone" />
+                </div>
+
+                <div class="field">
+                    <label>Address</label>
+
+                    <textarea name="Address">@Model.Address</textarea>
+                </div>
+
+                <div class="field">
+                    <label>User Type</label>
+
+                    <select name="UserType"
+                            id="userType"
+                            required
+                            onchange="toggleShelter()">
+
+                        @if (Model.UserType == "Adopter")
+                        {
+                            <option value="Adopter" selected>Adopter</option>
+                        }
+                        else
+                        {
+                            <option value="Adopter">Adopter</option>
+                        }
+
+                        @if (Model.UserType == "Staff")
+                        {
+                            <option value="Staff" selected>Staff</option>
+                        }
+                        else
+                        {
+                            <option value="Staff">Staff</option>
+                        }
+
+                        @if (Model.UserType == "Admin")
+                        {
+                            <option value="Admin" selected>Admin</option>
+                        }
+                        else
+                        {
+                            <option value="Admin">Admin</option>
+                        }
+
+                    </select>
+                </div>
+
+
+                <div class="field" id="shelterField">
+
+                    <label>Assign Shelter</label>
+
+                    <select name="ShelterID"
+                            id="shelterSelect">
+
+                        <option value="">
+                            -- Select Shelter --
+                        </option>
+
+                        @if (shelters != null)
+                        {
+                            @foreach (var shelter in shelters)
+                            {
+                                if (Model.ShelterID == shelter.ShelterID)
+                                {
+                                    <option value="@shelter.ShelterID" selected>
+                                        @shelter.ShelterName
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@shelter.ShelterID">
+                                        @shelter.ShelterName
+                                    </option>
+                                }
+                            }
+                        }
+
+                    </select>
+
+                    <div class="note">
+                        Staff must be assigned to one shelter.
+                    </div>
+
+                    <div class="error">
+                        @Html.ValidationMessageFor(m => m.ShelterID)
+                    </div>
+
+                </div>
+
+                <button type="submit" class="btn">
+                    Update User
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <script>
+            function toggleShelter() {
+
+                const userType =
+                    document.getElementById("userType").value;
+
+                const shelterField =
+                    document.getElementById("shelterField");
+
+                const shelterSelect =
+                    document.getElementById("shelterSelect");
+
+                if (userType === "Staff") {
+
+                    shelterField.style.display = "block";
+                    shelterSelect.required = true;
+
+                } else {
+
+                    shelterField.style.display = "none";
+                    shelterSelect.required = false;
+                    shelterSelect.value = "";
+                }
+            }
+
+            toggleShelter();
+    </script>
+
+</body>
+</html>

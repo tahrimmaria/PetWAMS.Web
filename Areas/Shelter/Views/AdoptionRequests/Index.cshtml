@@ -1,0 +1,652 @@
+@model IEnumerable<dynamic>
+
+@{
+    Layout = null;
+}
+
+@functions {
+    object? GetProp(object? item, string name)
+    {
+        if (item == null)
+        {
+            return null;
+        }
+
+        var prop = item.GetType().GetProperty(name);
+        if (prop == null)
+        {
+            return null;
+        }
+
+        return prop.GetValue(item);
+    }
+
+    object? FirstProp(object? item, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            var value = GetProp(item, name);
+
+            if (value != null)
+            {
+                return value;
+            }
+        }
+
+        return null;
+    }
+
+    string TextValue(object? value, string fallback = "—")
+    {
+        if (value == null)
+        {
+            return fallback;
+        }
+
+        var text = value.ToString();
+
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return fallback;
+        }
+
+        return text;
+    }
+
+    string DateValue(object? value)
+    {
+        if (value == null)
+        {
+            return "—";
+        }
+
+        if (value is DateTime dt)
+        {
+            return dt.ToString("dd MMM yyyy");
+        }
+
+        DateTime parsedDate;
+
+        if (DateTime.TryParse(value.ToString(), out parsedDate))
+        {
+            return parsedDate.ToString("dd MMM yyyy");
+        }
+
+        return value.ToString() ?? "—";
+    }
+
+    string StatusClass(string status)
+    {
+        status = status.ToLower();
+
+        if (status.Contains("approved"))
+        {
+            return "status-approved";
+        }
+
+        if (status.Contains("rejected"))
+        {
+            return "status-rejected";
+        }
+
+        return "status-pending";
+    }
+
+    string GetRequestId(object? request)
+    {
+        return TextValue(
+            FirstProp(
+                request,
+                "RequestID",
+                "RequestId",
+                "AdoptionRequestID",
+                "AdoptionRequestId",
+                "Id"
+            ),
+            "0"
+        );
+    }
+
+    string GetApplicantName(object? request)
+    {
+        var user = FirstProp(request, "User", "Adopter", "Applicant");
+
+        var name = FirstProp(user, "FullName", "Name", "UserName");
+
+        if (name != null)
+        {
+            return TextValue(name);
+        }
+
+        return TextValue(
+            FirstProp(
+                request,
+                "ApplicantName",
+                "AdopterName",
+                "UserName",
+                "FullName"
+            )
+        );
+    }
+
+    string GetPetName(object? request)
+    {
+        var pet = FirstProp(request, "Pet");
+
+        var name = FirstProp(pet, "PetName", "Name");
+
+        if (name != null)
+        {
+            return TextValue(name);
+        }
+
+        return TextValue(
+            FirstProp(
+                request,
+                "PetName",
+                "AnimalName"
+            )
+        );
+    }
+
+    string GetStatus(object? request)
+    {
+        return TextValue(
+            FirstProp(
+                request,
+                "Status",
+                "RequestStatus",
+                "ApprovalStatus"
+            ),
+            "Pending"
+        );
+    }
+
+    string GetRequestDate(object? request)
+    {
+        return DateValue(
+            FirstProp(
+                request,
+                "RequestDate",
+                "CreatedAt",
+                "Date"
+            )
+        );
+    }
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adoption Requests — PetHope</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+            :root {
+                --purple: #7B2FF7;
+                --purple-dark: #5A1FB8;
+                --bg: #f8f5fb;
+                --text: #24142e;
+                --muted: #756a7c;
+                --card: #ffffff;
+                --line: #eee7f4;
+                --green-bg: #E7F8EC;
+                --green: #258447;
+                --yellow-bg: #FFF4D9;
+                --yellow: #A46B00;
+                --red-bg: #FDE7EA;
+                --red: #C23E52;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                background: var(--bg);
+                color: var(--text);
+                font-family: 'DM Sans', Arial, sans-serif;
+                min-height: 100vh;
+            }
+
+            a {
+                text-decoration: none;
+            }
+
+            .site-navbar {
+                width: 100%;
+                height: 76px;
+                background: var(--bg);
+                border: none;
+                box-shadow: none;
+                display: flex;
+                align-items: center;
+                padding: 0 60px;
+            }
+
+            .site-logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-family: 'Fraunces', Georgia, serif;
+                font-weight: 800;
+                font-size: 26px;
+                line-height: 1;
+                color: var(--purple);
+                text-decoration: none;
+                white-space: nowrap;
+            }
+
+                .site-logo:hover {
+                    color: var(--purple);
+                    text-decoration: none;
+                }
+
+            .site-logo-mark {
+                width: 36px;
+                height: 36px;
+                min-width: 36px;
+                min-height: 36px;
+                border-radius: 11px;
+                background: linear-gradient(135deg, var(--purple), #B383F5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 18px;
+                color: white;
+            }
+
+            .page-container {
+                width: calc(100% - 120px);
+                max-width: 1500px;
+                margin: 42px auto 90px auto;
+            }
+
+            .back {
+                display: inline-block;
+                color: var(--purple);
+                font-size: 16px;
+                font-weight: 800;
+                margin-bottom: 26px;
+            }
+
+                .back:hover {
+                    color: var(--purple-dark);
+                }
+
+            .heading-row {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 20px;
+                margin-bottom: 28px;
+            }
+
+            h1 {
+                font-family: 'DM Sans', Arial, sans-serif;
+                font-size: 34px;
+                line-height: 1.2;
+                font-weight: 800;
+                color: var(--text);
+                margin-bottom: 8px;
+            }
+
+            .subtitle {
+                color: var(--muted);
+                font-size: 16px;
+                line-height: 1.6;
+            }
+
+            .alert-success {
+                background: #EAF8EF;
+                color: #267A46;
+                border: 1px solid #BEE5CB;
+                padding: 14px 18px;
+                border-radius: 12px;
+                margin-bottom: 20px;
+                font-weight: 800;
+            }
+
+            .alert-error {
+                background: #FDEBE7;
+                color: #B63E4D;
+                border: 1px solid #F4C7CD;
+                padding: 14px 18px;
+                border-radius: 12px;
+                margin-bottom: 20px;
+                font-weight: 800;
+            }
+
+            .table-card {
+                width: 100%;
+                background: var(--card);
+                border: 1px solid var(--line);
+                border-radius: 18px;
+                overflow-x: auto;
+                overflow-y: hidden;
+                box-shadow: 0 8px 30px rgba(36, 20, 46, .05);
+            }
+
+            table {
+                width: 100%;
+                min-width: 1100px;
+                border-collapse: collapse;
+            }
+
+            th {
+                background: #F3EDFB;
+                color: var(--text);
+                text-align: left;
+                padding: 16px;
+                font-size: 14px;
+                font-weight: 800;
+                white-space: nowrap;
+            }
+
+            td {
+                padding: 16px;
+                border-top: 1px solid #eeeeee;
+                font-size: 14px;
+                vertical-align: middle;
+                color: #15051f;
+            }
+
+            .id-col {
+                width: 130px;
+            }
+
+            .applicant-col {
+                min-width: 180px;
+            }
+
+            .pet-col {
+                min-width: 160px;
+            }
+
+            .date-col {
+                min-width: 170px;
+            }
+
+            .status-col {
+                min-width: 150px;
+            }
+
+            .action-col {
+                min-width: 260px;
+                width: 260px;
+            }
+
+            .status {
+                display: inline-block;
+                padding: 7px 13px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 800;
+                white-space: nowrap;
+            }
+
+            .status-approved {
+                background: var(--green-bg);
+                color: var(--green);
+            }
+
+            .status-pending {
+                background: var(--yellow-bg);
+                color: var(--yellow);
+            }
+
+            .status-rejected {
+                background: var(--red-bg);
+                color: var(--red);
+            }
+
+            .action-wrap {
+                display: flex;
+                align-items: center;
+                gap: 9px;
+                flex-wrap: wrap;
+            }
+
+                .action-wrap form {
+                    margin: 0;
+                    padding: 0;
+                    display: inline-flex;
+                }
+
+            .approve-btn,
+            .reject-btn {
+                min-height: 38px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 9px;
+                padding: 0 16px;
+                border: none;
+                font-family: 'DM Sans', Arial, sans-serif;
+                font-size: 14px;
+                font-weight: 800;
+                cursor: pointer;
+                white-space: nowrap;
+            }
+
+            .approve-btn {
+                background: #258447;
+                color: #ffffff;
+            }
+
+                .approve-btn:hover {
+                    background: #1f703b;
+                }
+
+            .reject-btn {
+                background: #C7475C;
+                color: #ffffff;
+            }
+
+                .reject-btn:hover {
+                    background: #a93a4d;
+                }
+
+            .completed-text {
+                color: var(--muted);
+                font-weight: 800;
+            }
+
+            .empty {
+                text-align: center;
+                padding: 34px;
+                color: var(--muted);
+                font-weight: 700;
+            }
+
+            @@media (max-width: 900px) {
+                .site-navbar {
+                    height: 70px;
+                    padding: 0 24px;
+                }
+
+                .site-logo {
+                    font-size: 23px;
+                }
+
+                .site-logo-mark {
+                    width: 34px;
+                    height: 34px;
+                    min-width: 34px;
+                    min-height: 34px;
+                    font-size: 17px;
+                }
+
+                .page-container {
+                    width: calc(100% - 40px);
+                    margin-top: 34px;
+                }
+
+                .heading-row {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+
+                h1 {
+                    font-size: 28px;
+                }
+            }
+
+            @@media (max-width: 520px) {
+                .site-navbar {
+                    height: 66px;
+                    padding: 0 18px;
+                }
+
+                .site-logo {
+                    font-size: 21px;
+                }
+
+                .site-logo-mark {
+                    width: 32px;
+                    height: 32px;
+                    min-width: 32px;
+                    min-height: 32px;
+                    font-size: 16px;
+                }
+            }
+    </style>
+</head>
+
+<body>
+
+    @await Html.PartialAsync("~/Views/Shared/Navbar.cshtml")
+
+
+    <nav class="site-navbar">
+        <a href="/" class="site-logo">
+            <span class="site-logo-mark">🐾</span>
+            <span>PetHope</span>
+        </a>
+    </nav>
+
+    <div class="page-container">
+        <div class="heading-row">
+            <div>
+                <h1>Adoption Requests</h1>
+                <p class="subtitle">
+                    Manage adoption requests for your shelter pets only.
+                </p>
+            </div>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert-success">
+                @TempData["Success"]
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert-error">
+                @TempData["Error"]
+            </div>
+        }
+
+        <div class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="id-col">Request ID</th>
+                        <th class="applicant-col">Applicant</th>
+                        <th class="pet-col">Pet</th>
+                        <th class="date-col">Request Date</th>
+                        <th class="status-col">Status</th>
+                        <th class="action-col">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model == null || !Model.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="empty">
+                                No adoption requests found.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var request in Model)
+                        {
+                            var requestId = GetRequestId(request);
+                            var applicantName = GetApplicantName(request);
+                            var petName = GetPetName(request);
+                            var requestDate = GetRequestDate(request);
+                            var status = GetStatus(request);
+                            var statusClass = StatusClass(status);
+
+                            <tr>
+                                <td class="id-col">
+                                    #@requestId
+                                </td>
+
+                                <td class="applicant-col">
+                                    @applicantName
+                                </td>
+
+                                <td class="pet-col">
+                                    @petName
+                                </td>
+
+                                <td class="date-col">
+                                    @requestDate
+                                </td>
+
+                                <td class="status-col">
+                                    <span class="status @statusClass">
+                                        @status
+                                    </span>
+                                </td>
+
+                                <td class="action-col">
+                                    @if (status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <div class="action-wrap">
+                                            <form method="post" action="/Shelter/AdoptionRequests/Approve/@requestId">
+                                                @Html.AntiForgeryToken()
+
+                                                <button type="submit" class="approve-btn">
+                                                    Approve
+                                                </button>
+                                            </form>
+
+                                            <form method="post" action="/Shelter/AdoptionRequests/Reject/@requestId">
+                                                @Html.AntiForgeryToken()
+
+                                                <button type="submit" class="reject-btn">
+                                                    Reject
+                                                </button>
+                                            </form>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="completed-text">
+                                            Completed
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</body>
+</html>

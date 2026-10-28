@@ -1,70 +1,170 @@
-# PetHope — ASP.NET Core MVC Version
+# 🐾 PetHope — Pet Welfare & Adoption Management System (PetWAMS)
 
-## যা যা এখানে আছে
+A web-based pet adoption and shelter management platform built with **ASP.NET Core MVC** and **SQL Server**. PetHope connects adopters with animal shelters, letting users browse pets, submit adoption requests, and track their applications, while shelters and administrators manage listings and requests from dedicated dashboards.
 
-আপনার আগের static HTML সাইটের সব পেজ এখন dynamic MVC পেজ, database থেকে connect করা:
+---
 
-| আপনার আগের ফাইল | এখন কী | কী বদলেছে |
+## ✨ Features
+
+### For Adopters
+- Browse available pets with filtering by category (Dog, Cat, Bird)
+- View detailed pet profiles: breed, age, gender, color, vaccination status, and description
+- Register, sign in, and submit adoption requests
+- Personal dashboard showing adoption requests and their status
+- Upload verification documents for adoption approval
+
+### For Shelters / Staff
+- Shelter dashboard with live counts of total pets and adoptions
+- Full pet management (Create, Read, Update, Delete)
+- Shelter profile management (contact email, opening hours)
+
+### For Administrators
+- Secure admin login with server-side session validation
+- Admin dashboard for platform oversight
+
+### Platform
+- Role-based access control (Adopter, Shelter Staff, Admin) using ASP.NET Core Areas
+- Real-time notifications via SignalR (`NotificationHub`)
+- Machine learning features powered by ML.NET
+- Responsive UI converted from the original HTML design into Razor views
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | ASP.NET Core MVC (.NET 8) |
+| Language | C# |
+| ORM | Entity Framework Core 8 |
+| Database | Microsoft SQL Server |
+| Real-time | SignalR |
+| Machine Learning | ML.NET (FastTree) |
+| Frontend | Razor Views, HTML5, CSS3, JavaScript |
+| IDE | Visual Studio 2022 / 2026 |
+
+---
+
+## 📁 Project Structure
+
+```
+PetWAMS.Web/
+├── Areas/
+│   ├── Admin/            # Admin dashboard
+│   ├── Adopter/          # Adopter dashboard
+│   └── Shelter/          # Shelter dashboard, pet management (CRUD), profile
+├── Controllers/          # Public controllers (Pets, Account)
+├── Data/                 # EF Core DbContext (PetWamsDbContext)
+├── Helpers/              # Utility classes
+├── MLModels/             # ML.NET models
+├── Migrations/           # EF Core migrations
+├── Models/               # Entity classes mapped to database tables
+├── Services/             # Business logic layer
+├── ViewModels/           # View-specific data models
+├── Views/                # Razor views
+├── wwwroot/              # Static assets (CSS, JS, images)
+├── App_Data/             # Uploaded adopter verification documents
+├── NotificationHub.cs    # SignalR hub for real-time notifications
+├── Program.cs            # Application entry point and service configuration
+├── appsettings.json      # Configuration and connection strings
+├── PetWAMSDB_WEB_SETUP.sql   # Full database setup script
+└── additional_schema.sql     # Supplementary schema changes
+```
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [SQL Server](https://www.microsoft.com/sql-server) (Express or Developer edition)
+- [SQL Server Management Studio (SSMS)](https://learn.microsoft.com/sql/ssms/download-sql-server-management-studio-ssms)
+- Visual Studio 2022 or later, with the **ASP.NET and web development** workload
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/tahrimmaria/PetWAMS.Web.git
+cd PetWAMS.Web
+```
+
+### 2. Set up the database
+Open SSMS and execute `PetWAMSDB_WEB_SETUP.sql`. This creates the `PetWAMSDB` database with all required tables and demo data.
+
+### 3. Configure the connection string
+Update `appsettings.json` so that `Server` matches your SQL Server instance:
+
+```json
+"ConnectionStrings": {
+  "DefaultConnection": "Server=.;Database=PetWAMSDB;Trusted_Connection=True;TrustServerCertificate=True;"
+}
+```
+
+> Use `Server=.\\SQLEXPRESS` if you are running SQL Server Express.
+
+### 4. Run the application
+Open `PetWAMS.Web.slnx` in Visual Studio and press **F5**, or run from the terminal:
+
+```bash
+dotnet run
+```
+
+---
+
+## 🔐 Demo Accounts
+
+| Role | Email | Password |
 |---|---|---|
-| `petdetails_Bella.html`, `_Max.html`, `_Luna.html`, `_Tommy.html`, `_Rio.html`, `_Buddy.html`, `_Milo.html`, `petdetail_Coco.html` | `/Pets/Details/1`, `/Pets/Details/2` ... `/Pets/Details/8` | ৮টা আলাদা ফাইলের বদলে **১টা** `Views/Pets/Details.cshtml`, ডাটা আসে DB থেকে |
-| `pets.html` | `/Pets` | Dog/Cat/Bird ফিল্টার এখন query string দিয়ে কাজ করে |
-| `managepets.html` | `/Shelter/Pets` | Edit/Delete বাটন এখন সত্যিই কাজ করে (আগে `href="#"` ছিল) |
-| `shelterprofile.html` | `/Shelter/Profile` | Total Pets/Adoptions সংখ্যা এখন live count |
-| `signin.html` | `/Account/SignIn` | role-toggle UI/JS হুবহু রাখা হয়েছে, submit করলে সার্ভারে email+role চেক করে |
-| `signup.html` | `/Account/SignUp` | Adopter ফর্ম DB-তে insert করে (Shelter ফর্ম আপাতত UI-only) |
-| `adminlogin.html`-এর `admin@gmail.com/admin123` hardcode | `/Account/AdminLogin` | এখন `Users` টেবিলে `UserType='Admin'` চেক করে |
-| `admindashboard.html`-এর `sessionStorage.getItem("adminLoggedIn")` | সার্ভার-সাইড session চেক | JS দিয়ে client-side "লক" আগে বাইপাস করা যেত; এখন সার্ভার নিজে যাচাই করে |
-| `dashboard.html` | `/Adopter/Dashboard` | "0" আর "No data yet" জায়গায় এখন real DB numbers/rows |
+| Adopter | `rahim@gmail.com` | Any non-empty value (demo mode) |
+| Shelter Staff | `tamim@gmail.com` | Any non-empty value (demo mode) |
+| Admin | `admin@gmail.com` | `admin123` |
 
-## চালানোর ধাপ
+> The admin panel is accessible at `/Account/AdminLogin`.
 
-### ১) ডাটাবেস বানান
-SSMS-এ ক্রমানুসারে রান করুন:
-1. আপনার `PetWAMSDB_ddl.sql`
-2. এই প্রজেক্টের `additional_schema.sql` (কিছু নতুন কলাম যোগ করে — Description, Vaccinated, Shelter Email/OpenHours)
-3. `seed_data.sql` (আপনার ৮টা পোষা প্রাণীর ডাটা + shelter + health record বসিয়ে দেয়)
+---
 
-### ২) Connection String চেক করুন
-`appsettings.json`-এ `Server=.` আপনার SQL Server instance নামের সাথে মিলছে কিনা দেখুন।
+## 🧭 Key Routes
 
-### ৩) Visual Studio-তে খুলুন
-`PetWAMS.Web.csproj`-এ ডাবল ক্লিক → F5 চাপুন।
+| Route | Description |
+|---|---|
+| `/Pets` | Browse all pets (supports category filtering) |
+| `/Pets/Details/{id}` | Pet detail page |
+| `/Account/SignIn` | Sign in with role selection |
+| `/Account/SignUp` | Adopter registration |
+| `/Account/AdminLogin` | Administrator login |
+| `/Adopter/Dashboard` | Adopter dashboard |
+| `/Shelter/Pets` | Manage shelter pets |
+| `/Shelter/Profile` | Shelter profile |
 
-### ৪) টেস্ট করুন
-- Homepage → **Browse Pets** ক্লিক করুন → dog/cat/bird ফিল্টার কাজ করছে দেখুন
-- যেকোনো পেটে ক্লিক করে **View Details** — এখন `/Pets/Details/1` টাইপ URL হবে, কিন্তু দেখতে হুবহু আপনার আগের ডিজাইনের মতোই
-- **Sign In** → Adopter সিলেক্ট করে `tahrim.maria@example.com` দিয়ে ঢুকুন → Dashboard-এ Bella-র request দেখবেন
-- **Sign In** → Shelter/Staff সিলেক্ট করে `happypaws@gmail.com` দিয়ে ঢুকুন → Shelter Dashboard
-- সরাসরি URL-এ `/Account/AdminLogin` গিয়ে `admin@gmail.com` দিয়ে ঢুকুন → Admin Dashboard
+---
 
-## গুরুত্বপূর্ণ সীমাবদ্ধতা (স্যার জিজ্ঞেস করলে বলার জন্য)
+## ⚠️ Known Limitations
 
-- **Password যাচাই এখনো নেই** — DDL-এর `Users` টেবিলে `Password` কলাম নেই, তাই এখন শুধু email+role মিললেই লগইন হয়ে যায়। Production-এ `PasswordHash` কলাম যোগ করে BCrypt দিয়ে verify করা উচিত।
-- **Shelter Staff কোন নির্দিষ্ট Shelter-এর — এই লিংক নেই** — DDL-এ Users-Shelters সরাসরি সম্পর্ক নেই, তাই Shelter Dashboard/Profile আপাতত প্রথম shelter row দেখায়। প্রয়োজনে `Users`-এ `ShelterID` কলাম যোগ করুন।
-- **Manage Pets-এ Add/Edit ফর্ম বেসিক** — শুধু মূল ফিল্ডগুলো আছে (name, breed, age, gender, color, description); চাইলে microchip, category dropdown ইত্যাদি যোগ করে দিতে পারি।
+This project is an academic prototype. The following are planned improvements before any production use:
 
-## ফাইল কী কাজ করে (এক নজরে)
+- **Password verification:** Authentication currently checks email and role only. A `PasswordHash` column with BCrypt hashing should be added.
+- **Shelter–staff mapping:** Users are not yet linked to a specific shelter, so shelter dashboards display the first shelter record. Adding a `ShelterID` foreign key to `Users` will resolve this.
+- **Shelter registration:** The shelter sign-up form is currently UI-only.
+- **Pet form fields:** The add/edit pet form covers core fields only. Microchip ID and category selection are planned.
 
-```
-Models/                    → প্রতিটা DB টেবিলের C# ক্লাস
-Data/PetWamsDbContext.cs   → DB connection
-Controllers/PetsController → Browse + Details (8 files → 1)
-Controllers/AccountController → SignIn/SignUp/AdminLogin/Logout
-Areas/Adopter/             → User Dashboard
-Areas/Shelter/             → Shelter Dashboard + Manage Pets (CRUD) + Profile
-Areas/Admin/                → Admin Dashboard
-additional_schema.sql       → নতুন কলাম যোগ করার script
-seed_data.sql               → demo data
-```
+---
 
+## 🗺️ Roadmap
 
-## Premium HTML design merged into MVC
-The supplied HTML designs have been converted to Razor/MVC views while keeping the same visual layout.
+- [ ] Secure password hashing and ASP.NET Core Identity integration
+- [ ] Shelter–staff relationship in the database
+- [ ] Image upload for pet profiles
+- [ ] Email notifications for adoption status changes
+- [ ] Deployment to Azure App Service
 
-### Demo login accounts
-- Adopter: `rahim@gmail.com` (any non-empty password for this class demo)
-- Shelter/Staff: `tamim@gmail.com` (any non-empty password for this class demo)
-- Admin: `admin@gmail.com` / `admin123`
+---
 
-### Database
-Use `PetWAMSDB_WEB_SETUP.sql` once in SSMS. The app connection string should point to `PetWAMSDB`.
+## 👩‍💻 Author
+
+**Tahrim Maria**
+GitHub: [@tahrimmaria](https://github.com/tahrimmaria)
+
+---
+
+## 📄 License
+
+This project was developed for academic purposes. All rights reserved.
